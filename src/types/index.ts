@@ -5,6 +5,7 @@ export interface User {
     email: string;
     is_admin: boolean;
     is_delivery_person: boolean;
+    phone_number?: string;
     token?: string; // JWT access token (optional, added after login)
   }
   

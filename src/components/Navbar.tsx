@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../store/store';
+import { logout } from '../store/authSlice';
 
 const Navbar: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Temporary state for demo
+  const isAuthenticated = useSelector((state: RootState) => !!state.auth.token);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('token'); // Clear token
+    dispatch(logout());
     navigate('/login');
   };
 
