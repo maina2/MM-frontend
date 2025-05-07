@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Cart from './pages/Cart';
 import Payment from './pages/Payment';
 import Delivery from './pages/Delivery';
+import GoogleCallback from './pages/GoogleCallback';
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,8 @@ const App: React.FC = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="/delivery/:orderId" element={<Delivery />} />
+          <Route path="/auth/google/callback" element={<GoogleCallback />} /> 
+
         </Routes>
       </div>
     </Router>

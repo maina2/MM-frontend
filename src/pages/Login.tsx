@@ -1,26 +1,40 @@
 import React, { useState } from 'react';
-import { useLoginMutation } from '../api/apiSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../store/authSlice';
+import axios from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [login, { isLoading, error }] = useLoginMutation();
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation(); // Add this
+
+  // Check for errors passed from GoogleCallback
+  const callbackError = location.state?.error;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ username, password }).unwrap();
-      navigate('/'); // Redirect to Home page after login
+      const response = await axios.post('http://localhost:8000/api/users/login/', {
+        username,
+        password,
+      });
+      dispatch(setCredentials({ user: response.data.user, token: response.data.access }));
+      navigate('/');
     } catch (err) {
-      console.error('Login failed:', err);
+      setError('Invalid username or password');
     }
   };
 
   return (
     <div className="container mx-auto p-4 max-w-md">
       <h1 className="text-3xl font-bold mb-4 text-dark">Login</h1>
+      {error && <p className="text-accent">{error}</p>}
+      {callbackError && <p className="text-accent">{callbackError}</p>} {/* Display callback errors */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="username" className="block text-dark mb-1">
@@ -48,19 +62,28 @@ const Login: React.FC = () => {
             required
           />
         </div>
-        {error && (
-          <p className="text-accent">
-            {error && 'data' in error ? (error as any).data?.detail || 'Login failed' : 'Login failed'}
-          </p>
-        )}
         <button
           type="submit"
-          disabled={isLoading}
-          className="w-full bg-primary text-white py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+          className="w-full bg-primary text-white py-2 rounded hover:bg-green-700"
         >
-          {isLoading ? 'Logging in...' : 'Login'}
+          Login
         </button>
       </form>
+      <div className="mt-4">
+        <GoogleLogin
+          onSuccess={(response) => {
+            console.log('Google login success:', response);
+          }}
+          onError={() => {
+            console.log('Google login failed');
+            setError('Google login failed');
+          }}
+          flow="auth-code"
+          redirect_uri="http://localhost:5173/auth/google/callback"
+          scope="openid email profile"
+          ux_mode="redirect"
+        />
+      </div>
     </div>
   );
 };

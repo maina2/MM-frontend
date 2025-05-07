@@ -13,6 +13,13 @@ const GoogleCallback = () => {
     const handleCallback = async () => {
       const params = new URLSearchParams(location.search);
       const code = params.get('code');
+      const error = params.get('error');
+
+      if (error) {
+        console.error('Google OAuth error:', error);
+        navigate('/login', { state: { error: 'Google authentication failed' } });
+        return;
+      }
 
       if (code) {
         try {
@@ -30,17 +37,17 @@ const GoogleCallback = () => {
           navigate('/');
         } catch (error) {
           console.error('Google login failed:', error);
-          navigate('/login');
+          navigate('/login', { state: { error: 'Failed to authenticate with the server' } });
         }
       } else {
-        navigate('/login');
+        navigate('/login', { state: { error: 'No authorization code received' } });
       }
     };
 
     handleCallback();
   }, [location, navigate, dispatch]);
 
-  return <div>Loading...</div>;
+  return <div className="container mx-auto p-4">Loading...</div>;
 };
 
 export default GoogleCallback;
