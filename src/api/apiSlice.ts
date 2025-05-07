@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { setCredentials } from '../store/authSlice';
 import { User, Product, Order, Payment, Delivery } from '../types';
+import { RootState } from '../store/store';
 
 const BASE_URL = 'http://localhost:8000/api/';
 
@@ -9,7 +10,8 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL,
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as { auth: { token: string | null } }).auth.token;
+      const state = getState() as RootState;
+      const token = state.auth.token;
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
@@ -19,7 +21,7 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     register: builder.mutation<User, { username: string; email: string; password: string }>({
       query: (credentials) => ({
-        url: 'users/register/',
+        url: 'users/register/',  // Now /api/users/register/
         method: 'POST',
         body: credentials,
       }),
@@ -29,17 +31,16 @@ export const apiSlice = createApi({
       { username: string; password: string }
     >({
       query: (credentials) => ({
-        url: 'users/login/',
+        url: 'users/login/',  // Now /api/users/login/
         method: 'POST',
         body: credentials,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          // Add is_delivery_person since the backend doesn't return it
           const userWithDefaults: User = {
             ...data.user,
-            is_delivery_person: data.user.is_delivery_person ?? false, // Default to false if not provided
+            is_delivery_person: data.user.is_delivery_person ?? false,
           };
           dispatch(setCredentials({ user: userWithDefaults, token: data.access }));
         } catch (error) {
@@ -48,18 +49,18 @@ export const apiSlice = createApi({
       },
     }),
     getProducts: builder.query<Product[], void>({
-      query: () => 'products/products/',
+      query: () => 'products/products/',  // Now /api/products/products/
     }),
     createOrder: builder.mutation<Order, { items: { product_id: number; quantity: number }[] }>({
       query: (orderData) => ({
-        url: 'orders/',
+        url: 'orders/',  // Now /api/orders/
         method: 'POST',
         body: orderData,
       }),
     }),
     initiatePayment: builder.mutation<Payment, { order_id: number; phone_number: string }>({
       query: (paymentData) => ({
-        url: 'payments/',
+        url: 'payment/',  // Now /api/payment/
         method: 'POST',
         body: paymentData,
       }),
@@ -69,7 +70,7 @@ export const apiSlice = createApi({
       { order_id: number; delivery_address: string; latitude?: number; longitude?: number }
     >({
       query: (deliveryData) => ({
-        url: 'deliveries/',
+        url: 'delivery/',  // Now /api/delivery/
         method: 'POST',
         body: deliveryData,
       }),
