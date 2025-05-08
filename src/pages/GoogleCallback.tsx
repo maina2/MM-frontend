@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'; // Add useRef
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
@@ -8,10 +8,10 @@ const GoogleCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const hasRun = useRef(false); // Track if the callback has already run
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    if (hasRun.current) return; // Prevent double execution
+    if (hasRun.current) return;
     hasRun.current = true;
 
     const handleCallback = async () => {
@@ -30,42 +30,52 @@ const GoogleCallback = () => {
 
       if (returnedState !== storedState) {
         console.error('State mismatch. Possible CSRF attack.');
-        sessionStorage.removeItem('oauth_state'); // Clean up even on failure
+        sessionStorage.removeItem('oauth_state');
         navigate('/login', { state: { error: 'State mismatch. Authentication failed.' } });
         return;
       }
 
       if (error) {
         console.error('Google OAuth error:', error);
-        sessionStorage.removeItem('oauth_state'); // Clean up
+        sessionStorage.removeItem('oauth_state');
         navigate('/login', { state: { error: 'Google authentication failed: ' + error } });
         return;
       }
 
       if (code) {
         try {
-          console.log('Sending code to backend:', code);
-          const response = await axios.post('http://localhost:8000/api/users/google/', {
-            code,
-          });
+          console.log('Sending to backend:', { code, state: returnedState });
+          const response = await axios.post(
+            'http://localhost:8000/api/users/google/',
+            {
+              code,
+              state: returnedState, // Include state in payload
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
           const { user, access, refresh } = response.data;
           dispatch(setCredentials({ user, token: access }));
-          sessionStorage.removeItem('oauth_state'); // Clean up after success
+          sessionStorage.removeItem('oauth_state');
           navigate('/');
         } catch (error) {
           console.error('Google login failed:', error);
-          sessionStorage.removeItem('oauth_state'); // Clean up on failure
+          sessionStorage.removeItem('oauth_state');
           navigate('/login', { state: { error: 'Failed to authenticate with the server' } });
         }
       } else {
-        sessionStorage.removeItem('oauth_state'); // Clean up
+        console.error('No authorization code received');
+        sessionStorage.removeItem('oauth_state');
         navigate('/login', { state: { error: 'No authorization code received' } });
       }
     };
 
     handleCallback();
-  }, [location, navigate, dispatch]); // Dependencies remain the same
+  }, [location, navigate, dispatch]);
 
   return <div className="container mx-auto p-4">Loading...</div>;
 };
