@@ -9,7 +9,6 @@ const Navbar: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
-  console.log('Current user:', user);
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
