@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import Layout from './components/Layout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -12,19 +12,22 @@ import GoogleCallback from './pages/GoogleCallback';
 const App: React.FC = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-neutral">
-        <Navbar />
-        <Routes>
+      <Routes>
+        <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="/delivery/:orderId" element={<Delivery />} />
-          <Route path="/auth/google/callback" element={<GoogleCallback />} /> 
-
-        </Routes>
-      </div>
+          {/* Placeholder routes */}
+          <Route path="/products" element={<div>Products Page</div>} />
+          <Route path="/profile" element={<div>Profile Page</div>} />
+          <Route path="/orders" element={<div>Orders Page</div>} />
+        </Route>
+        {/* Pages without Layout */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
+      </Routes>
     </Router>
   );
 };
