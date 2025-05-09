@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
@@ -16,6 +16,15 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${searchQuery}`);
+    }
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -47,14 +56,18 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
                 placeholder="Search products..."
-                className="px-3 py-1 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-secondary"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-3 py-1 rounded-lg bg-primary/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-secondary"
               />
-              <FaSearch className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60" />
-            </div>
+              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                <FaSearch className="text-white/60" />
+              </button>
+            </form>
             <Link to="/cart" className="relative">
               <FaShoppingCart size={24} />
               {cartItems > 0 && (
@@ -66,7 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="bg-accent px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors"
+                className="bg-accent px-4 py-2 rounded-lg hover:bg-accent/90 active:bg-accent/70 transition-colors"
               >
                 Logout
               </button>
@@ -75,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
                 <Link to="/login" className="hover:text-secondary transition-colors">
                   Login
                 </Link>
-                <Link to="/register" className="bg-secondary px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
+                <Link to="/register" className="bg-secondary px-4 py-2 rounded-lg hover:bg-secondary/90 active:bg-secondary/80 transition-colors">
                   Register
                 </Link>
               </>
@@ -108,14 +121,18 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
           </div>
         </div>
         <div className="px-4 pb-3">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
               placeholder="Search products..."
-              className="w-full px-3 py-2 rounded-lg bg-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:scale-105 transition-transform"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-primary/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-secondary focus:scale-105 transition-transform"
             />
-            <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60" />
-          </div>
+            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <FaSearch className="text-white/60" />
+            </button>
+          </form>
         </div>
       </div>
 

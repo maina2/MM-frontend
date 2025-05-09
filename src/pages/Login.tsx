@@ -60,7 +60,7 @@ const Login: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all duration-500 hover:scale-105">
         <h1 className="text-3xl font-bold text-dark text-center mb-6">Welcome Back</h1>
         {(error || callbackError) && (
-          <div className="bg-accent/10 text-accent p-3 rounded-lg mb-4 text-center">
+          <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-center">
             {error || callbackError}
           </div>
         )}

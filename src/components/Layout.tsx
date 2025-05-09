@@ -11,13 +11,18 @@ const Layout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral flex">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col">
-        <Navbar toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 md:ml-64 md:p-8 pt-24 pb-16 md:pt-16 md:pb-8">
+    <div className="min-h-screen bg-neutral flex flex-col">
+      {/* Navbar (Desktop: Top, Mobile: Top + Bottom) */}
+      <Navbar toggleSidebar={toggleSidebar} />
+      
+      <div className="flex flex-1 pt-16">
+        {/* Sidebar (Desktop Only) */}
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        
+        {/* Main Content */}
+        <div className="flex-1 p-4 md:pl-72 md:p-8 pb-16 md:pb-8">
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   );
