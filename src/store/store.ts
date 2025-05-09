@@ -4,6 +4,14 @@ import { apiSlice } from '../api/apiSlice';
 import cartReducer from './cartSlice';
 import authReducer from './authSlice';
 
+// Error logging middleware to catch and log Redux errors
+const errorLoggingMiddleware = () => (next: any) => (action: any) => {
+  if (action?.error) {
+    console.error('Redux Error:', action.error);
+  }
+  return next(action);
+};
+
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
@@ -11,7 +19,10 @@ export const store = configureStore({
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    getDefaultMiddleware()
+      .concat(apiSlice.middleware)
+      .concat(errorLoggingMiddleware),
+  devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development
 });
 
 setupListeners(store.dispatch);

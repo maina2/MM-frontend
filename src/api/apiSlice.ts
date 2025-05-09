@@ -1,27 +1,65 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { setCredentials } from '../store/authSlice';
+import { setCredentials, logout } from '../store/authSlice';
 import { User, Product, Order, Payment, Delivery } from '../types';
 import { RootState } from '../store/store';
 
 const BASE_URL = 'http://localhost:8000/api/';
 
+const baseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  prepareHeaders: (headers, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.auth.token;
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+  let result = await baseQuery(args, api, extraOptions);
+  if (result.error && result.error.status === 401) {
+    const refreshToken = (api.getState() as RootState).auth.refreshToken;
+    if (refreshToken) {
+      const refreshResult = await baseQuery(
+        {
+          url: 'users/refresh/',
+          method: 'POST',
+          body: { refresh: refreshToken },
+        },
+        api,
+        extraOptions
+      );
+      if (refreshResult.data) {
+        const newAccessToken = (refreshResult.data as any).access;
+        const newRefreshToken = (refreshResult.data as any).refresh || refreshToken;
+        api.dispatch(
+          setCredentials({
+            user: (api.getState() as RootState).auth.user!,
+            token: newAccessToken,
+            refreshToken: newRefreshToken,
+          })
+        );
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        api.dispatch(logout());
+      }
+    } else {
+      api.dispatch(logout());
+    }
+  }
+  return result;
+};
+
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token = state.auth.token;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ['Products', 'Orders', 'Payments', 'Deliveries'],
   endpoints: (builder) => ({
     register: builder.mutation<User, { username: string; email: string; password: string }>({
       query: (credentials) => ({
-        url: 'users/register/',  // Now /api/users/register/
+        url: 'users/register/',
         method: 'POST',
         body: credentials,
       }),
@@ -31,7 +69,7 @@ export const apiSlice = createApi({
       { username: string; password: string }
     >({
       query: (credentials) => ({
-        url: 'users/login/',  // Now /api/users/login/
+        url: 'users/login/',
         method: 'POST',
         body: credentials,
       }),
@@ -42,38 +80,55 @@ export const apiSlice = createApi({
             ...data.user,
             is_delivery_person: data.user.is_delivery_person ?? false,
           };
-          dispatch(setCredentials({ user: userWithDefaults, token: data.access }));
-        } catch (error) {
-          console.error('Login failed:', error);
+          dispatch(
+            setCredentials({
+              user: userWithDefaults,
+              token: data.access,
+              refreshToken: data.refresh,
+            })
+          );
+        } catch (error: any) {
+          console.error('Login failed:', error?.data?.detail || 'Unknown error');
         }
       },
     }),
-    getProducts: builder.query<Product[], void>({
-      query: () => 'products/products/',  // Now /api/products/products/
+    getProducts: builder.query<Product[], { search?: string; category?: string }>({
+      query: ({ search = '', category = '' }) => ({
+        url: 'products/products/',
+        params: { search, category },
+      }),
+      providesTags: ['Products'],
+    }),
+    getOrders: builder.query<Order[], void>({
+      query: () => 'orders/',
+      providesTags: ['Orders'],
     }),
     createOrder: builder.mutation<Order, { items: { product_id: number; quantity: number }[] }>({
       query: (orderData) => ({
-        url: 'orders/',  // Now /api/orders/
+        url: 'orders/',
         method: 'POST',
         body: orderData,
       }),
+      invalidatesTags: ['Orders'],
     }),
     initiatePayment: builder.mutation<Payment, { order_id: number; phone_number: string }>({
       query: (paymentData) => ({
-        url: 'payment/',  // Now /api/payment/
+        url: 'payment/',
         method: 'POST',
         body: paymentData,
       }),
+      invalidatesTags: ['Payments'],
     }),
     createDelivery: builder.mutation<
       Delivery,
       { order_id: number; delivery_address: string; latitude?: number; longitude?: number }
     >({
       query: (deliveryData) => ({
-        url: 'delivery/',  // Now /api/delivery/
+        url: 'delivery/',
         method: 'POST',
         body: deliveryData,
       }),
+      invalidatesTags: ['Deliveries'],
     }),
   }),
 });
@@ -82,6 +137,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useGetProductsQuery,
+  useGetOrdersQuery,
   useCreateOrderMutation,
   useInitiatePaymentMutation,
   useCreateDeliveryMutation,
