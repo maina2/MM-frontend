@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { setCredentials, logout } from '../store/authSlice';
-import { User, Product, Order, Payment, Delivery } from '../types';
+import { User, Product, Order, Payment, Delivery, Category } from '../types';
 import { RootState } from '../store/store';
 
 const BASE_URL = 'http://localhost:8000/api/';
@@ -55,7 +55,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Products', 'Orders', 'Payments', 'Deliveries'],
+  tagTypes: ['Products', 'Orders', 'Payments', 'Deliveries', 'Categories'],
   endpoints: (builder) => ({
     register: builder.mutation<User, { username: string; email: string; password: string }>({
       query: (credentials) => ({
@@ -94,10 +94,14 @@ export const apiSlice = createApi({
     }),
     getProducts: builder.query<Product[], { search?: string; category?: string }>({
       query: ({ search = '', category = '' }) => ({
-        url: 'products/products/',
+        url: 'products/',
         params: { search, category },
       }),
       providesTags: ['Products'],
+    }),
+    getCategories: builder.query<Category[], void>({
+      query: () => 'categories/',
+      providesTags: ['Categories'],
     }),
     getOrders: builder.query<Order[], void>({
       query: () => 'orders/',
@@ -137,6 +141,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useGetProductsQuery,
+  useGetCategoriesQuery,
   useGetOrdersQuery,
   useCreateOrderMutation,
   useInitiatePaymentMutation,

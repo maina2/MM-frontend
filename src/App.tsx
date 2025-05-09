@@ -8,7 +8,7 @@ import Cart from './pages/Cart';
 import Payment from './pages/Payment';
 import Delivery from './pages/Delivery';
 import GoogleCallback from './pages/GoogleCallback';
-import ProductsTest from './pages/ProductsTest';
+import Products from './pages/Products';
 
 const App: React.FC = () => {
   return (
@@ -19,13 +19,13 @@ const App: React.FC = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="/delivery/:orderId" element={<Delivery />} />
-          <Route path="/products" element={<div>Products Page</div>} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<div>Product Detail Page</div>} />
           <Route path="/profile" element={<div>Profile Page</div>} />
           <Route path="/orders" element={<div>Orders Page</div>} />
           <Route path="/discover" element={<div>Discover Page</div>} />
           <Route path="/wallet" element={<div>Wallet Page</div>} />
           <Route path="/notifications" element={<div>Notifications Page</div>} />
-          <Route path="/test-products" element={<ProductsTest />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
