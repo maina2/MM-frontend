@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#2E7D32',
-        secondary: '#F59E0B',
-        accent: '#DC2626',
-        neutral: '#F5F5F5',
-        dark: '#1F2937',
+        primary: '#115E59', // Deep Teal
+        secondary: '#FF6F61', // Coral
+        accent: '#F4A261', // Soft Orange
+        neutral: '#F9FAFB', // Soft Gray
+        dark: '#1F2937', // Charcoal (retained)
       },
       animation: {
         fadeIn: 'fadeIn 0.5s ease-in',

@@ -23,28 +23,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       <nav className="space-y-2 p-4">
         <Link
           to="/products?category=groceries"
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-dark/80 transition-colors"
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/20 transition-colors"
           onClick={toggleSidebar}
         >
           <FaShoppingBag /> Groceries
         </Link>
         <Link
           to="/products?category=beverages"
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-dark/80 transition-colors"
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/20 transition-colors"
           onClick={toggleSidebar}
         >
           <FaShoppingBag /> Beverages
         </Link>
         <Link
           to="/orders"
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-dark/80 transition-colors"
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/20 transition-colors"
           onClick={toggleSidebar}
         >
           <FaBox /> Orders
         </Link>
         <Link
           to="/delivery"
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-dark/80 transition-colors"
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/20 transition-colors"
           onClick={toggleSidebar}
         >
           <FaTruck /> Delivery Status

@@ -18,12 +18,13 @@ const App: React.FC = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment/:orderId" element={<Payment />} />
           <Route path="/delivery/:orderId" element={<Delivery />} />
-          {/* Placeholder routes */}
           <Route path="/products" element={<div>Products Page</div>} />
           <Route path="/profile" element={<div>Profile Page</div>} />
           <Route path="/orders" element={<div>Orders Page</div>} />
+          <Route path="/discover" element={<div>Discover Page</div>} />
+          <Route path="/wallet" element={<div>Wallet Page</div>} />
+          <Route path="/notifications" element={<div>Notifications Page</div>} />
         </Route>
-        {/* Pages without Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
