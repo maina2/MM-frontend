@@ -8,17 +8,15 @@ const Layout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex flex-col min-h-screen">
         {/* Navbar */}
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md shadow-sm">
-          <Navbar />
-        </header>
+        <Navbar />
 
-        {/* Content */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full">
+        {/* Content - Add padding to account for fixed mobile nav bars */}
+        <main className="flex-1 md:pt-0 pt-24 pb-16 md:pb-0 p-4 sm:p-6 max-w-7xl mx-auto w-full">
           <Outlet />
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-100 py-8 px-6">
+        <footer className="bg-white border-t border-gray-100 py-8 px-6 md:block hidden">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
@@ -47,6 +45,13 @@ const Layout: React.FC = () => {
             <div className="mt-8 pt-6 border-t border-gray-100 text-center text-gray-500 text-sm">
               © {new Date().getFullYear()} Muindi Mweusi Supermarket. All rights reserved.
             </div>
+          </div>
+        </footer>
+        
+        {/* Mobile Footer - Simplified */}
+        <footer className="bg-white border-t border-gray-100 py-4 px-4 md:hidden block mb-14">
+          <div className="text-center text-gray-500 text-sm">
+            © {new Date().getFullYear()} Muindi Mweusi Supermarket
           </div>
         </footer>
       </div>
