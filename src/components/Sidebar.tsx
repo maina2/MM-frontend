@@ -1,55 +1,46 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaShoppingBag, FaBox, FaTruck, FaTimes } from 'react-icons/fa';
 
-interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+const Sidebar: React.FC = () => {
   return (
-    <div
-      className={`fixed md:pt-16 top-0 left-0 h-full w-64 bg-dark text-white transform transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:translate-x-0 md:top-16 z-30`}
-    >
-      <div className="p-4 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-accent">Categories</h2>
-        <button className="md:hidden" onClick={toggleSidebar}>
-          <FaTimes size={24} />
-        </button>
+    <div className="hidden lg:block w-64 bg-dark text-white fixed top-0 left-0 h-screen z-20">
+      <div className="p-4">
+        <h2 className="text-2xl font-bold mb-6">Muindi Mweusi</h2>
+        <ul className="space-y-2">
+          <li>
+            <Link
+              to="/"
+              className="block px-4 py-2 rounded-lg hover:bg-primary/20 transition-all"
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/products"
+              className="block px-4 py-2 rounded-lg hover:bg-primary/20 transition-all"
+            >
+              Products
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/cart"
+              className="block px-4 py-2 rounded-lg hover:bg-primary/20 transition-all"
+            >
+              Cart
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/orders"
+              className="block px-4 py-2 rounded-lg hover:bg-primary/20 transition-all"
+            >
+              Orders
+            </Link>
+          </li>
+        </ul>
       </div>
-      <nav className="space-y-2 p-4">
-        <Link
-          to="/products?category=groceries"
-          className="flex items-center gap-2 p-3 rounded-lg hover:bg-secondary/20 transition-colors"
-          onClick={toggleSidebar}
-        >
-          <FaShoppingBag className="text-accent" /> Groceries
-        </Link>
-        <Link
-          to="/products?category=beverages"
-          className="flex items-center gap-2 p-3 rounded-lg hover:bg-secondary/20 transition-colors"
-          onClick={toggleSidebar}
-        >
-          <FaShoppingBag className="text-accent" /> Beverages
-        </Link>
-        <Link
-          to="/orders"
-          className="flex items-center gap-2 p-3 rounded-lg hover:bg-secondary/20 transition-colors"
-          onClick={toggleSidebar}
-        >
-          <FaBox className="text-accent" /> Orders
-        </Link>
-        <Link
-          to="/delivery"
-          className="flex items-center gap-2 p-3 rounded-lg hover:bg-secondary/20 transition-colors"
-          onClick={toggleSidebar}
-        >
-          <FaTruck className="text-accent" /> Delivery Status
-        </Link>
-      </nav>
     </div>
   );
 };

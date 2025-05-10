@@ -3,13 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
-import { FaShoppingCart, FaUser, FaSearch, FaBell, FaHome, FaShoppingBag, FaWallet, FaUserCircle, FaCompass } from 'react-icons/fa';
+import { FaShoppingCart, FaUserCircle, FaSearch, FaHome, FaShoppingBag, FaWallet, FaCompass } from 'react-icons/fa';
 
-interface NavbarProps {
-  toggleSidebar: () => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
+const Navbar: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => !!state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user);
   const cartItems = useSelector((state: RootState) => state.cart?.items?.length || 0);
@@ -35,7 +31,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
     <>
       {/* Desktop Navbar (Top) */}
       <nav className="hidden md:block fixed top-0 left-0 w-full bg-primary text-white shadow-md z-40">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold animate-fadeIn">
             Muindi Mweusi
           </Link>
@@ -97,19 +93,13 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
         </div>
       </nav>
 
-      {/* Mobile Header (Top: Logo, Notifications, Cart, Search Bar) */}
+      {/* Mobile Header (Top: Logo, Cart, Profile, Search Bar) */}
       <div className="md:hidden fixed top-0 left-0 w-full bg-primary text-white shadow-md z-40">
         <div className="flex justify-between items-center px-4 py-3">
           <Link to="/" className="text-xl font-bold">
             Muindi Mweusi
           </Link>
           <div className="flex items-center space-x-4">
-            <Link to="/notifications" className="relative">
-              <FaBell size={24} />
-              <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                2
-              </span>
-            </Link>
             <Link to="/cart" className="relative">
               <FaShoppingCart size={24} />
               {cartItems > 0 && (
@@ -117,6 +107,9 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
                   {cartItems}
                 </span>
               )}
+            </Link>
+            <Link to="/profile">
+              <FaUserCircle size={24} />
             </Link>
           </div>
         </div>
