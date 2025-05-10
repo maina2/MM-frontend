@@ -92,11 +92,8 @@ export const apiSlice = createApi({
         }
       },
     }),
-    getProducts: builder.query<Product[], { search?: string; category?: string }>({
-      query: ({ search = '', category = '' }) => ({
-        url: 'products/',
-        params: { search, category },
-      }),
+    getProducts: builder.query<Product[], void>({
+      query: () => 'products/',
       providesTags: ['Products'],
     }),
     getCategories: builder.query<Category[], void>({
