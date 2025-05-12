@@ -1,9 +1,17 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { setCredentials, logout } from '../store/authSlice';
-import { User, Product, ProductDetail, Order, Payment, Delivery, Category } from '../types';
-import { RootState } from '../store/store';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setCredentials, logout } from "../store/authSlice";
+import {
+  User,
+  Product,
+  ProductDetail,
+  Order,
+  Payment,
+  Delivery,
+  Category,
+} from "../types";
+import { RootState } from "../store/store";
 
-const BASE_URL = 'http://localhost:8000/api/';
+const BASE_URL = "http://localhost:8000/api/";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -11,7 +19,7 @@ const baseQuery = fetchBaseQuery({
     const state = getState() as RootState;
     const token = state.auth.token;
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      headers.set("Authorization", `Bearer ${token}`);
     }
     return headers;
   },
@@ -24,8 +32,8 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     if (refreshToken) {
       const refreshResult = await baseQuery(
         {
-          url: 'users/refresh/',
-          method: 'POST',
+          url: "users/refresh/",
+          method: "POST",
           body: { refresh: refreshToken },
         },
         api,
@@ -33,7 +41,8 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
       );
       if (refreshResult.data) {
         const newAccessToken = (refreshResult.data as any).access;
-        const newRefreshToken = (refreshResult.data as any).refresh || refreshToken;
+        const newRefreshToken =
+          (refreshResult.data as any).refresh || refreshToken;
         api.dispatch(
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
@@ -53,14 +62,24 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 };
 
 export const apiSlice = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Products', 'Orders', 'ProductDetail', 'Payments', 'Deliveries', 'Categories'],
+  tagTypes: [
+    "Products",
+    "Orders",
+    "ProductDetail",
+    "Payments",
+    "Deliveries",
+    "Categories",
+  ],
   endpoints: (builder) => ({
-    register: builder.mutation<User, { username: string; email: string; password: string }>({
+    register: builder.mutation<
+      User,
+      { username: string; email: string; password: string }
+    >({
       query: (credentials) => ({
-        url: 'users/register/',
-        method: 'POST',
+        url: "users/register/",
+        method: "POST",
         body: credentials,
       }),
     }),
@@ -69,8 +88,8 @@ export const apiSlice = createApi({
       { username: string; password: string }
     >({
       query: (credentials) => ({
-        url: 'users/login/',
-        method: 'POST',
+        url: "users/login/",
+        method: "POST",
         body: credentials,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
@@ -88,59 +107,77 @@ export const apiSlice = createApi({
             })
           );
         } catch (error: any) {
-          console.error('Login failed:', error?.data?.detail || 'Unknown error');
+          console.error(
+            "Login failed:",
+            error?.data?.detail || "Unknown error"
+          );
         }
       },
     }),
     getProducts: builder.query<Product[], void>({
-      query: () => 'products/',
-      providesTags: ['Products'],
+      query: () => "products/",
+      providesTags: ["Products"],
     }),
     getProductById: builder.query<ProductDetail, number>({
       query: (id) => `products/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'ProductDetail', id }],
+      providesTags: (result, error, id) => [{ type: "ProductDetail", id }],
     }),
     getCategories: builder.query<Category[], void>({
-      query: () => 'categories/',
-      providesTags: ['Categories'],
+      query: () => "categories/",
+      providesTags: ["Categories"],
+      transformResponse: (response: any) => {
+        // If the response is paginated, return the 'results' array; otherwise, return the response as-is
+        return response.results ? response.results : response;
+      },
     }),
     getCategoryDetail: builder.query<
       { category: Category; products: Product[] },
       number
     >({
       query: (id) => `categories/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'Categories', id }],
+      providesTags: (result, error, id) => [{ type: "Categories", id }],
     }),
     getOrders: builder.query<Order[], void>({
-      query: () => 'orders/',
-      providesTags: ['Orders'],
+      query: () => "orders/",
+      providesTags: ["Orders"],
     }),
-    createOrder: builder.mutation<Order, { items: { product_id: number; quantity: number }[] }>({
+    createOrder: builder.mutation<
+      Order,
+      { items: { product_id: number; quantity: number }[] }
+    >({
       query: (orderData) => ({
-        url: 'orders/',
-        method: 'POST',
+        url: "orders/",
+        method: "POST",
         body: orderData,
       }),
-      invalidatesTags: ['Orders'],
+      invalidatesTags: ["Orders"],
     }),
-    initiatePayment: builder.mutation<Payment, { order_id: number; phone_number: string }>({
+    initiatePayment: builder.mutation<
+      Payment,
+      { order_id: number; phone_number: string }
+    >({
       query: (paymentData) => ({
-        url: 'payment/',
-        method: 'POST',
+        url: "payment/",
+        method: "POST",
         body: paymentData,
       }),
-      invalidatesTags: ['Payments'],
+      invalidatesTags: ["Payments"],
     }),
     createDelivery: builder.mutation<
       Delivery,
-      { order_id: number; delivery_address: string; latitude?: number; longitude?: number }
+      {
+        order_id: number;
+        delivery_address: string;
+        latitude?: number;
+        longitude?: number;
+      }
     >({
       query: (deliveryData) => ({
-        url: 'delivery/',
-        method: 'POST',
+        url: "delivery/",
+        method: "POST",
         body: deliveryData,
       }),
-      invalidatesTags: ['Deliveries'],
+      invalidatesTags: ["Deliveries"],
     }),
   }),
 });
