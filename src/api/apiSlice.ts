@@ -104,6 +104,13 @@ export const apiSlice = createApi({
       query: () => 'categories/',
       providesTags: ['Categories'],
     }),
+    getCategoryDetail: builder.query<
+      { category: Category; products: Product[] },
+      number
+    >({
+      query: (id) => `categories/${id}/`,
+      providesTags: (result, error, id) => [{ type: 'Categories', id }],
+    }),
     getOrders: builder.query<Order[], void>({
       query: () => 'orders/',
       providesTags: ['Orders'],
@@ -144,6 +151,7 @@ export const {
   useGetProductsQuery,
   useGetProductByIdQuery,
   useGetCategoriesQuery,
+  useGetCategoryDetailQuery,
   useGetOrdersQuery,
   useCreateOrderMutation,
   useInitiatePaymentMutation,
