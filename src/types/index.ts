@@ -33,7 +33,17 @@ export interface Product {
   image: string | null;
   created_at: string;
 }
-
+export interface ProductDetail{
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  stock: number;
+  category: Category;
+  branch: Branch;
+  image: string | null;
+  created_at: string;
+}
 // Order Item type (used in Order)
 export interface OrderItem {
   id: number;
