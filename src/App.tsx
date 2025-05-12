@@ -10,6 +10,8 @@ import Delivery from './pages/Delivery';
 import GoogleCallback from './pages/GoogleCallback';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
+import Categories from './pages/Categories'; // New import
+import CategoryDetail from './pages/CategoryDetail'; // New import
 
 const App: React.FC = () => {
   return (
@@ -22,6 +24,8 @@ const App: React.FC = () => {
           <Route path="/delivery/:orderId" element={<Delivery />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/categories" element={<Categories />} /> 
+          <Route path="/categories/:id" element={<CategoryDetail />} /> 
           <Route path="/profile" element={<div>Profile Page</div>} />
           <Route path="/orders" element={<div>Orders Page</div>} />
           <Route path="/discover" element={<div>Discover Page</div>} />
