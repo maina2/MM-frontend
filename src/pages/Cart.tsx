@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RootState } from '../store/store';
 import { CartItem } from '../types';
@@ -10,7 +10,7 @@ import { X, Plus, Minus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-reac
 // Animation variants for cart items
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
+  visible: (i: number) => ({
     opacity: 1,
     y: 0,
     transition: { delay: i * 0.05, duration: 0.3, ease: 'easeOut' },
@@ -24,17 +24,18 @@ const buttonVariants = {
   tap: { scale: 0.95, transition: { duration: 0.2 } },
 };
 
-const Cart = () => {
+const Cart: React.FC = () => {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const [itemsPerPage] = useState(12);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [expandedItem, setExpandedItem] = useState(null);
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const navigate = useNavigate();
+  const cartItems = useSelector((state: RootState) => state.cart.items) as CartItem[];
+  const [itemsPerPage] = useState<number>(12);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [expandedItem, setExpandedItem] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Calculate totals
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + parseFloat(item.product.price) * item.quantity,
+    (sum, item) => sum + Number(item.product.price) * item.quantity, // Use Number() to ensure price is a number
     0
   );
   const tax = subtotal * 0.16;
@@ -46,9 +47,9 @@ const Cart = () => {
   const currentItems = cartItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(cartItems.length / itemsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const toggleItemExpand = (itemId) => {
+  const toggleItemExpand = (itemId: number) => {
     if (expandedItem === itemId) {
       setExpandedItem(null);
     } else {
@@ -56,8 +57,12 @@ const Cart = () => {
     }
   };
 
+  const handleProceedToCheckout = () => {
+    navigate("/checkout");
+  };
+
   // Compact cart item for grid view
-  const CartItemCompact = ({ item, index }) => {
+  const CartItemCompact: React.FC<{ item: CartItem; index: number }> = ({ item, index }) => {
     const isExpanded = expandedItem === item.product.id;
     
     return (
@@ -96,7 +101,7 @@ const Cart = () => {
         <div className="p-2 flex-1 flex flex-col">
           <h3 className="font-medium text-sm text-dark line-clamp-1">{item.product.name}</h3>
           <p className="text-primary font-medium text-sm mt-auto">
-            KSh {parseFloat(item.product.price).toFixed(2)}
+            KSh {Number(item.product.price).toFixed(2)} {/* Parse price to number */}
           </p>
         </div>
         
@@ -176,7 +181,7 @@ const Cart = () => {
                 
                 <div className="text-right">
                   <span className="text-xs font-medium text-gray-600">
-                    Total: <span className="text-primary">KSh {(parseFloat(item.product.price) * item.quantity).toFixed(2)}</span>
+                    Total: <span className="text-primary">KSh {(Number(item.product.price) * item.quantity).toFixed(2)}</span> {/* Parse price */}
                   </span>
                 </div>
               </div>
@@ -188,7 +193,7 @@ const Cart = () => {
   };
 
   // Original list view item (modified to be more compact)
-  const CartItemList = ({ item, index }) => (
+  const CartItemList: React.FC<{ item: CartItem; index: number }> = ({ item, index }) => (
     <motion.div
       key={item.product.id}
       className="bg-white rounded-lg shadow-sm p-3 mb-2 flex items-center gap-3 border border-gray-100"
@@ -217,7 +222,7 @@ const Cart = () => {
       <div className="flex-1 min-w-0">
         <h2 className="text-sm font-medium text-dark line-clamp-1">{item.product.name}</h2>
         <p className="text-primary text-sm font-medium">
-          KSh {parseFloat(item.product.price).toFixed(2)} x {item.quantity}
+          KSh {Number(item.product.price).toFixed(2)} x {item.quantity} {/* Parse price */}
         </p>
       </div>
 
@@ -425,6 +430,7 @@ const Cart = () => {
                 whileHover="hover"
                 whileTap="tap"
                 disabled={cartItems.length === 0}
+                onClick={handleProceedToCheckout}
               >
                 Proceed to Checkout
               </motion.button>

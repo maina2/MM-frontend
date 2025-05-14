@@ -79,53 +79,64 @@ const Checkout: React.FC = () => {
     0
   );
 
-  const handleCheckout = async () => {
-    if (!user) {
-      setError("You must be logged in to checkout.");
-      navigate("/login");
-      return;
+const handleCheckout = async () => {
+  console.log("Starting checkout process...");
+  console.log("User:", user);
+  console.log("Phone Number:", phoneNumber);
+  console.log("Position:", position);
+  console.log("Cart Items:", cartItems);
+
+  if (!user) {
+    setError("You must be logged in to checkout.");
+    navigate("/login");
+    return;
+  }
+
+  if (!phoneNumber) {
+    setError("Phone number is required for payment.");
+    return;
+  }
+
+  if (!position) {
+    setError("Please select a delivery location on the map.");
+    return;
+  }
+
+  const phoneRegex = /^\+?2547[0-9]{8}$/;
+  if (!phoneRegex.test(phoneNumber)) {
+    setError("Phone number must be in the format +2547XXXXXXXX or 2547XXXXXXXX.");
+    return;
+  }
+
+  setError(null);
+
+  try {
+    const checkoutData = {
+      cart_items: cartItems.map((item) => ({
+        product: { id: item.product.id, price: item.product.price },
+        quantity: item.quantity,
+      })),
+      phone_number: phoneNumber,
+      latitude: position.lat,
+      longitude: position.lng,
+    };
+
+    console.log("Sending checkout data:", JSON.stringify(checkoutData, null, 2));
+    const response = await checkout(checkoutData).unwrap();
+    console.log("Checkout response:", JSON.stringify(response, null, 2));
+
+    if (!response.order?.id) {
+      throw new Error("Invalid response: Order ID not found.");
     }
 
-    if (!phoneNumber) {
-      setError("Phone number is required for payment.");
-      return;
-    }
-
-    if (!position) {
-      setError("Please select a delivery location on the map.");
-      return;
-    }
-
-    const phoneRegex = /^\+?2547[0-9]{8}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      setError("Phone number must be in the format +2547XXXXXXXX or 2547XXXXXXXX.");
-      return;
-    }
-
-    setError(null);
-
-    try {
-      const checkoutData = {
-        cart_items: cartItems.map((item) => ({
-          product: { id: item.product.id, price: item.product.price },
-          quantity: item.quantity,
-        })),
-        phone_number: phoneNumber,
-        latitude: position.lat,
-        longitude: position.lng,
-      };
-
-      const response = await checkout(checkoutData).unwrap();
-      console.log("Checkout response:", response);
-
-      // Redirect to order confirmation page with order ID
-      navigate(`/order-confirmation/${response.order.id}`);
-    } catch (err: any) {
-      const errorMessage = err.data?.error || "Checkout failed. Please try again.";
-      setError(errorMessage);
-      console.error("Checkout error:", err);
-    }
-  };
+    console.log("Navigating to order confirmation with order ID:", response.order.id);
+    navigate(`/order-confirmation/${response.order.id}`);
+  } catch (err: any) {
+    console.error("Checkout error details:", JSON.stringify(err, null, 2));
+    const errorMessage = err.data?.error || "Checkout failed. Please try again.";
+    setError(errorMessage);
+  }
+};
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>

@@ -21,12 +21,6 @@ const GoogleCallback = () => {
       const returnedState = params.get('state');
       const storedState = sessionStorage.getItem('oauth_state');
 
-      console.log('Query params:', {
-        code,
-        error,
-        returnedState,
-        storedState,
-      });
 
       if (returnedState !== storedState) {
         console.error('State mismatch. Possible CSRF attack.');
@@ -50,7 +44,6 @@ const GoogleCallback = () => {
       }
 
       try {
-        console.log('Sending to backend:', { code });
         const response = await axios.post(
           'http://localhost:8000/api/users/google/',
           { code },
