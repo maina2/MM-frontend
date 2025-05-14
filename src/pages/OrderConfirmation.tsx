@@ -1,3 +1,4 @@
+// src/pages/OrderConfirmation.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -13,16 +14,14 @@ import {
   Button,
 } from "@mui/material";
 import { RootState } from "../store/store";
-import { useGetOrdersQuery } from "../api/apiSlice";
+import { useGetOrderQuery } from "../api/apiSlice";
 
 const OrderConfirmation: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
-  const { data: orders, isLoading, error } = useGetOrdersQuery();
+  const { data: order, isLoading, error } = useGetOrderQuery(orderId);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-
-  const order = orders?.find((o) => o.id === Number(orderId));
 
   useEffect(() => {
     if (!user) {
@@ -33,13 +32,10 @@ const OrderConfirmation: React.FC = () => {
   useEffect(() => {
     if (order) {
       setPaymentStatus(order.payment_status);
-      // Optional: Poll for payment status updates
+      // Poll for payment status updates
       const interval = setInterval(() => {
         if (order.payment_status === "paid" || order.payment_status === "failed") {
           clearInterval(interval);
-        } else {
-          // Refetch orders to update payment status
-          // This will automatically update via RTK Query's cache
         }
       }, 5000);
       return () => clearInterval(interval);
@@ -93,7 +89,7 @@ const OrderConfirmation: React.FC = () => {
         </List>
 
         <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: "bold" }}>
-          Total: KSh {order.total_amount.toFixed(2)}
+          Total: KSh {order.total_amount}
         </Typography>
 
         {paymentStatus === "pending" && (

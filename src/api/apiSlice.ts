@@ -137,8 +137,11 @@ export const apiSlice = createApi({
       providesTags: (result, error, id) => [{ type: "Categories", id }],
     }),
     getOrders: builder.query<Order[], void>({
-      query: () => "orders/",
+      query: () => "orders/orders-list/",
       providesTags: ["Orders"],
+    }),
+    getOrder: builder.query({
+      query: (orderId) => `orders/orders-details/${orderId}/`,
     }),
     checkout: builder.mutation<
       { order: Order; delivery_id: number; payment_status: string; message: string },
@@ -167,5 +170,6 @@ export const {
   useGetCategoriesQuery,
   useGetCategoryDetailQuery,
   useGetOrdersQuery,
+  useGetOrderQuery,
   useCheckoutMutation, // Export the new checkout mutation
 } = apiSlice;
