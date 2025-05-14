@@ -126,7 +126,6 @@ export const apiSlice = createApi({
       query: () => "categories/",
       providesTags: ["Categories"],
       transformResponse: (response: any) => {
-        // If the response is paginated, return the 'results' array; otherwise, return the response as-is
         return response.results ? response.results : response;
       },
     }),
@@ -141,43 +140,21 @@ export const apiSlice = createApi({
       query: () => "orders/",
       providesTags: ["Orders"],
     }),
-    createOrder: builder.mutation<
-      Order,
-      { items: { product_id: number; quantity: number }[] }
-    >({
-      query: (orderData) => ({
-        url: "orders/",
-        method: "POST",
-        body: orderData,
-      }),
-      invalidatesTags: ["Orders"],
-    }),
-    initiatePayment: builder.mutation<
-      Payment,
-      { order_id: number; phone_number: string }
-    >({
-      query: (paymentData) => ({
-        url: "payment/",
-        method: "POST",
-        body: paymentData,
-      }),
-      invalidatesTags: ["Payments"],
-    }),
-    createDelivery: builder.mutation<
-      Delivery,
+    checkout: builder.mutation<
+      { order: Order; delivery_id: number; payment_status: string; message: string },
       {
-        order_id: number;
-        delivery_address: string;
+        cart_items: { product: { id: number; price: number }; quantity: number }[];
+        phone_number: string;
         latitude?: number;
         longitude?: number;
       }
     >({
-      query: (deliveryData) => ({
-        url: "delivery/",
+      query: (checkoutData) => ({
+        url: "orders/checkout/",
         method: "POST",
-        body: deliveryData,
+        body: checkoutData,
       }),
-      invalidatesTags: ["Deliveries"],
+      invalidatesTags: ["Orders", "Payments", "Deliveries"],
     }),
   }),
 });
@@ -190,7 +167,5 @@ export const {
   useGetCategoriesQuery,
   useGetCategoryDetailQuery,
   useGetOrdersQuery,
-  useCreateOrderMutation,
-  useInitiatePaymentMutation,
-  useCreateDeliveryMutation,
+  useCheckoutMutation, // Export the new checkout mutation
 } = apiSlice;
