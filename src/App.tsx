@@ -1,17 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Cart from './pages/Cart';
-import Payment from './pages/Payment';
-import Delivery from './pages/Delivery';
-import GoogleCallback from './pages/GoogleCallback';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Categories from './pages/Categories'; // New import
-import CategoryDetail from './pages/CategoryDetail'; // New import
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Cart from "./pages/Cart";
+import Payment from "./pages/Payment";
+import Delivery from "./pages/Delivery";
+import GoogleCallback from "./pages/GoogleCallback";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import Categories from "./pages/Categories"; // New import
+import CategoryDetail from "./pages/CategoryDetail"; // New import
+import OrderConfirmation from "./pages/OrderConfirmation";
+import Checkout from "./pages/Checkout";
 
 const App: React.FC = () => {
   return (
@@ -24,13 +26,21 @@ const App: React.FC = () => {
           <Route path="/delivery/:orderId" element={<Delivery />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/categories" element={<Categories />} /> 
-          <Route path="/categories/:id" element={<CategoryDetail />} /> 
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/categories/:id" element={<CategoryDetail />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/order-confirmation/:orderId"
+            element={<OrderConfirmation />}
+          />
           <Route path="/profile" element={<div>Profile Page</div>} />
           <Route path="/orders" element={<div>Orders Page</div>} />
           <Route path="/discover" element={<div>Discover Page</div>} />
           <Route path="/wallet" element={<div>Wallet Page</div>} />
-          <Route path="/notifications" element={<div>Notifications Page</div>} />
+          <Route
+            path="/notifications"
+            element={<div>Notifications Page</div>}
+          />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
