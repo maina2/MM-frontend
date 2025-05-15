@@ -170,10 +170,7 @@ const Products: React.FC = () => {
                   
                   {/* Product Details */}
                   <div className="p-3 md:p-4 flex flex-col flex-grow">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs font-medium text-gray-700">{getRandomRating()}</span>
-                    </div>
+ 
                     
                     <h3 className="text-sm md:text-base font-bold text-gray-800 line-clamp-1">
                       {product.name}
@@ -251,10 +248,7 @@ const Products: React.FC = () => {
                         {product.name}
                       </h3>
                       
-                      <div className="flex items-center gap-1">
-                        <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                        <span className="text-xs font-medium text-gray-700">{getRandomRating()}</span>
-                      </div>
+
                     </div>
                     
                     <p className="text-xs text-gray-500 mb-1 line-clamp-1">
