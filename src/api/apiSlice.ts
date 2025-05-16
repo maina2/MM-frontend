@@ -159,6 +159,24 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Orders", "Payments", "Deliveries"],
     }),
+    searchProducts: builder.query<
+      { count: number; next: string | null; previous: string | null; results: Product[] },
+      { q: string; category?: number; min_price?: number; max_price?: number; sort_by?: string; page?: number; page_size?: number }
+    >({
+      query: ({ q, category, min_price, max_price, sort_by, page = 1, page_size = 12 }) => ({
+        url: "products/search/",
+        params: {
+          q,
+          ...(category && { category }),
+          ...(min_price && { min_price }),
+          ...(max_price && { max_price }),
+          ...(sort_by && { sort_by }),
+          page,
+          page_size,
+        },
+      }),
+      providesTags: ["Products"],
+    }),
   }),
 });
 
@@ -171,5 +189,6 @@ export const {
   useGetCategoryDetailQuery,
   useGetOrdersQuery,
   useGetOrderQuery,
-  useCheckoutMutation, // Export the new checkout mutation
+  useCheckoutMutation,
+  useSearchProductsQuery,
 } = apiSlice;

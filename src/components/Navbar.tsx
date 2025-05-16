@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
-import { logout } from '../store/authSlice';
-import { 
-  FaShoppingCart, 
-  FaSearch, 
-  FaHome, 
-  FaBell, 
-  FaUser, 
-  FaThLarge, 
+import React from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../store/store";
+import { logout } from "../store/authSlice";
+import {
+  FaShoppingCart,
+  FaHome,
+  FaBell,
+  FaUser,
+  FaThLarge,
   FaHeart,
-  FaTags 
-} from 'react-icons/fa';
+  FaTags,
+} from "react-icons/fa";
+import SearchBar from "./SearchBar";
 
 const Navbar: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => !!state.auth.token);
@@ -22,18 +22,9 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${searchQuery}`);
-    }
-  };
-
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -59,18 +50,7 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-3 py-1 rounded-lg bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                <FaSearch className="text-gray-500" />
-              </button>
-            </form>
+            <SearchBar />
             <Link to="/favorites" className="relative hover:text-primary transition-colors">
               <FaHeart size={20} />
             </Link>
@@ -86,7 +66,7 @@ const Navbar: React.FC = () => {
               <div className="relative group">
                 <button className="flex items-center space-x-1 hover:text-primary transition-colors">
                   <FaUser size={20} />
-                  <span className="text-sm">{user?.name?.split(' ')[0] || 'Account'}</span>
+                  <span className="text-sm">{user?.name?.split(" ")[0] || "Account"}</span>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden group-hover:block">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -140,48 +120,33 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
         </div>
-        
+
         {/* Full Width Search Bar */}
         <div className="mt-3">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              placeholder="Search for products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-gray-100 text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <FaSearch className="text-gray-500" />
-            </button>
-          </form>
+          <SearchBar />
         </div>
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-40">
         <div className="grid grid-cols-5 items-center">
-          <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === '/' ? 'text-primary' : ''}`}>
+          <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === "/" ? "text-primary" : ""}`}>
             <FaHome size={20} />
             <span className="text-xs mt-1">Home</span>
           </Link>
-          
-          <Link to="/categories" className={`flex flex-col items-center py-2 ${location.pathname === '/categories' ? 'text-primary' : ''}`}>
+          <Link to="/categories" className={`flex flex-col items-center py-2 ${location.pathname === "/categories" ? "text-primary" : ""}`}>
             <FaThLarge size={20} />
             <span className="text-xs mt-1">Categories</span>
           </Link>
-          
-          <Link to="/offers" className={`flex flex-col items-center py-2 ${location.pathname === '/offers' ? 'text-primary' : ''}`}>
+          <Link to="/offers" className={`flex flex-col items-center py-2 ${location.pathname === "/offers" ? "text-primary" : ""}`}>
             <FaTags size={20} />
             <span className="text-xs mt-1">Offers</span>
           </Link>
-          
-          <Link to="/favorites" className={`flex flex-col items-center py-2 ${location.pathname === '/favorites' ? 'text-primary' : ''}`}>
+          <Link to="/favorites" className={`flex flex-col items-center py-2 ${location.pathname === "/favorites" ? "text-primary" : ""}`}>
             <FaHeart size={20} />
             <span className="text-xs mt-1">Favorites</span>
           </Link>
-          
-          <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === '/profile' ? 'text-primary' : ''}`}>
+          <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === "/profile" ? "text-primary" : ""}`}>
             <FaUser size={20} />
             <span className="text-xs mt-1">Profile</span>
           </Link>
