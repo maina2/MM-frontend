@@ -117,7 +117,12 @@ export const apiSlice = createApi({
       },
     }),
     getProducts: builder.query<
-      { count: number; next: string | null; previous: string | null; results: Product[] },
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Product[];
+      },
       { page?: number; page_size?: number }
     >({
       query: ({ page = 1, page_size = 12 } = {}) => ({
@@ -127,10 +132,29 @@ export const apiSlice = createApi({
       providesTags: ["Products"],
     }),
     getOffers: builder.query<
-      { count: number; next: string | null; previous: string | null; results: Product[] },
-      { page?: number; page_size?: number; category?: number; min_discount?: number; max_price?: number; sort_by?: string }
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Product[];
+      },
+      {
+        page?: number;
+        page_size?: number;
+        category?: number;
+        min_discount?: number;
+        max_price?: number;
+        sort_by?: string;
+      }
     >({
-      query: ({ page = 1, page_size = 12, category, min_discount, max_price, sort_by } = {}) => ({
+      query: ({
+        page = 1,
+        page_size = 12,
+        category,
+        min_discount,
+        max_price,
+        sort_by,
+      } = {}) => ({
         url: "products/offers/",
         params: {
           page,
@@ -169,9 +193,17 @@ export const apiSlice = createApi({
       query: (orderId) => `orders/orders-details/${orderId}/`,
     }),
     checkout: builder.mutation<
-      { order: Order; delivery_id: number; payment_status: string; message: string },
       {
-        cart_items: { product: { id: number; price: number }; quantity: number }[];
+        order: Order;
+        delivery_id: number;
+        payment_status: string;
+        message: string;
+      },
+      {
+        cart_items: {
+          product: { id: number; price: number };
+          quantity: number;
+        }[];
         phone_number: string;
         latitude?: number;
         longitude?: number;
@@ -185,10 +217,31 @@ export const apiSlice = createApi({
       invalidatesTags: ["Orders", "Payments", "Deliveries"],
     }),
     searchProducts: builder.query<
-      { count: number; next: string | null; previous: string | null; results: Product[] },
-      { q: string; category?: number; min_price?: number; max_price?: number; sort_by?: string; page?: number; page_size?: number }
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Product[];
+      },
+      {
+        q: string;
+        category?: number;
+        min_price?: number;
+        max_price?: number;
+        sort_by?: string;
+        page?: number;
+        page_size?: number;
+      }
     >({
-      query: ({ q, category, min_price, max_price, sort_by, page = 1, page_size = 12 }) => ({
+      query: ({
+        q,
+        category,
+        min_price,
+        max_price,
+        sort_by,
+        page = 1,
+        page_size = 12,
+      }) => ({
         url: "products/search/",
         params: {
           q,
