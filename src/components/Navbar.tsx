@@ -9,7 +9,6 @@ import {
   FaBell,
   FaUser,
   FaThLarge,
-  FaHeart,
   FaTags,
 } from "react-icons/fa";
 import SearchBar from "./SearchBar";
@@ -51,9 +50,6 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <SearchBar />
-            <Link to="/favorites" className="relative hover:text-primary transition-colors">
-              <FaHeart size={20} />
-            </Link>
             <Link to="/cart" className="relative hover:text-primary transition-colors">
               <FaShoppingCart size={20} />
               {cartItems > 0 && (
@@ -129,7 +125,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
-        <div className="grid grid-cols-5 items-center">
+        <div className="grid grid-cols-4 items-center">
           <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === "/" ? "text-primary" : ""}`}>
             <FaHome size={20} />
             <span className="text-xs mt-1">Home</span>
@@ -141,10 +137,6 @@ const Navbar: React.FC = () => {
           <Link to="/offers" className={`flex flex-col items-center py-2 ${location.pathname === "/offers" ? "text-primary" : ""}`}>
             <FaTags size={20} />
             <span className="text-xs mt-1">Offers</span>
-          </Link>
-          <Link to="/favorites" className={`flex flex-col items-center py-2 ${location.pathname === "/favorites" ? "text-primary" : ""}`}>
-            <FaHeart size={20} />
-            <span className="text-xs mt-1">Favorites</span>
           </Link>
           <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === "/profile" ? "text-primary" : ""}`}>
             <FaUser size={20} />
