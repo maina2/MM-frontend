@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Desktop Navbar (Top) */}
-      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4">
+      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200]">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
             Muindi Mweusi
@@ -68,7 +68,7 @@ const Navbar: React.FC = () => {
                   <FaUser size={20} />
                   <span className="text-sm">{user?.name?.split(" ")[0] || "Account"}</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden group-hover:block">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[1300] hidden group-hover:block">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     My Profile
                   </Link>
@@ -98,7 +98,7 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* Mobile Top Bar with Logo, Cart, and Notifications */}
-      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-40 px-4 py-3">
+      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
             Muindi Mweusi
@@ -128,7 +128,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
         <div className="grid grid-cols-5 items-center">
           <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === "/" ? "text-primary" : ""}`}>
             <FaHome size={20} />
@@ -152,6 +152,9 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
       </nav>
+
+      {/* Padding for fixed navbars */}
+      <div className="md:hidden pt-[100px] pb-[60px]"></div>
     </>
   );
 };

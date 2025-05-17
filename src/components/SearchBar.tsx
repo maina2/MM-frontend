@@ -91,6 +91,8 @@ const SearchBar: React.FC = () => {
         mt: isMobile ? 1 : 0,
         position: isMobile ? "static" : "absolute",
         zIndex: 1000,
+        boxShadow: isMobile ? "none" : "0 4px 12px rgba(0,0,0,0.1)",
+        border: isMobile ? "1px solid grey.200" : "none",
       }}
     >
       {isLoading && <CircularProgress size={24} sx={{ m: 2 }} />}
@@ -131,6 +133,7 @@ const SearchBar: React.FC = () => {
           position: "relative",
           width: isMobile ? "100%" : "auto",
           zIndex: 1100,
+          padding: isMobile ? "0 8px" : 0,
         }}
       >
         <TextField
@@ -175,6 +178,7 @@ const SearchBar: React.FC = () => {
               left: 0,
               zIndex: 1000,
               mt: isMobile ? 1 : 0,
+              maxWidth: isMobile ? "calc(100vw - 16px)" : "auto",
             }}
           >
             {renderDropdown()}
