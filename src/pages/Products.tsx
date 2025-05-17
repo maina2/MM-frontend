@@ -1,37 +1,40 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useGetProductsQuery } from '../api/apiSlice';
-import { useDispatch } from 'react-redux';
-import { addItem } from '../store/cartSlice';
-import { Product } from '../types';
-import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Star, Clock, Filter, Grid3X3, List } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useGetProductsQuery } from "../api/apiSlice";
+import { useDispatch } from "react-redux";
+import { addItem } from "../store/cartSlice";
+import { Product } from "../types";
+import { motion } from "framer-motion";
+import { Heart, ShoppingCart, Clock, Filter, Grid3X3, List } from "lucide-react";
+import { Pagination, Box } from "@mui/material";
 
 // Animation variants for product cards
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
       duration: 0.5,
-      ease: "easeOut"
-    } 
+      ease: "easeOut",
+    },
   },
   hover: {
     y: -5,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 const Products: React.FC = () => {
   const dispatch = useDispatch();
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
-  
+  const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page")) || 1;
+
   // Fetch products using RTK Query
-  const { data: products, error, isLoading } = useGetProductsQuery();
-  
+  const { data, error, isLoading } = useGetProductsQuery({ page, page_size: 12 });
+
   // Handle Add to Cart
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,15 +47,18 @@ const Products: React.FC = () => {
     e.stopPropagation();
     // Implement wishlist functionality
   };
-  
-  // Generate random ratings for demo purposes
-  const getRandomRating = () => (Math.random() * 2 + 3).toFixed(1);
 
   // Toggle view mode
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'grid' ? 'compact' : 'grid');
+    setViewMode(viewMode === "grid" ? "compact" : "grid");
   };
-  
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", value.toString());
+    setSearchParams(newParams);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -62,7 +68,7 @@ const Products: React.FC = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="bg-red-50 p-6 rounded-xl border border-red-100">
@@ -75,8 +81,8 @@ const Products: React.FC = () => {
       </div>
     );
   }
-  
-  if (!products || products.length === 0) {
+
+  if (!data?.results || data.results.length === 0) {
     return (
       <div className="bg-gray-50 p-12 rounded-xl border border-gray-100 text-center">
         <p className="text-gray-500 text-lg">No products found.</p>
@@ -86,24 +92,28 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="flex-1">
+    <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
       {/* Mobile Filter and View toggle */}
       <div className="md:hidden flex justify-between items-center mb-4 px-2">
         <button className="flex items-center gap-1 bg-gray-100 rounded-lg px-4 py-2 text-gray-700">
           <Filter size={16} />
           <span className="text-sm font-medium">Filter</span>
         </button>
-        
+
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg">
-          <button 
-            className={`flex items-center justify-center p-2 ${viewMode === 'grid' ? 'bg-primary text-white rounded-lg' : 'text-gray-700'}`}
-            onClick={() => setViewMode('grid')}
+          <button
+            className={`flex items-center justify-center p-2 ${
+              viewMode === "grid" ? "bg-primary text-white rounded-lg" : "text-gray-700"
+            }`}
+            onClick={() => setViewMode("grid")}
           >
             <Grid3X3 size={16} />
           </button>
-          <button 
-            className={`flex items-center justify-center p-2 ${viewMode === 'compact' ? 'bg-primary text-white rounded-lg' : 'text-gray-700'}`}
-            onClick={() => setViewMode('compact')}
+          <button
+            className={`flex items-center justify-center p-2 ${
+              viewMode === "compact" ? "bg-primary text-white rounded-lg" : "text-gray-700"
+            }`}
+            onClick={() => setViewMode("compact")}
           >
             <List size={16} />
           </button>
@@ -111,9 +121,9 @@ const Products: React.FC = () => {
       </div>
 
       {/* Product Grid View - (2 columns on mobile) */}
-      {viewMode === 'grid' && (
+      {viewMode === "grid" && (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
-          {products.map((product: Product) => (
+          {data.results.map((product: Product) => (
             <motion.div
               key={product.id}
               className="group"
@@ -139,17 +149,17 @@ const Products: React.FC = () => {
                         <span className="text-gray-400 font-medium text-xs">No Image</span>
                       </div>
                     )}
-                    
+
                     {/* Gradient overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+
                     {/* Category tag */}
                     <div className="absolute top-2 left-2">
                       <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm truncate max-w-24">
                         {product.category.name}
                       </span>
                     </div>
-                    
+
                     {/* Stock badge */}
                     {product.stock <= 5 && (
                       <div className="absolute bottom-2 left-2">
@@ -167,31 +177,29 @@ const Products: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Product Details */}
                   <div className="p-3 md:p-4 flex flex-col flex-grow">
- 
-                    
                     <h3 className="text-sm md:text-base font-bold text-gray-800 line-clamp-1">
                       {product.name}
                     </h3>
-                    
+
                     <p className="text-xs text-gray-500 mb-2 line-clamp-1 md:line-clamp-2">
                       {product.description || "Quality products at great prices."}
                     </p>
-                    
+
                     <div className="flex items-center justify-between mt-auto">
                       <p className="text-sm md:text-base font-bold text-primary truncate">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
-                      
+
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
                         disabled={product.stock === 0}
                         className={`flex items-center justify-center rounded-full w-8 h-8 md:w-10 md:h-10 transition-all duration-300 ${
                           product.stock === 0
-                            ? 'bg-gray-200 cursor-not-allowed'
-                            : 'bg-primary text-white hover:bg-primary/90'
+                            ? "bg-gray-200 cursor-not-allowed"
+                            : "bg-primary text-white hover:bg-primary/90"
                         }`}
                       >
                         <ShoppingCart size={16} />
@@ -206,9 +214,9 @@ const Products: React.FC = () => {
       )}
 
       {/* Product Compact View (horizontal cards for mobile) */}
-      {viewMode === 'compact' && (
+      {viewMode === "compact" && (
         <div className="flex flex-col gap-3">
-          {products.map((product: Product) => (
+          {data.results.map((product: Product) => (
             <motion.div
               key={product.id}
               className="group"
@@ -232,7 +240,7 @@ const Products: React.FC = () => {
                         <span className="text-gray-400 font-medium text-xs">No Image</span>
                       </div>
                     )}
-                    
+
                     {/* Category tag */}
                     <div className="absolute top-1 left-1">
                       <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm">
@@ -240,21 +248,19 @@ const Products: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Product Details */}
                   <div className="p-2 md:p-3 flex flex-col flex-grow">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-gray-800 line-clamp-1">
                         {product.name}
                       </h3>
-                      
-
                     </div>
-                    
+
                     <p className="text-xs text-gray-500 mb-1 line-clamp-1">
                       {product.description || "Quality products at great prices."}
                     </p>
-                    
+
                     {/* Stock badge */}
                     {product.stock <= 5 && (
                       <div className="mb-1">
@@ -271,12 +277,12 @@ const Products: React.FC = () => {
                         )}
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between mt-auto">
                       <p className="text-sm font-bold text-primary">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
-                      
+
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => handleWishlist(e)}
@@ -289,8 +295,8 @@ const Products: React.FC = () => {
                           disabled={product.stock === 0}
                           className={`flex items-center justify-center rounded-full w-8 h-8 transition-all duration-300 ${
                             product.stock === 0
-                              ? 'bg-gray-200 cursor-not-allowed'
-                              : 'bg-primary text-white hover:bg-primary/90'
+                              ? "bg-gray-200 cursor-not-allowed"
+                              : "bg-primary text-white hover:bg-primary/90"
                           }`}
                         >
                           <ShoppingCart size={14} />
@@ -304,7 +310,17 @@ const Products: React.FC = () => {
           ))}
         </div>
       )}
-    </div>
+
+      {/* Pagination */}
+      {data.count > 12 && (
+        <Pagination
+          count={Math.ceil(data.count / 12)}
+          page={page}
+          onChange={handlePageChange}
+          sx={{ mt: 4, display: "flex", justifyContent: "center" }}
+        />
+      )}
+    </Box>
   );
 };
 

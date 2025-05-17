@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Typography,
-  Grid,
+  Grid2,
   Pagination,
   Select,
   MenuItem,
@@ -76,8 +76,8 @@ const SearchResults: React.FC = () => {
       <Typography variant="h5" gutterBottom>
         {q ? `Results for "${q}" (${data?.count || 0} found)` : "All Products"}
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
+      <Grid2 container spacing={3}>
+        <Grid2 size={{ xs: 12, md: 3 }}>
           <Typography variant="h6" gutterBottom>
             Filters
           </Typography>
@@ -115,8 +115,8 @@ const SearchResults: React.FC = () => {
           <Button variant="contained" onClick={handleFilterChange} fullWidth>
             Apply Filters
           </Button>
-        </Grid>
-        <Grid item xs={12} md={9}>
+        </Grid2>
+        <Grid2 size={{ xs: 12, md: 9 }}>
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sort By</InputLabel>
@@ -133,13 +133,13 @@ const SearchResults: React.FC = () => {
           {data?.results?.length === 0 && (
             <Typography>No products found. Try another search term.</Typography>
           )}
-          <Grid container spacing={2}>
+          <Grid2 container spacing={2}>
             {data?.results?.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={product.id}>
                 <ProductCard product={product} />
-              </Grid>
+              </Grid2>
             ))}
-          </Grid>
+          </Grid2>
           {data?.count > 12 && (
             <Pagination
               count={Math.ceil((data?.count || 0) / 12)}
@@ -148,8 +148,8 @@ const SearchResults: React.FC = () => {
               sx={{ mt: 4, display: "flex", justifyContent: "center" }}
             />
           )}
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
     </Box>
   );
 };

@@ -98,6 +98,8 @@ export const apiSlice = createApi({
           const userWithDefaults: User = {
             ...data.user,
             is_delivery_person: data.user.is_delivery_person ?? false,
+            is_admin: data.user.is_admin ?? false,
+            phone_number: data.user.phone_number ?? undefined,
           };
           dispatch(
             setCredentials({
@@ -114,8 +116,14 @@ export const apiSlice = createApi({
         }
       },
     }),
-    getProducts: builder.query<Product[], void>({
-      query: () => "products/",
+    getProducts: builder.query<
+      { count: number; next: string | null; previous: string | null; results: Product[] },
+      { page?: number; page_size?: number }
+    >({
+      query: ({ page = 1, page_size = 12 } = {}) => ({
+        url: "products/",
+        params: { page, page_size },
+      }),
       providesTags: ["Products"],
     }),
     getProductById: builder.query<ProductDetail, number>({

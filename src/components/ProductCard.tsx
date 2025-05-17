@@ -24,7 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, compact = false }) =
     >
       <CardMedia
         component="img"
-        image={product.image || "https://via.placeholder.com/150"}
+        image={product.image || "https://placehold.co/150x150?text=No+Image"}
         alt={product.name}
         sx={{
           width: compact ? 60 : 150,

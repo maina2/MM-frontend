@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { TextField, CircularProgress, Popper, Paper, MenuItem, Dialog, IconButton, Typography, useMediaQuery, ClickAwayListener } from "@mui/material";
+import {
+  TextField,
+  CircularProgress,
+  Paper,
+  MenuItem,
+  IconButton,
+  Typography,
+  useMediaQuery,
+  ClickAwayListener,
+  Box,
+} from "@mui/material";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { useTheme } from "@mui/material/styles";
 import { useSearchProductsQuery } from "../api/apiSlice";
@@ -13,7 +23,9 @@ const SearchBar: React.FC = () => {
   const [query, setQuery] = useState(initialQuery);
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => JSON.parse(localStorage.getItem("recentSearches") || "[]"));
+  const [recentSearches, setRecentSearches] = useState<string[]>(() =>
+    JSON.parse(localStorage.getItem("recentSearches") || "[]")
+  );
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -70,9 +82,21 @@ const SearchBar: React.FC = () => {
   }, [query]);
 
   const renderDropdown = () => (
-    <Paper sx={{ width: isMobile ? "100%" : 400, maxHeight: 400, overflowY: "auto", p: 1 }}>
+    <Paper
+      sx={{
+        width: isMobile ? "100%" : 400,
+        maxHeight: 400,
+        overflowY: "auto",
+        p: 1,
+        mt: isMobile ? 1 : 0,
+        position: isMobile ? "static" : "absolute",
+        zIndex: 1000,
+      }}
+    >
       {isLoading && <CircularProgress size={24} sx={{ m: 2 }} />}
-      {isError && <Typography color="error" sx={{ p: 2 }}>Failed to load results</Typography>}
+      {isError && <Typography color="error" sx={{ p: 2 }}>
+        Failed to load results
+      </Typography>}
       {!query && recentSearches.length > 0 && (
         <>
           <Typography variant="caption" sx={{ p: 1, color: "text.secondary" }}>
@@ -89,7 +113,10 @@ const SearchBar: React.FC = () => {
         <Typography sx={{ p: 2 }}>No results found</Typography>
       )}
       {query && data?.results?.map((product) => (
-        <MenuItem key={product.id} onClick={() => navigate(`/products/${product.id}`)}>
+        <MenuItem
+          key={product.id}
+          onClick={() => navigate(`/products/${product.id}`)}
+        >
           <ProductCard product={product} compact />
         </MenuItem>
       ))}
@@ -98,7 +125,14 @@ const SearchBar: React.FC = () => {
 
   return (
     <ClickAwayListener onClickAway={handleClickAway}>
-      <form onSubmit={handleSubmit} style={{ position: "relative", width: isMobile ? "100%" : "auto" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          position: "relative",
+          width: isMobile ? "100%" : "auto",
+          zIndex: 1100,
+        }}
+      >
         <TextField
           value={query}
           onChange={handleInputChange}
@@ -132,14 +166,19 @@ const SearchBar: React.FC = () => {
           }}
           inputProps={{ "aria-label": "Search products" }}
         />
-        {isMobile ? (
-          <Dialog open={open} onClose={() => setOpen(false)} fullScreen>
+        {open && (
+          <Box
+            sx={{
+              position: isMobile ? "relative" : "absolute",
+              width: "100%",
+              top: isMobile ? "auto" : "100%",
+              left: 0,
+              zIndex: 1000,
+              mt: isMobile ? 1 : 0,
+            }}
+          >
             {renderDropdown()}
-          </Dialog>
-        ) : (
-          <Popper open={open} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1300 }}>
-            {renderDropdown()}
-          </Popper>
+          </Box>
         )}
       </form>
     </ClickAwayListener>
