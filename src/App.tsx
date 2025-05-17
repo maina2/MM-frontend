@@ -15,6 +15,7 @@ import CategoryDetail from "./pages/CategoryDetail";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Checkout from "./pages/Checkout";
 import SearchResults from "./pages/SearchResults";
+import Offers from "./pages/Offers";
 
 const App: React.FC = () => {
   return (
@@ -32,6 +33,7 @@ const App: React.FC = () => {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
           <Route path="/search" element={<SearchResults />} />
+          <Route path="/offers" element={<Offers />} />
           <Route path="/profile" element={<div>Profile Page</div>} />
           <Route path="/orders" element={<div>Orders Page</div>} />
           <Route path="/discover" element={<div>Discover Page</div>} />

@@ -126,6 +126,23 @@ export const apiSlice = createApi({
       }),
       providesTags: ["Products"],
     }),
+    getOffers: builder.query<
+      { count: number; next: string | null; previous: string | null; results: Product[] },
+      { page?: number; page_size?: number; category?: number; min_discount?: number; max_price?: number; sort_by?: string }
+    >({
+      query: ({ page = 1, page_size = 12, category, min_discount, max_price, sort_by } = {}) => ({
+        url: "products/offers/",
+        params: {
+          page,
+          page_size,
+          ...(category && { category }),
+          ...(min_discount && { min_discount }),
+          ...(max_price && { max_price }),
+          ...(sort_by && { sort_by }),
+        },
+      }),
+      providesTags: ["Products"],
+    }),
     getProductById: builder.query<ProductDetail, number>({
       query: (id) => `products/${id}/`,
       providesTags: (result, error, id) => [{ type: "ProductDetail", id }],
@@ -192,6 +209,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useGetProductsQuery,
+  useGetOffersQuery,
   useGetProductByIdQuery,
   useGetCategoriesQuery,
   useGetCategoryDetailQuery,
