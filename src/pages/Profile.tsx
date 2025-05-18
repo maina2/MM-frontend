@@ -1,19 +1,19 @@
 import React, { useState } from "react";
-import { User, LogOut, Mail, Phone, Save } from "lucide-react";
+import { LogOut, Save } from "lucide-react";
 
 const ProfileComponent = () => {
   // Mock data for demonstration purposes
   const [profile, setProfile] = useState({
     username: "johndoe",
     email: "john.doe@example.com",
-    phone_number: "+1234567890"
+    phone_number: "+1234567890",
   });
 
   const [formData, setFormData] = useState({
     email: profile.email,
     phone_number: profile.phone_number,
   });
-  
+
   const [formErrors, setFormErrors] = useState({ email: "", phone_number: "" });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -51,17 +51,17 @@ const ProfileComponent = () => {
     e.preventDefault();
     if (validateForm()) {
       setIsUpdating(true);
-      
+
       // Simulate API call
       setTimeout(() => {
         setProfile({
           ...profile,
           email: formData.email,
-          phone_number: formData.phone_number
+          phone_number: formData.phone_number,
         });
         setIsUpdating(false);
         setIsSuccess(true);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setIsSuccess(false), 3000);
       }, 1000);
@@ -80,11 +80,13 @@ const ProfileComponent = () => {
           <div className="absolute top-0 left-0 w-full h-full opacity-20">
             <div className="absolute top-10 left-10 w-20 h-20 rounded-full bg-white/30 animate-pulse"></div>
             <div className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-white/20"></div>
-            <div className="absolute top-20 right-20 w-16 h-16 rounded-full bg-white/20 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute top-20 right-20 w-16 h-16 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: "0.5s" }}></div>
           </div>
           <div className="flex flex-col items-center space-y-4 relative z-10">
             <div className="w-24 h-24 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border-2 border-white/50 transform hover:scale-105 transition-transform duration-300">
-              <User size={40} className="text-white" />
+              <svg className="h-10 w-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
             </div>
             <h1 className="text-2xl font-bold tracking-wide">{profile.username || "User Profile"}</h1>
           </div>
@@ -95,7 +97,7 @@ const ProfileComponent = () => {
           {/* Decorative elements */}
           <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-accent/5"></div>
           <div className="absolute -left-12 -bottom-12 w-32 h-32 rounded-full bg-secondary/5"></div>
-          
+
           {isSuccess && (
             <div className="mb-6 bg-accent/10 border-l-4 border-accent p-4 rounded-md animate-slideUp">
               <div className="flex">
@@ -110,7 +112,7 @@ const ProfileComponent = () => {
               </div>
             </div>
           )}
-          
+
           {updateError && (
             <div className="mb-6 bg-error/10 border-l-4 border-error p-4 rounded-md animate-slideUp">
               <div className="flex">
@@ -131,30 +133,24 @@ const ProfileComponent = () => {
           <div className="space-y-6 relative z-10">
             {/* Username field */}
             <div className="relative transform hover:-translate-y-1 transition-transform duration-300">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User size={18} className="text-primary" />
-              </div>
               <input
                 type="text"
                 value={profile.username || ""}
                 disabled
-                className="bg-gray-50 border border-gray-300 text-primary text-sm rounded-lg block w-full pl-10 p-3 shadow-sm"
+                className="bg-gray-50 border border-gray-300 text-primary text-sm rounded-lg block w-full p-3 shadow-sm"
               />
               <div className="text-xs text-gray-500 mt-1 ml-2">Username cannot be changed</div>
             </div>
-            
+
             {/* Email field */}
             <div className="relative transform hover:-translate-y-1 transition-transform duration-300">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail size={18} className="text-primary" />
-              </div>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email address"
-                className={`bg-white border text-sm rounded-lg block w-full pl-10 p-3 shadow-sm ${
+                className={`bg-white border text-sm rounded-lg block w-full p-3 shadow-sm ${
                   formErrors.email ? "border-error" : "border-gray-300 focus:ring-2 focus:ring-secondary focus:border-secondary"
                 }`}
               />
@@ -162,19 +158,16 @@ const ProfileComponent = () => {
                 <p className="mt-1 text-sm text-error">{formErrors.email}</p>
               )}
             </div>
-            
+
             {/* Phone field */}
             <div className="relative transform hover:-translate-y-1 transition-transform duration-300">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Phone size={18} className="text-primary" />
-              </div>
               <input
                 type="tel"
                 name="phone_number"
                 value={formData.phone_number}
                 onChange={handleInputChange}
                 placeholder="Phone number (optional)"
-                className={`bg-white border text-sm rounded-lg block w-full pl-10 p-3 shadow-sm ${
+                className={`bg-white border text-sm rounded-lg block w-full p-3 shadow-sm ${
                   formErrors.phone_number ? "border-error" : "border-gray-300 focus:ring-2 focus:ring-secondary focus:border-secondary"
                 }`}
               />
@@ -184,7 +177,7 @@ const ProfileComponent = () => {
                 <p className="mt-1 text-xs text-gray-500 ml-2">Optional</p>
               )}
             </div>
-            
+
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button

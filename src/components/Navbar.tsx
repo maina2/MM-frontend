@@ -28,8 +28,8 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Desktop Navbar (Top) */}
-      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200]">
+      {/* Desktop Navbar (Top) - added desktop-navbar class */}
+      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
             Muindi Mweusi
@@ -93,8 +93,8 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Top Bar with Logo, Cart, and Notifications */}
-      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3">
+      {/* Mobile Top Bar with Logo, Cart, and Notifications - added mobile-top-navbar class */}
+      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
             Muindi Mweusi
@@ -145,8 +145,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Padding for fixed navbars */}
-      <div className="md:hidden pt-[100px] pb-[60px]"></div>
+      {/* Remove the padding div since we're handling it dynamically in Layout component */}
     </>
   );
 };

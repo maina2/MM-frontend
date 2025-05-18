@@ -1,8 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 
 const Layout: React.FC = () => {
+  // Calculate and set a CSS variable for the navbar height
+  useEffect(() => {
+    const updateNavHeight = () => {
+      // Get desktop navbar height
+      const desktopNav = document.querySelector('.desktop-navbar');
+      const mobileTopNav = document.querySelector('.mobile-top-navbar');
+      
+      if (desktopNav) {
+        const desktopNavHeight = desktopNav.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--desktop-nav-height', `${desktopNavHeight}px`);
+      }
+      
+      if (mobileTopNav) {
+        const mobileNavHeight = mobileTopNav.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--mobile-nav-height', `${mobileNavHeight}px`);
+      }
+    };
+
+    // Run once on mount and add resize listener
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+    
+    return () => window.removeEventListener('resize', updateNavHeight);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Main Content Area */}
@@ -10,8 +35,8 @@ const Layout: React.FC = () => {
         {/* Navbar */}
         <Navbar />
 
-        {/* Content - Add padding to account for fixed mobile nav bars */}
-        <main className="flex-1 md:pt-0 pt-24 pb-16 md:pb-0 p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        {/* Content - Dynamic padding using CSS variables */}
+        <main className="flex-1 md:pt-[var(--desktop-nav-height)] pt-[var(--mobile-nav-height)] pb-16 md:pb-0 p-4 sm:p-6 max-w-7xl mx-auto w-full">
           <Outlet />
         </main>
 
