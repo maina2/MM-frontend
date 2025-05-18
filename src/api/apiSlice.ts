@@ -116,6 +116,18 @@ export const apiSlice = createApi({
         }
       },
     }),
+    getProfile: builder.query<User, void>({
+      query: () => "users/profile/",
+      providesTags: ["User"],
+    }),
+    updateProfile: builder.mutation<User, Partial<User>>({
+      query: (data) => ({
+        url: "users/profile/update/",
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
     getProducts: builder.query<
       {
         count: number;
@@ -192,6 +204,7 @@ export const apiSlice = createApi({
     getOrder: builder.query({
       query: (orderId) => `orders/orders-details/${orderId}/`,
     }),
+
     checkout: builder.mutation<
       {
         order: Order;
@@ -261,6 +274,8 @@ export const apiSlice = createApi({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
   useGetProductsQuery,
   useGetOffersQuery,
   useGetProductByIdQuery,
