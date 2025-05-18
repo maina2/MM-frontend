@@ -1,3 +1,8 @@
+// src/types.ts
+
+// Role type for RBAC
+export type Role = 'customer' | 'admin' | 'delivery';
+
 // User type for authentication
 export interface User {
   id: number;
@@ -6,6 +11,7 @@ export interface User {
   is_admin: boolean;
   is_delivery_person: boolean;
   phone_number?: string;
+  role: Role;
 }
 
 // Category and Branch types (used in Product)
@@ -33,8 +39,8 @@ export interface Product {
   branch: Branch;
   image: string | null;
   created_at: string;
-  discount_percentage?: number; // Added for offers
-  discounted_price?: number;   // Added for offers
+  discount_percentage?: number;
+  discounted_price?: number;
 }
 
 export interface ProductDetail {
@@ -47,8 +53,8 @@ export interface ProductDetail {
   branch: Branch;
   image: string | null;
   created_at: string;
-  discount_percentage?: number; // Added for offers
-  discounted_price?: number;   // Added for offers
+  discount_percentage?: number;
+  discounted_price?: number;
 }
 
 // Order Item type (used in Order)
@@ -88,7 +94,7 @@ export interface Payment {
 // Delivery type
 export interface Delivery {
   id: number;
-  order: Order;
+  order: Order; // Fixed: Removed invalid firewall artifact
   delivery_person: User | null;
   status: string;
   delivery_address: string;

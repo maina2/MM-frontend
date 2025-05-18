@@ -6,11 +6,13 @@ import { logout } from "../store/authSlice";
 import {
   FaShoppingCart,
   FaHome,
-  FaBell,
   FaUser,
   FaThLarge,
   FaTags,
+  FiTruck
+ // Added for orders icon
 } from "react-icons/fa";
+
 import SearchBar from "./SearchBar";
 
 const Navbar: React.FC = () => {
@@ -28,7 +30,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Desktop Navbar (Top) - added desktop-navbar class */}
+      {/* Desktop Navbar (Top) - unchanged */}
       <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
@@ -93,7 +95,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Top Bar with Logo, Cart, and Notifications - added mobile-top-navbar class */}
+      {/* Mobile Top Bar with Logo, Cart, and Orders */}
       <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
@@ -108,11 +110,9 @@ const Navbar: React.FC = () => {
                 </span>
               )}
             </Link>
-            <Link to="/notifications" className="relative">
-              <FaBell size={22} />
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                2
-              </span>
+            <Link to="/orders" className="relative">
+              <FiTruck size={22} />
+              {/* Badge removed */}
             </Link>
           </div>
         </div>
@@ -123,7 +123,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation Bar */}
+      {/* Mobile Bottom Navigation Bar - unchanged */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
         <div className="grid grid-cols-4 items-center">
           <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === "/" ? "text-primary" : ""}`}>
@@ -144,8 +144,6 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
       </nav>
-
-      {/* Remove the padding div since we're handling it dynamically in Layout component */}
     </>
   );
 };

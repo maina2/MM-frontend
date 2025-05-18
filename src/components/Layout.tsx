@@ -68,7 +68,7 @@ const Layout: React.FC = () => {
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-gray-100 text-center text-gray-500 text-sm">
-              © {new Date().getFullYear()} Muindi Mweusi Supermarket. All rights reserved.
+              © {new Date().getFullYear()} Muindi Mweusi Supermarket. Simon Chanzu.
             </div>
           </div>
         </footer>

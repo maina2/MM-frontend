@@ -1,5 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setCredentials, logout } from "../store/authSlice";
+// src/api/apiSlice.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { setCredentials, logout } from '../store/authSlice';
 import {
   User,
   Product,
@@ -8,10 +9,10 @@ import {
   Payment,
   Delivery,
   Category,
-} from "../types";
-import { RootState } from "../store/store";
+} from '../types';
+import { RootState } from '../store/store';
 
-const BASE_URL = "http://localhost:8000/api/";
+const BASE_URL = 'http://localhost:8000/api/';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -19,7 +20,7 @@ const baseQuery = fetchBaseQuery({
     const state = getState() as RootState;
     const token = state.auth.token;
     if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
+      headers.set('Authorization', `Bearer ${token}`);
     }
     return headers;
   },
@@ -32,8 +33,8 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     if (refreshToken) {
       const refreshResult = await baseQuery(
         {
-          url: "users/refresh/",
-          method: "POST",
+          url: 'users/refresh/',
+          method: 'POST',
           body: { refresh: refreshToken },
         },
         api,
@@ -62,15 +63,15 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 };
 
 export const apiSlice = createApi({
-  reducerPath: "api",
+  reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
   tagTypes: [
-    "Products",
-    "Orders",
-    "ProductDetail",
-    "Payments",
-    "Deliveries",
-    "Categories",
+    'Products',
+    'Orders',
+    'ProductDetail',
+    'Payments',
+    'Deliveries',
+    'Categories',
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -78,8 +79,8 @@ export const apiSlice = createApi({
       { username: string; email: string; password: string }
     >({
       query: (credentials) => ({
-        url: "users/register/",
-        method: "POST",
+        url: 'users/register/',
+        method: 'POST',
         body: credentials,
       }),
     }),
@@ -88,18 +89,25 @@ export const apiSlice = createApi({
       { username: string; password: string }
     >({
       query: (credentials) => ({
-        url: "users/login/",
-        method: "POST",
+        url: 'users/login/',
+        method: 'POST',
         body: credentials,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
+          // Compute role based on is_admin and is_delivery_person
+          const role: Role = data.user.is_admin
+            ? 'admin'
+            : data.user.is_delivery_person
+            ? 'delivery'
+            : 'customer';
           const userWithDefaults: User = {
             ...data.user,
             is_delivery_person: data.user.is_delivery_person ?? false,
             is_admin: data.user.is_admin ?? false,
             phone_number: data.user.phone_number ?? undefined,
+            role, // Add computed role
           };
           dispatch(
             setCredentials({
@@ -110,23 +118,23 @@ export const apiSlice = createApi({
           );
         } catch (error: any) {
           console.error(
-            "Login failed:",
-            error?.data?.detail || "Unknown error"
+            'Login failed:',
+            error?.data?.detail || 'Unknown error'
           );
         }
       },
     }),
     getProfile: builder.query<User, void>({
-      query: () => "users/profile/",
-      providesTags: ["User"],
+      query: () => 'users/profile/',
+      providesTags: ['User'],
     }),
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (data) => ({
-        url: "users/profile/update/",
-        method: "PUT",
+        url: 'users/profile/update/',
+        method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ['User'],
     }),
     getProducts: builder.query<
       {
@@ -138,10 +146,10 @@ export const apiSlice = createApi({
       { page?: number; page_size?: number }
     >({
       query: ({ page = 1, page_size = 12 } = {}) => ({
-        url: "products/",
+        url: 'products/',
         params: { page, page_size },
       }),
-      providesTags: ["Products"],
+      providesTags: ['Products'],
     }),
     getOffers: builder.query<
       {
@@ -167,7 +175,7 @@ export const apiSlice = createApi({
         max_price,
         sort_by,
       } = {}) => ({
-        url: "products/offers/",
+        url: 'products/offers/',
         params: {
           page,
           page_size,
@@ -177,15 +185,15 @@ export const apiSlice = createApi({
           ...(sort_by && { sort_by }),
         },
       }),
-      providesTags: ["Products"],
+      providesTags: ['Products'],
     }),
     getProductById: builder.query<ProductDetail, number>({
       query: (id) => `products/${id}/`,
-      providesTags: (result, error, id) => [{ type: "ProductDetail", id }],
+      providesTags: (result, error, id) => [{ type: 'ProductDetail', id }],
     }),
     getCategories: builder.query<Category[], void>({
-      query: () => "categories/",
-      providesTags: ["Categories"],
+      query: () => 'categories/',
+      providesTags: ['Categories'],
       transformResponse: (response: any) => {
         return response.results ? response.results : response;
       },
@@ -195,16 +203,15 @@ export const apiSlice = createApi({
       number
     >({
       query: (id) => `categories/${id}/`,
-      providesTags: (result, error, id) => [{ type: "Categories", id }],
+      providesTags: (result, error, id) => [{ type: 'Categories', id }],
     }),
     getOrders: builder.query<Order[], void>({
-      query: () => "orders/orders-list/",
-      providesTags: ["Orders"],
+      query: () => 'orders/orders-list/',
+      providesTags: ['Orders'],
     }),
     getOrder: builder.query({
       query: (orderId) => `orders/orders-details/${orderId}/`,
     }),
-
     checkout: builder.mutation<
       {
         order: Order;
@@ -223,11 +230,11 @@ export const apiSlice = createApi({
       }
     >({
       query: (checkoutData) => ({
-        url: "orders/checkout/",
-        method: "POST",
+        url: 'orders/checkout/',
+        method: 'POST',
         body: checkoutData,
       }),
-      invalidatesTags: ["Orders", "Payments", "Deliveries"],
+      invalidatesTags: ['Orders', 'Payments', 'Deliveries'],
     }),
     searchProducts: builder.query<
       {
@@ -255,7 +262,7 @@ export const apiSlice = createApi({
         page = 1,
         page_size = 12,
       }) => ({
-        url: "products/search/",
+        url: 'products/search/',
         params: {
           q,
           ...(category && { category }),
@@ -266,7 +273,7 @@ export const apiSlice = createApi({
           page_size,
         },
       }),
-      providesTags: ["Products"],
+      providesTags: ['Products'],
     }),
   }),
 });

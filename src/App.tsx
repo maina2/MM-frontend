@@ -17,6 +17,7 @@ import Checkout from "./pages/Checkout";
 import SearchResults from "./pages/SearchResults";
 import Offers from "./pages/Offers";
 import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
 
 const App: React.FC = () => {
   return (
@@ -36,10 +37,9 @@ const App: React.FC = () => {
           <Route path="/search" element={<SearchResults />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/profile" element={<Profile/>} />
-          <Route path="/orders" element={<div>Orders Page</div>} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/discover" element={<div>Discover Page</div>} />
           <Route path="/wallet" element={<div>Wallet Page</div>} />
-          <Route path="/notifications" element={<div>Notifications Page</div>} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
