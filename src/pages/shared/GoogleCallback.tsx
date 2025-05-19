@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from '../store/authSlice';
+import { setCredentials } from '../../store/authSlice';
 
 const GoogleCallback = () => {
   const navigate = useNavigate();

@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -10,10 +9,10 @@ import {
   FaUser,
   FaThLarge,
   FaTags,
-  FiTruck,
   FaCog, // Added for admin
   FaMapMarkerAlt, // Added for delivery
 } from 'react-icons/fa';
+import { FiTruck } from 'react-icons/fi'; // Import FiTruck from react-icons/fi
 import SearchBar from './SearchBar';
 
 const Navbar: React.FC = () => {

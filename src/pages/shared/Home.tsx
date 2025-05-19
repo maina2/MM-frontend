@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
-import { useGetCategoriesQuery } from "../api/apiSlice";
-import { Category } from "../types";
+import { useGetCategoriesQuery } from "../../api/apiSlice";
+import { Category } from "../../types";
 import { ShoppingBag, TrendingUp, Gift, ArrowRight } from "lucide-react";
 
 // Import the updated Products component
-import Products from "./users/Products";
+import Products from "../users/Products";
 
 // Ensure react-slick CSS is imported
 import "slick-carousel/slick/slick.css";

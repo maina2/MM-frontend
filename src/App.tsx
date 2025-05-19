@@ -3,13 +3,13 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Home from "./pages/Home";
+import Home from "./pages/shared/Home";
 import Login from "./pages/shared/Login";
 import Register from "./pages/shared/Register";
 import Cart from "./pages/users/Cart";
 import Payment from "./pages/users/Payment";
-import Delivery from "./pages/delivery/Delivery";
-import GoogleCallback from "../../pages/GoogleCallback";
+import Delivery from "./pages/delivery/DeliveryTasks";
+import GoogleCallback from "./pages/shared/GoogleCallback";
 import Products from "./pages/users/Products";
 import ProductDetail from "./pages/users/ProductDetail";
 import Categories from "./pages/users/Categories";
@@ -21,8 +21,8 @@ import Offers from "./pages/users/Offers";
 import Profile from "./pages/users/Profile";
 import Orders from "./pages/users/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
-import DeliveryTasks from "./pages/DeliveryTasks";
-import Unauthorized from "./pages/Unauthorized";
+import DeliveryTasks from "./pages/delivery/DeliveryTasks";
+// import Unauthorized from "./pages/Unauthorized";
 
 const App: React.FC = () => {
   return (
