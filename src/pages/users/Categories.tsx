@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useGetCategoriesQuery } from "../api/apiSlice";
+import { useGetCategoriesQuery } from "../../api/apiSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
 

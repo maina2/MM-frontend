@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useGetOrdersQuery } from "../api/apiSlice";
-import { RootState } from "../store/store";
+import { useGetOrdersQuery } from "../../api/apiSlice";
+import { RootState } from "../../store/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { Order } from "../types";
+import { Order } from "../../types";
 import {
   FiPackage,
   FiCheckCircle,
@@ -24,7 +24,9 @@ const Orders: React.FC = () => {
   });
 
   // State to manage collapsed items for each order
-  const [collapsedOrders, setCollapsedOrders] = useState<{ [key: number]: boolean }>({});
+  const [collapsedOrders, setCollapsedOrders] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   useEffect(() => {
     if (!token) {
@@ -56,7 +58,8 @@ const Orders: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
           <p className="text-red-600 font-medium">
-            Failed to load orders: {(error as any)?.data?.detail || "Unknown error"}
+            Failed to load orders:{" "}
+            {(error as any)?.data?.detail || "Unknown error"}
           </p>
         </div>
       </div>
@@ -70,8 +73,12 @@ const Orders: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <div className="max-w-md mx-auto">
           <FiPackage className="mx-auto h-16 w-16 text-gray-300" />
-          <h3 className="mt-4 text-2xl font-semibold text-gray-900">No orders yet</h3>
-          <p className="mt-2 text-gray-500">Your order history will appear here once you make purchases.</p>
+          <h3 className="mt-4 text-2xl font-semibold text-gray-900">
+            No orders yet
+          </h3>
+          <p className="mt-2 text-gray-500">
+            Your order history will appear here once you make purchases.
+          </p>
         </div>
       </div>
     );
@@ -102,9 +109,12 @@ const Orders: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Order History</h1>
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+          Order History
+        </h1>
         <p className="mt-2 text-sm text-gray-500">
-          Showing {ordersArray.length} order{ordersArray.length !== 1 ? "s" : ""}
+          Showing {ordersArray.length} order
+          {ordersArray.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -124,7 +134,9 @@ const Orders: React.FC = () => {
                     <FiPackage className="h-7 w-7 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">Order #{order.id}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Order #{order.id}
+                    </h3>
                     <p className="text-sm text-gray-500">
                       {new Date(order.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -144,7 +156,8 @@ const Orders: React.FC = () => {
                   >
                     {getStatusIcon(order.status)}
                     <span className="ml-2">
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {order.status.charAt(0).toUpperCase() +
+                        order.status.slice(1)}
                     </span>
                   </span>
                 </div>
@@ -152,7 +165,9 @@ const Orders: React.FC = () => {
 
               <div className="border-t border-gray-100 pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Items</h4>
+                  <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+                    Items
+                  </h4>
                   <button
                     onClick={() => toggleCollapse(order.id)}
                     className="flex items-center text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 E
@@ -202,14 +217,20 @@ const Orders: React.FC = () => {
                                 )}
                               </div>
                               <div>
-                                <p className="font-medium text-gray-900">{item.product.name}</p>
+                                <p className="font-medium text-gray-900">
+                                  {item.product.name}
+                                </p>
                                 <p className="text-sm text-gray-500">
-                                  {item.quantity} × KSh {parseFloat(item.price).toFixed(2)}
+                                  {item.quantity} × KSh{" "}
+                                  {parseFloat(item.price).toFixed(2)}
                                 </p>
                               </div>
                             </div>
                             <p className="font-semibold text-gray-900">
-                              KSh {(parseFloat(item.price) * item.quantity).toFixed(2)}
+                              KSh{" "}
+                              {(parseFloat(item.price) * item.quantity).toFixed(
+                                2
+                              )}
                             </p>
                           </div>
                         ))}

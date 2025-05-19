@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useGetProductsQuery } from "../api/apiSlice";
+import { useGetProductsQuery } from "../../api/apiSlice";
 import { useDispatch } from "react-redux";
-import { addItem } from "../store/cartSlice";
-import { Product } from "../types";
+import { addItem } from "../../store/cartSlice";
+import { Product } from "../../types";
 import { motion } from "framer-motion";
-import { Heart, ShoppingCart, Clock, Filter, Grid3X3, List } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  Clock,
+  Filter,
+  Grid3X3,
+  List,
+} from "lucide-react";
 import { Pagination, Box } from "@mui/material";
 
 // Animation variants for product cards
@@ -33,7 +40,10 @@ const Products: React.FC = () => {
   const page = Number(searchParams.get("page")) || 1;
 
   // Fetch products using RTK Query
-  const { data, error, isLoading } = useGetProductsQuery({ page, page_size: 12 });
+  const { data, error, isLoading } = useGetProductsQuery({
+    page,
+    page_size: 12,
+  });
 
   // Handle Add to Cart
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
@@ -53,7 +63,10 @@ const Products: React.FC = () => {
     setViewMode(viewMode === "grid" ? "compact" : "grid");
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", value.toString());
     setSearchParams(newParams);
@@ -75,9 +88,7 @@ const Products: React.FC = () => {
         <p className="text-red-500 text-lg font-medium text-center">
           Unable to load products
         </p>
-        <p className="text-red-400 text-center mt-2">
-          Please try again later
-        </p>
+        <p className="text-red-400 text-center mt-2">Please try again later</p>
       </div>
     );
   }
@@ -103,7 +114,9 @@ const Products: React.FC = () => {
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg">
           <button
             className={`flex items-center justify-center p-2 ${
-              viewMode === "grid" ? "bg-primary text-white rounded-lg" : "text-gray-700"
+              viewMode === "grid"
+                ? "bg-primary text-white rounded-lg"
+                : "text-gray-700"
             }`}
             onClick={() => setViewMode("grid")}
           >
@@ -111,7 +124,9 @@ const Products: React.FC = () => {
           </button>
           <button
             className={`flex items-center justify-center p-2 ${
-              viewMode === "compact" ? "bg-primary text-white rounded-lg" : "text-gray-700"
+              viewMode === "compact"
+                ? "bg-primary text-white rounded-lg"
+                : "text-gray-700"
             }`}
             onClick={() => setViewMode("compact")}
           >
@@ -146,7 +161,9 @@ const Products: React.FC = () => {
                       />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 font-medium text-xs">No Image</span>
+                        <span className="text-gray-400 font-medium text-xs">
+                          No Image
+                        </span>
                       </div>
                     )}
 
@@ -185,7 +202,8 @@ const Products: React.FC = () => {
                     </h3>
 
                     <p className="text-xs text-gray-500 mb-2 line-clamp-1 md:line-clamp-2">
-                      {product.description || "Quality products at great prices."}
+                      {product.description ||
+                        "Quality products at great prices."}
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
@@ -237,7 +255,9 @@ const Products: React.FC = () => {
                       />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 font-medium text-xs">No Image</span>
+                        <span className="text-gray-400 font-medium text-xs">
+                          No Image
+                        </span>
                       </div>
                     )}
 
@@ -258,7 +278,8 @@ const Products: React.FC = () => {
                     </div>
 
                     <p className="text-xs text-gray-500 mb-1 line-clamp-1">
-                      {product.description || "Quality products at great prices."}
+                      {product.description ||
+                        "Quality products at great prices."}
                     </p>
 
                     {/* Stock badge */}

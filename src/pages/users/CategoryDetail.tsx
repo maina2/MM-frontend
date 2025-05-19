@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { useGetCategoryDetailQuery } from '../api/apiSlice';
-import { addItem } from '../store/cartSlice';
-import { motion } from 'framer-motion';
-import { ShoppingCart, Star, Clock, Grid3X3, List } from 'lucide-react';
+import React, { useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useGetCategoryDetailQuery } from "../../api/apiSlice";
+import { addItem } from "../../store/cartSlice";
+import { motion } from "framer-motion";
+import { ShoppingCart, Star, Clock, Grid3X3, List } from "lucide-react";
 
 // Animation variants for product cards
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
       duration: 0.5,
-      ease: "easeOut"
-    } 
+      ease: "easeOut",
+    },
   },
   hover: {
     y: -5,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 const CategoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
-  const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
   const { data, error, isLoading } = useGetCategoryDetailQuery(Number(id));
 
   // Handle Add to Cart
@@ -41,7 +41,7 @@ const CategoryDetail: React.FC = () => {
 
   // Toggle view mode
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'grid' ? 'compact' : 'grid');
+    setViewMode(viewMode === "grid" ? "compact" : "grid");
   };
 
   if (isLoading) {
@@ -60,9 +60,7 @@ const CategoryDetail: React.FC = () => {
         <p className="text-red-500 text-lg font-medium text-center">
           Unable to load category
         </p>
-        <p className="text-red-400 text-center mt-2">
-          Please try again later
-        </p>
+        <p className="text-red-400 text-center mt-2">Please try again later</p>
       </div>
     );
   }
@@ -71,7 +69,9 @@ const CategoryDetail: React.FC = () => {
     return (
       <div className="bg-gray-50 p-12 rounded-xl border border-gray-100 text-center">
         <p className="text-gray-500 text-lg">Category not found.</p>
-        <p className="text-gray-400 mt-2">Please check the category ID or try again later.</p>
+        <p className="text-gray-400 mt-2">
+          Please check the category ID or try again later.
+        </p>
       </div>
     );
   }
@@ -80,23 +80,35 @@ const CategoryDetail: React.FC = () => {
     <div className="py-8 max-w-7xl mx-auto px-4">
       {/* Category Details */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-dark mb-2">{data.category.name}</h1>
+        <h1 className="text-3xl font-bold text-dark mb-2">
+          {data.category.name}
+        </h1>
         <p className="text-dark/80">{data.category.description}</p>
       </div>
 
       {/* Products in this Category */}
       <div className="flex justify-between items-center mb-4 px-2">
-        <h2 className="text-2xl font-semibold text-dark">Products in {data.category.name}</h2>
+        <h2 className="text-2xl font-semibold text-dark">
+          Products in {data.category.name}
+        </h2>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg">
-          <button 
-            className={`flex items-center justify-center p-2 ${viewMode === 'grid' ? 'bg-primary text-white rounded-lg' : 'text-gray-700'}`}
-            onClick={() => setViewMode('grid')}
+          <button
+            className={`flex items-center justify-center p-2 ${
+              viewMode === "grid"
+                ? "bg-primary text-white rounded-lg"
+                : "text-gray-700"
+            }`}
+            onClick={() => setViewMode("grid")}
           >
             <Grid3X3 size={16} />
           </button>
-          <button 
-            className={`flex items-center justify-center p-2 ${viewMode === 'compact' ? 'bg-primary text-white rounded-lg' : 'text-gray-700'}`}
-            onClick={() => setViewMode('compact')}
+          <button
+            className={`flex items-center justify-center p-2 ${
+              viewMode === "compact"
+                ? "bg-primary text-white rounded-lg"
+                : "text-gray-700"
+            }`}
+            onClick={() => setViewMode("compact")}
           >
             <List size={16} />
           </button>
@@ -104,7 +116,7 @@ const CategoryDetail: React.FC = () => {
       </div>
 
       {/* Grid View */}
-      {viewMode === 'grid' && (
+      {viewMode === "grid" && (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
           {data.products.map((product: any) => (
             <motion.div
@@ -127,20 +139,22 @@ const CategoryDetail: React.FC = () => {
                       />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 font-medium text-xs">No Image</span>
+                        <span className="text-gray-400 font-medium text-xs">
+                          No Image
+                        </span>
                       </div>
                     )}
-                    
+
                     {/* Gradient overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+
                     {/* Category tag */}
                     <div className="absolute top-2 left-2">
                       <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm truncate max-w-24">
                         {product.category.name}
                       </span>
                     </div>
-                    
+
                     {/* Stock badge */}
                     {product.stock <= 5 && (
                       <div className="absolute bottom-2 left-2">
@@ -158,34 +172,40 @@ const CategoryDetail: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Product Details */}
                   <div className="p-3 md:p-4 flex flex-col flex-grow">
                     <div className="flex items-center gap-1 mb-1">
-                      <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs font-medium text-gray-700">{getRandomRating()}</span>
+                      <Star
+                        size={12}
+                        className="text-yellow-400 fill-yellow-400"
+                      />
+                      <span className="text-xs font-medium text-gray-700">
+                        {getRandomRating()}
+                      </span>
                     </div>
-                    
+
                     <h3 className="text-sm md:text-base font-bold text-gray-800 line-clamp-1">
                       {product.name}
                     </h3>
-                    
+
                     <p className="text-xs text-gray-500 mb-2 line-clamp-1 md:line-clamp-2">
-                      {product.description || "Quality products at great prices."}
+                      {product.description ||
+                        "Quality products at great prices."}
                     </p>
-                    
+
                     <div className="flex items-center justify-between mt-auto">
                       <p className="text-sm md:text-base font-bold text-primary truncate">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
-                      
+
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
                         disabled={product.stock === 0}
                         className={`flex items-center justify-center rounded-full w-8 h-8 md:w-10 md:h-10 transition-all duration-300 ${
                           product.stock === 0
-                            ? 'bg-gray-200 cursor-not-allowed'
-                            : 'bg-primary text-white hover:bg-primary/90'
+                            ? "bg-gray-200 cursor-not-allowed"
+                            : "bg-primary text-white hover:bg-primary/90"
                         }`}
                       >
                         <ShoppingCart size={16} />
@@ -200,7 +220,7 @@ const CategoryDetail: React.FC = () => {
       )}
 
       {/* Compact View */}
-      {viewMode === 'compact' && (
+      {viewMode === "compact" && (
         <div className="flex flex-col gap-3">
           {data.products.map((product: any) => (
             <motion.div
@@ -223,10 +243,12 @@ const CategoryDetail: React.FC = () => {
                       />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 font-medium text-xs">No Image</span>
+                        <span className="text-gray-400 font-medium text-xs">
+                          No Image
+                        </span>
                       </div>
                     )}
-                    
+
                     {/* Category tag */}
                     <div className="absolute top-1 left-1">
                       <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm">
@@ -234,24 +256,30 @@ const CategoryDetail: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Product Details */}
                   <div className="p-2 md:p-3 flex flex-col flex-grow">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-gray-800 line-clamp-1">
                         {product.name}
                       </h3>
-                      
+
                       <div className="flex items-center gap-1">
-                        <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                        <span className="text-xs font-medium text-gray-700">{getRandomRating()}</span>
+                        <Star
+                          size={12}
+                          className="text-yellow-400 fill-yellow-400"
+                        />
+                        <span className="text-xs font-medium text-gray-700">
+                          {getRandomRating()}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <p className="text-xs text-gray-500 mb-1 line-clamp-1">
-                      {product.description || "Quality products at great prices."}
+                      {product.description ||
+                        "Quality products at great prices."}
                     </p>
-                    
+
                     {/* Stock badge */}
                     {product.stock <= 5 && (
                       <div className="mb-1">
@@ -268,12 +296,12 @@ const CategoryDetail: React.FC = () => {
                         )}
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between mt-auto">
                       <p className="text-sm font-bold text-primary">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
-                      
+
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => {
@@ -290,8 +318,8 @@ const CategoryDetail: React.FC = () => {
                           disabled={product.stock === 0}
                           className={`flex items-center justify-center rounded-full w-8 h-8 transition-all duration-300 ${
                             product.stock === 0
-                              ? 'bg-gray-200 cursor-not-allowed'
-                              : 'bg-primary text-white hover:bg-primary/90'
+                              ? "bg-gray-200 cursor-not-allowed"
+                              : "bg-primary text-white hover:bg-primary/90"
                           }`}
                         >
                           <ShoppingCart size={14} />

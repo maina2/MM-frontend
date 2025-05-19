@@ -13,15 +13,24 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
-import { useSearchProductsQuery, useGetCategoriesQuery } from "../api/apiSlice";
-import ProductCard from "../components/ProductCard";
+import {
+  useSearchProductsQuery,
+  useGetCategoriesQuery,
+} from "../../api/apiSlice";
+import ProductCard from "../../components/ProductCard";
 
 const SearchResults: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
-  const category = searchParams.get("category") ? Number(searchParams.get("category")) : undefined;
-  const min_price = searchParams.get("min_price") ? Number(searchParams.get("min_price")) : undefined;
-  const max_price = searchParams.get("max_price") ? Number(searchParams.get("max_price")) : undefined;
+  const category = searchParams.get("category")
+    ? Number(searchParams.get("category"))
+    : undefined;
+  const min_price = searchParams.get("min_price")
+    ? Number(searchParams.get("min_price"))
+    : undefined;
+  const max_price = searchParams.get("max_price")
+    ? Number(searchParams.get("max_price"))
+    : undefined;
   const sort_by = searchParams.get("sort_by") || "name";
   const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1;
 
@@ -65,7 +74,10 @@ const SearchResults: React.FC = () => {
     setSearchParams(newParams);
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", value.toString());
     setSearchParams(newParams);
@@ -121,7 +133,11 @@ const SearchResults: React.FC = () => {
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sort By</InputLabel>
-              <Select value={sort_by} onChange={handleSortChange} label="Sort By">
+              <Select
+                value={sort_by}
+                onChange={handleSortChange}
+                label="Sort By"
+              >
                 <MenuItem value="name">Name: A-Z</MenuItem>
                 <MenuItem value="-name">Name: Z-A</MenuItem>
                 <MenuItem value="price">Price: Low to High</MenuItem>
@@ -129,8 +145,12 @@ const SearchResults: React.FC = () => {
               </Select>
             </FormControl>
           </Box>
-          {isLoading && <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />}
-          {isError && <Typography color="error">Failed to load results</Typography>}
+          {isLoading && (
+            <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />
+          )}
+          {isError && (
+            <Typography color="error">Failed to load results</Typography>
+          )}
           {data?.results?.length === 0 && (
             <Typography>No products found. Try another search term.</Typography>
           )}

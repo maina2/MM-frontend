@@ -1,28 +1,28 @@
 // src/App.tsx
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Cart from './pages/Cart';
-import Payment from './pages/Payment';
-import Delivery from './pages/Delivery';
-import GoogleCallback from './pages/GoogleCallback';
-import Products from './pages/Products';
-import ProductDetail from './pages/ProductDetail';
-import Categories from './pages/Categories';
-import CategoryDetail from './pages/CategoryDetail';
-import OrderConfirmation from './pages/OrderConfirmation';
-import Checkout from './pages/Checkout';
-import SearchResults from './pages/SearchResults';
-import Offers from './pages/Offers';
-import Profile from './pages/Profile';
-import Orders from './pages/Orders';
-import AdminDashboard from './pages/AdminDashboard';
-import DeliveryTasks from './pages/DeliveryTasks';
-import Unauthorized from './pages/Unauthorized';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Home from "./pages/Home";
+import Login from "./pages/shared/Login";
+import Register from "./pages/shared/Register";
+import Cart from "./pages/users/Cart";
+import Payment from "./pages/users/Payment";
+import Delivery from "./pages/delivery/Delivery";
+import GoogleCallback from "../../pages/GoogleCallback";
+import Products from "./pages/users/Products";
+import ProductDetail from "./pages/users/ProductDetail";
+import Categories from "./pages/users/Categories";
+import CategoryDetail from "./pages/users/CategoryDetail";
+import OrderConfirmation from "./pages/users/OrderConfirmation";
+import Checkout from "./pages/users/Checkout";
+import SearchResults from "./pages/users/SearchResults";
+import Offers from "./pages/users/Offers";
+import Profile from "./pages/users/Profile";
+import Orders from "./pages/users/Orders";
+import AdminDashboard from "./pages/admins/AdminDashboard";
+import DeliveryTasks from "./pages/DeliveryTasks";
+import Unauthorized from "./pages/Unauthorized";
 
 const App: React.FC = () => {
   return (
@@ -39,7 +39,10 @@ const App: React.FC = () => {
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:id" element={<CategoryDetail />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+          <Route
+            path="/order-confirmation/:orderId"
+            element={<OrderConfirmation />}
+          />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/profile" element={<Profile />} />
@@ -49,10 +52,10 @@ const App: React.FC = () => {
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Protected Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Route>
-          <Route element={<ProtectedRoute allowedRoles={['delivery']} />}>
+          <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />
           </Route>
         </Route>

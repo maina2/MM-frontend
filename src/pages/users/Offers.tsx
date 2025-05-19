@@ -16,10 +16,10 @@ import {
   IconButton,
 } from "@mui/material";
 import { Filter, Grid3X3, List } from "lucide-react";
-import { useGetOffersQuery, useGetCategoriesQuery } from "../api/apiSlice";
+import { useGetOffersQuery, useGetCategoriesQuery } from "../../api/apiSlice";
 import { useDispatch } from "react-redux";
-import { addItem } from "../store/cartSlice";
-import ProductCard from "../components/ProductCard";
+import { addItem } from "../../store/cartSlice";
+import ProductCard from "../../components/ProductCard";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -35,12 +35,20 @@ const Offers: React.FC = () => {
   const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const page = Number(searchParams.get("page")) || 1;
-  const category = searchParams.get("category") ? Number(searchParams.get("category")) : undefined;
-  const min_discount = searchParams.get("min_discount") ? Number(searchParams.get("min_discount")) : undefined;
-  const max_price = searchParams.get("max_price") ? Number(searchParams.get("max_price")) : undefined;
+  const category = searchParams.get("category")
+    ? Number(searchParams.get("category"))
+    : undefined;
+  const min_discount = searchParams.get("min_discount")
+    ? Number(searchParams.get("min_discount"))
+    : undefined;
+  const max_price = searchParams.get("max_price")
+    ? Number(searchParams.get("max_price"))
+    : undefined;
   const sort_by = searchParams.get("sort_by") || "-discount_percentage";
 
-  const [filterMinDiscount, setFilterMinDiscount] = useState(min_discount || "");
+  const [filterMinDiscount, setFilterMinDiscount] = useState(
+    min_discount || ""
+  );
   const [filterMaxPrice, setFilterMaxPrice] = useState(max_price || "");
 
   const { data, isLoading, isError } = useGetOffersQuery({
@@ -61,7 +69,8 @@ const Offers: React.FC = () => {
 
   const handleFilterChange = () => {
     const newParams = new URLSearchParams(searchParams);
-    if (filterMinDiscount) newParams.set("min_discount", filterMinDiscount.toString());
+    if (filterMinDiscount)
+      newParams.set("min_discount", filterMinDiscount.toString());
     else newParams.delete("min_discount");
     if (filterMaxPrice) newParams.set("max_price", filterMaxPrice.toString());
     else newParams.delete("max_price");
@@ -85,7 +94,10 @@ const Offers: React.FC = () => {
     setSearchParams(newParams);
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", value.toString());
     setSearchParams(newParams);
@@ -93,13 +105,21 @@ const Offers: React.FC = () => {
 
   const renderFilters = () => (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>Filters</Typography>
+      <Typography variant="h6" gutterBottom>
+        Filters
+      </Typography>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel>Category</InputLabel>
-        <Select value={category || ""} onChange={handleCategoryChange} label="Category">
+        <Select
+          value={category || ""}
+          onChange={handleCategoryChange}
+          label="Category"
+        >
           <MenuItem value="">All Categories</MenuItem>
           {categories?.map((cat) => (
-            <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+            <MenuItem key={cat.id} value={cat.id}>
+              {cat.name}
+            </MenuItem>
           ))}
         </Select>
       </FormControl>
@@ -149,7 +169,11 @@ const Offers: React.FC = () => {
       <Box sx={{ p: 3, textAlign: "center" }}>
         <Typography variant="h6">No offers available</Typography>
         <Typography color="text.secondary" mt={1}>
-          Check out our <Link to="/products" className="text-primary">full product range</Link>!
+          Check out our{" "}
+          <Link to="/products" className="text-primary">
+            full product range
+          </Link>
+          !
         </Typography>
       </Box>
     );
@@ -158,26 +182,59 @@ const Offers: React.FC = () => {
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: { xs: 2, md: 3 } }}>
       {/* Header */}
-      <Box sx={{ mb: 4, textAlign: "center", py: 4, bgcolor: "primary.main", color: "white", borderRadius: 2 }}>
-        <Typography variant="h4" fontWeight="bold">Exclusive Offers</Typography>
-        <Typography variant="subtitle1">Save big on your favorite products!</Typography>
+      <Box
+        sx={{
+          mb: 4,
+          textAlign: "center",
+          py: 4,
+          bgcolor: "primary.main",
+          color: "white",
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h4" fontWeight="bold">
+          Exclusive Offers
+        </Typography>
+        <Typography variant="subtitle1">
+          Save big on your favorite products!
+        </Typography>
       </Box>
 
       {/* Mobile Filter and View Toggle */}
-      <Box sx={{ display: { xs: "flex", md: "none" }, justifyContent: "space-between", mb: 2 }}>
+      <Box
+        sx={{
+          display: { xs: "flex", md: "none" },
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
         <IconButton onClick={() => setFilterDrawerOpen(true)}>
           <Filter size={20} />
         </IconButton>
-        <Box sx={{ display: "flex", gap: 1, bgcolor: "grey.100", borderRadius: 1, p: 0.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            bgcolor: "grey.100",
+            borderRadius: 1,
+            p: 0.5,
+          }}
+        >
           <IconButton
             onClick={() => setViewMode("grid")}
-            sx={{ bgcolor: viewMode === "grid" ? "primary.main" : "transparent", color: viewMode === "grid" ? "white" : "grey.700" }}
+            sx={{
+              bgcolor: viewMode === "grid" ? "primary.main" : "transparent",
+              color: viewMode === "grid" ? "white" : "grey.700",
+            }}
           >
             <Grid3X3 size={20} />
           </IconButton>
           <IconButton
             onClick={() => setViewMode("compact")}
-            sx={{ bgcolor: viewMode === "compact" ? "primary.main" : "transparent", color: viewMode === "compact" ? "white" : "grey.700" }}
+            sx={{
+              bgcolor: viewMode === "compact" ? "primary.main" : "transparent",
+              color: viewMode === "compact" ? "white" : "grey.700",
+            }}
           >
             <List size={20} />
           </IconButton>
@@ -195,9 +252,17 @@ const Offers: React.FC = () => {
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sort By</InputLabel>
-              <Select value={sort_by} onChange={handleSortChange} label="Sort By">
-                <MenuItem value="-discount_percentage">Discount: High to Low</MenuItem>
-                <MenuItem value="discount_percentage">Discount: Low to High</MenuItem>
+              <Select
+                value={sort_by}
+                onChange={handleSortChange}
+                label="Sort By"
+              >
+                <MenuItem value="-discount_percentage">
+                  Discount: High to Low
+                </MenuItem>
+                <MenuItem value="discount_percentage">
+                  Discount: Low to High
+                </MenuItem>
                 <MenuItem value="price">Price: Low to High</MenuItem>
                 <MenuItem value="-price">Price: High to Low</MenuItem>
                 <MenuItem value="name">Name: A-Z</MenuItem>
@@ -210,7 +275,12 @@ const Offers: React.FC = () => {
             <Grid container spacing={2}>
               {data.results.map((product) => (
                 <Grid item xs={12} sm={6} md={4} key={product.id}>
-                  <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover="hover">
+                  <motion.div
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    whileHover="hover"
+                  >
                     <ProductCard
                       product={product}
                       onAddToCart={(e) => handleAddToCart(product, e)}
@@ -225,7 +295,13 @@ const Offers: React.FC = () => {
           {viewMode === "compact" && (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {data.results.map((product) => (
-                <motion.div key={product.id} variants={cardVariants} initial="hidden" animate="visible" whileHover="hover">
+                <motion.div
+                  key={product.id}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                >
                   <ProductCard
                     product={product}
                     compact

@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RootState } from '../store/store';
-import { CartItem } from '../types';
-import { removeItem, updateQuantity, clearCart } from '../store/cartSlice';
-import { X, Plus, Minus, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { RootState } from "../../store/store";
+import { CartItem } from "../../types";
+import { removeItem, updateQuantity, clearCart } from "../../store/cartSlice";
+import {
+  X,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 // Animation variants for cart items
 const itemVariants = {
@@ -13,7 +20,7 @@ const itemVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.05, duration: 0.3, ease: 'easeOut' },
+    transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" },
   }),
   exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
 };
@@ -27,7 +34,9 @@ const buttonVariants = {
 const Cart: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const cartItems = useSelector((state: RootState) => state.cart.items) as CartItem[];
+  const cartItems = useSelector(
+    (state: RootState) => state.cart.items
+  ) as CartItem[];
   const [itemsPerPage] = useState<number>(12);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
@@ -62,9 +71,12 @@ const Cart: React.FC = () => {
   };
 
   // Compact cart item for grid view
-  const CartItemCompact: React.FC<{ item: CartItem; index: number }> = ({ item, index }) => {
+  const CartItemCompact: React.FC<{ item: CartItem; index: number }> = ({
+    item,
+    index,
+  }) => {
     const isExpanded = expandedItem === item.product.id;
-    
+
     return (
       <motion.div
         key={item.product.id}
@@ -90,24 +102,27 @@ const Cart: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* Quantity badge */}
           <div className="absolute top-2 right-2 bg-primary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
             {item.quantity}
           </div>
         </div>
-        
+
         {/* Product details */}
         <div className="p-2 flex-1 flex flex-col">
-          <h3 className="font-medium text-sm text-dark line-clamp-1">{item.product.name}</h3>
+          <h3 className="font-medium text-sm text-dark line-clamp-1">
+            {item.product.name}
+          </h3>
           <p className="text-primary font-medium text-sm mt-auto">
-            KSh {Number(item.product.price).toFixed(2)} {/* Parse price to number */}
+            KSh {Number(item.product.price).toFixed(2)}{" "}
+            {/* Parse price to number */}
           </p>
         </div>
-        
+
         {/* Action row */}
         <div className="flex border-t border-gray-100">
-          <button 
+          <button
             onClick={() => toggleItemExpand(item.product.id)}
             className="flex-1 p-2 text-xs text-center text-gray-600 hover:bg-gray-50"
           >
@@ -120,7 +135,7 @@ const Cart: React.FC = () => {
             Remove
           </button>
         </div>
-        
+
         {/* Expanded view with quantity controls */}
         <AnimatePresence>
           {isExpanded && (
@@ -135,7 +150,7 @@ const Cart: React.FC = () => {
                 <p className="text-gray-600 text-xs line-clamp-2">
                   {item.product.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-600">Quantity:</span>
                   <div className="flex items-center gap-2">
@@ -178,10 +193,15 @@ const Cart: React.FC = () => {
                     </motion.button>
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <span className="text-xs font-medium text-gray-600">
-                    Total: <span className="text-primary">KSh {(Number(item.product.price) * item.quantity).toFixed(2)}</span> {/* Parse price */}
+                    Total:{" "}
+                    <span className="text-primary">
+                      KSh{" "}
+                      {(Number(item.product.price) * item.quantity).toFixed(2)}
+                    </span>{" "}
+                    {/* Parse price */}
                   </span>
                 </div>
               </div>
@@ -193,7 +213,10 @@ const Cart: React.FC = () => {
   };
 
   // Original list view item (modified to be more compact)
-  const CartItemList: React.FC<{ item: CartItem; index: number }> = ({ item, index }) => (
+  const CartItemList: React.FC<{ item: CartItem; index: number }> = ({
+    item,
+    index,
+  }) => (
     <motion.div
       key={item.product.id}
       className="bg-white rounded-lg shadow-sm p-3 mb-2 flex items-center gap-3 border border-gray-100"
@@ -220,9 +243,12 @@ const Cart: React.FC = () => {
 
       {/* Product Details */}
       <div className="flex-1 min-w-0">
-        <h2 className="text-sm font-medium text-dark line-clamp-1">{item.product.name}</h2>
+        <h2 className="text-sm font-medium text-dark line-clamp-1">
+          {item.product.name}
+        </h2>
         <p className="text-primary text-sm font-medium">
-          KSh {Number(item.product.price).toFixed(2)} x {item.quantity} {/* Parse price */}
+          KSh {Number(item.product.price).toFixed(2)} x {item.quantity}{" "}
+          {/* Parse price */}
         </p>
       </div>
 
@@ -305,7 +331,9 @@ const Cart: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <ShoppingBag className="h-12 w-12 text-gray-400 mb-3" />
-          <p className="text-lg font-semibold text-gray-600 mb-2">Your Cart is Empty</p>
+          <p className="text-lg font-semibold text-gray-600 mb-2">
+            Your Cart is Empty
+          </p>
           <p className="text-gray-500 mb-4 text-sm">
             Looks like you haven't added any items yet.
           </p>
@@ -330,21 +358,25 @@ const Cart: React.FC = () => {
                   Items ({cartItems.length})
                 </h2>
                 <div className="flex bg-gray-100 rounded-lg p-1 text-xs">
-                  <button 
-                    className={`px-2 py-1 rounded ${viewMode === 'grid' ? 'bg-white shadow-sm' : ''}`}
-                    onClick={() => setViewMode('grid')}
+                  <button
+                    className={`px-2 py-1 rounded ${
+                      viewMode === "grid" ? "bg-white shadow-sm" : ""
+                    }`}
+                    onClick={() => setViewMode("grid")}
                   >
                     Grid
                   </button>
-                  <button 
-                    className={`px-2 py-1 rounded ${viewMode === 'list' ? 'bg-white shadow-sm' : ''}`}
-                    onClick={() => setViewMode('list')}
+                  <button
+                    className={`px-2 py-1 rounded ${
+                      viewMode === "list" ? "bg-white shadow-sm" : ""
+                    }`}
+                    onClick={() => setViewMode("list")}
                   >
                     List
                   </button>
                 </div>
               </div>
-              
+
               <motion.button
                 onClick={() => dispatch(clearCart())}
                 className="text-red-500 hover:text-red-600 font-medium flex items-center gap-1 text-sm"
@@ -358,16 +390,24 @@ const Cart: React.FC = () => {
 
             {/* Grid or List View based on viewMode */}
             <AnimatePresence>
-              {viewMode === 'grid' ? (
+              {viewMode === "grid" ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                   {currentItems.map((item, index) => (
-                    <CartItemCompact key={item.product.id} item={item} index={index} />
+                    <CartItemCompact
+                      key={item.product.id}
+                      item={item}
+                      index={index}
+                    />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-2">
                   {currentItems.map((item, index) => (
-                    <CartItemList key={item.product.id} item={item} index={index} />
+                    <CartItemList
+                      key={item.product.id}
+                      item={item}
+                      index={index}
+                    />
                   ))}
                 </div>
               )}
@@ -383,12 +423,14 @@ const Cart: React.FC = () => {
                 >
                   Prev
                 </button>
-                {[...Array(totalPages).keys()].map(number => (
+                {[...Array(totalPages).keys()].map((number) => (
                   <button
                     key={number + 1}
                     onClick={() => paginate(number + 1)}
                     className={`px-3 py-1 rounded-md ${
-                      currentPage === number + 1 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'
+                      currentPage === number + 1
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {number + 1}
@@ -408,15 +450,21 @@ const Cart: React.FC = () => {
           {/* Cart Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-md p-4 sticky top-4 border border-gray-100">
-              <h2 className="text-lg font-semibold text-dark mb-3">Order Summary</h2>
+              <h2 className="text-lg font-semibold text-dark mb-3">
+                Order Summary
+              </h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-dark font-medium">KSh {subtotal.toFixed(2)}</span>
+                  <span className="text-dark font-medium">
+                    KSh {subtotal.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (16%)</span>
-                  <span className="text-dark font-medium">KSh {tax.toFixed(2)}</span>
+                  <span className="text-dark font-medium">
+                    KSh {tax.toFixed(2)}
+                  </span>
                 </div>
                 <div className="border-t border-gray-100 pt-2 mt-2"></div>
                 <div className="flex justify-between text-base font-semibold">

@@ -1,63 +1,72 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useRegisterMutation } from '../api/apiSlice';
-import { useGoogleLogin } from '@react-oauth/google';
-import { FcGoogle } from 'react-icons/fc';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useRegisterMutation } from "../../api/apiSlice";
+import { useGoogleLogin } from "@react-oauth/google";
+import { FcGoogle } from "react-icons/fc";
 
 const generateCryptoRandomState = () => {
   const randomValues = new Uint8Array(16);
   window.crypto.getRandomValues(randomValues);
   return Array.from(randomValues)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 const Register: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [register, { isLoading, error }] = useRegisterMutation();
   const navigate = useNavigate();
 
   const state = generateCryptoRandomState();
-  sessionStorage.setItem('oauth_state', state);
+  sessionStorage.setItem("oauth_state", state);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await register({ username, email, password }).unwrap();
-      navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+      navigate("/login", {
+        state: { message: "Registration successful! Please log in." },
+      });
     } catch (err) {
-      console.error('Registration failed:', err);
+      console.error("Registration failed:", err);
     }
   };
 
   const googleLogin = useGoogleLogin({
-    flow: 'auth-code',
-    redirect_uri: 'http://localhost:5173/auth/google/callback',
-    scope: 'openid email profile',
-    ux_mode: 'redirect',
+    flow: "auth-code",
+    redirect_uri: "http://localhost:5173/auth/google/callback",
+    scope: "openid email profile",
+    ux_mode: "redirect",
     state: state,
     onSuccess: (response) => {
-      console.log('Google registration success:', response);
+      console.log("Google registration success:", response);
     },
     onError: () => {
-      console.log('Google registration failed');
+      console.log("Google registration failed");
     },
   });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-neutral p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md transform transition-all duration-500 hover:scale-105">
-        <h1 className="text-3xl font-bold text-dark text-center mb-6">Create Account</h1>
+        <h1 className="text-3xl font-bold text-dark text-center mb-6">
+          Create Account
+        </h1>
         {error && (
           <div className="bg-error/10 text-error p-3 rounded-lg mb-4 text-center">
-            {'data' in error ? (error as any).data?.detail || 'Registration failed' : 'Registration failed'}
+            {"data" in error
+              ? (error as any).data?.detail || "Registration failed"
+              : "Registration failed"}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-dark">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-dark"
+            >
               Username
             </label>
             <input
@@ -71,7 +80,10 @@ const Register: React.FC = () => {
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-dark">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-dark"
+            >
               Email
             </label>
             <input
@@ -85,7 +97,10 @@ const Register: React.FC = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-dark">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-dark"
+            >
               Password
             </label>
             <input
@@ -103,7 +118,7 @@ const Register: React.FC = () => {
             disabled={isLoading}
             className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 hover:shadow-lg transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Registering...' : 'Sign Up'}
+            {isLoading ? "Registering..." : "Sign Up"}
           </button>
         </form>
         <div className="mt-6">
@@ -112,7 +127,9 @@ const Register: React.FC = () => {
               <div className="w-full border-t border-dark/20"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-dark/60">Or continue with</span>
+              <span className="bg-white px-2 text-dark/60">
+                Or continue with
+              </span>
             </div>
           </div>
           <button
@@ -124,7 +141,7 @@ const Register: React.FC = () => {
           </button>
         </div>
         <p className="mt-6 text-center text-sm text-dark/60">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <a href="/login" className="text-primary hover:underline">
             Log in
           </a>
