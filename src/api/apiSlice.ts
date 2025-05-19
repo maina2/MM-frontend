@@ -6,8 +6,7 @@ import {
   Product,
   ProductDetail,
   Order,
-  Payment,
-  Delivery,
+  Role,
   Category,
 } from '../types';
 import { RootState } from '../store/store';
@@ -72,6 +71,7 @@ export const apiSlice = createApi({
     'Payments',
     'Deliveries',
     'Categories',
+    'User'
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -96,19 +96,23 @@ export const apiSlice = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          // Compute role based on is_admin and is_delivery_person
+          console.log('Login Response:', JSON.stringify(data, null, 2));
           const role: Role = data.user.is_admin
             ? 'admin'
             : data.user.is_delivery_person
             ? 'delivery'
             : 'customer';
+          console.log('Computed Role:', role);
           const userWithDefaults: User = {
-            ...data.user,
-            is_delivery_person: data.user.is_delivery_person ?? false,
+            id: data.user.id,
+            username: data.user.username,
+            email: data.user.email,
             is_admin: data.user.is_admin ?? false,
-            phone_number: data.user.phone_number ?? undefined,
-            role, // Add computed role
+            is_delivery_person: data.user.is_delivery_person ?? false,
+            phone_number: data.user.phone_number ?? null,
+            role: role, // Explicitly assign role
           };
+          console.log('User with Defaults:', JSON.stringify(userWithDefaults, null, 2));
           dispatch(
             setCredentials({
               user: userWithDefaults,
@@ -116,11 +120,9 @@ export const apiSlice = createApi({
               refreshToken: data.refresh,
             })
           );
+          console.log('Dispatched setCredentials with user:', JSON.stringify(userWithDefaults, null, 2));
         } catch (error: any) {
-          console.error(
-            'Login failed:',
-            error?.data?.detail || 'Unknown error'
-          );
+          console.error('Login failed:', error?.data?.detail || 'Unknown error');
         }
       },
     }),

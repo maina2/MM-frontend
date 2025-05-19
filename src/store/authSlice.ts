@@ -12,8 +12,18 @@ const initialState: AuthState = {
   user: (() => {
     try {
       const userData = localStorage.getItem('user');
-      return userData ? JSON.parse(userData) : null;
+      const user = userData ? JSON.parse(userData) : null;
+      if (user && !user.role) {
+        console.warn('Invalid user in localStorage, clearing');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        return null;
+      }
+      console.log('Loaded user from localStorage:', user);
+      return user;
     } catch {
+      console.error('Failed to parse user from localStorage');
       return null;
     }
   })(),
@@ -35,6 +45,7 @@ const authSlice = createSlice({
       localStorage.setItem('token', action.payload.token);
       localStorage.setItem('refreshToken', action.payload.refreshToken);
       localStorage.setItem('user', JSON.stringify(action.payload.user));
+      console.log('setCredentials: Stored user in Redux and localStorage', JSON.stringify(action.payload.user, null, 2));
     },
     logout: (state) => {
       state.user = null;
@@ -43,6 +54,7 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
+      console.log('Logged out, cleared localStorage');
     },
   },
 });

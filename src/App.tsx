@@ -22,7 +22,7 @@ import Profile from "./pages/users/Profile";
 import Orders from "./pages/users/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
-// import Unauthorized from "./pages/Unauthorized";
+import Unauthorized from "./pages/shared/Unauthorized";
 
 const App: React.FC = () => {
   return (
