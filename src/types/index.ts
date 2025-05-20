@@ -8,12 +8,9 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  is_admin: boolean;
-  is_delivery_person: boolean;
-  phone_number?: string | null; 
+  phone_number?: string | null;
   role: Role;
 }
-
 
 // Category and Branch types (used in Product)
 export interface Category {
@@ -95,7 +92,7 @@ export interface Payment {
 // Delivery type
 export interface Delivery {
   id: number;
-  order: Order; // Fixed: Removed invalid firewall artifact
+  order: Order;
   delivery_person: User | null;
   status: string;
   delivery_address: string;

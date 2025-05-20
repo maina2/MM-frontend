@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -9,10 +10,10 @@ import {
   FaUser,
   FaThLarge,
   FaTags,
-  FaCog, // Added for admin
-  FaMapMarkerAlt, // Added for delivery
+  FaCog,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
-import { FiTruck } from 'react-icons/fi'; // Import FiTruck from react-icons/fi
+import { FiTruck } from 'react-icons/fi';
 import SearchBar from './SearchBar';
 
 const Navbar: React.FC = () => {
@@ -75,7 +76,7 @@ const Navbar: React.FC = () => {
               <div className="relative group">
                 <button className="flex items-center space-x-1 hover:text-primary transition-colors">
                   <FaUser size={20} />
-                  <span className="text-sm">{user?.name?.split(' ')[0] || 'Account'}</span>
+                  <span className="text-sm">{user?.username || 'Account'}</span>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[1300] hidden group-hover:block">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

@@ -71,7 +71,7 @@ export const apiSlice = createApi({
     'Payments',
     'Deliveries',
     'Categories',
-    'User'
+    'User',
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -97,20 +97,12 @@ export const apiSlice = createApi({
         try {
           const { data } = await queryFulfilled;
           console.log('Login Response:', JSON.stringify(data, null, 2));
-          const role: Role = data.user.is_admin
-            ? 'admin'
-            : data.user.is_delivery_person
-            ? 'delivery'
-            : 'customer';
-          console.log('Computed Role:', role);
           const userWithDefaults: User = {
             id: data.user.id,
             username: data.user.username,
             email: data.user.email,
-            is_admin: data.user.is_admin ?? false,
-            is_delivery_person: data.user.is_delivery_person ?? false,
             phone_number: data.user.phone_number ?? null,
-            role: role, // Explicitly assign role
+            role: data.user.role, // Use role directly from API
           };
           console.log('User with Defaults:', JSON.stringify(userWithDefaults, null, 2));
           dispatch(

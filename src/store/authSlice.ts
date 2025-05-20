@@ -1,6 +1,6 @@
 // src/store/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '../types';
+import { User, Role } from '../types';
 
 interface AuthState {
   user: User | null;
@@ -13,17 +13,22 @@ const initialState: AuthState = {
     try {
       const userData = localStorage.getItem('user');
       const user = userData ? JSON.parse(userData) : null;
-      if (user && !user.role) {
-        console.warn('Invalid user in localStorage, clearing');
+      // Validate user has a valid role
+      const validRoles: Role[] = ['customer', 'admin', 'delivery'];
+      if (user && (!user.role || !validRoles.includes(user.role))) {
+        console.warn('Invalid user in localStorage, clearing', JSON.stringify(user, null, 2));
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         return null;
       }
-      console.log('Loaded user from localStorage:', user);
+      console.log('Loaded user from localStorage:', JSON.stringify(user, null, 2));
       return user;
-    } catch {
-      console.error('Failed to parse user from localStorage');
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       return null;
     }
   })(),
