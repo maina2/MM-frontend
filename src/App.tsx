@@ -21,6 +21,7 @@ import Offers from "./pages/customers/Offers";
 import Profile from "./pages/shared/Profile";
 import Orders from "./pages/customers/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
+import UserManagement from "./pages/admins/UserManagement"; 
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
 import Unauthorized from "./pages/shared/Unauthorized";
 
@@ -53,7 +54,10 @@ const App: React.FC = () => {
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />}>
+              <Route path="users" element={<UserManagement />} />
+              {/* Add more nested admin routes later, e.g., products, orders */}
+            </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />

@@ -279,7 +279,7 @@ export const apiSlice = createApi({
 
     // Admin Endpoints
     getAdminUsers: builder.query<User[], void>({
-      query: () => 'admin/users/',
+      query: () => 'users/manage/users/',
       providesTags: ['Users'],
     }),
     createAdminUser: builder.mutation<
@@ -287,7 +287,7 @@ export const apiSlice = createApi({
       { username: string; email: string; password: string; role: Role; phone_number?: string }
     >({
       query: (data) => ({
-        url: 'admin/users/',
+        url: 'users/manage/users/',
         method: 'POST',
         body: data,
       }),
@@ -298,7 +298,7 @@ export const apiSlice = createApi({
       { id: number; username?: string; email?: string; role?: Role; phone_number?: string }
     >({
       query: ({ id, ...data }) => ({
-        url: `admin/users/${id}/`,
+        url: `users/manage/users/${id}/`,
         method: 'PUT',
         body: data,
       }),
@@ -306,7 +306,7 @@ export const apiSlice = createApi({
     }),
     deleteAdminUser: builder.mutation<void, number>({
       query: (id) => ({
-        url: `admin/users/${id}/`,
+        url: `users/manage/users/${id}/`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Users'],
@@ -314,7 +314,7 @@ export const apiSlice = createApi({
 
     // Product Admin Endpoints
     getAdminProducts: builder.query<Product[], void>({
-      query: () => 'admin/products/',
+      query: () => 'manage/products/',
       providesTags: ['Products'],
     }),
     createAdminProduct: builder.mutation<
@@ -331,7 +331,7 @@ export const apiSlice = createApi({
       }
     >({
       query: (data) => ({
-        url: 'admin/products/',
+        url: 'manage/products/',
         method: 'POST',
         body: data,
       }),
@@ -352,7 +352,7 @@ export const apiSlice = createApi({
       }
     >({
       query: ({ id, ...data }) => ({
-        url: `admin/products/${id}/`,
+        url: `manage/products/${id}/`,
         method: 'PUT',
         body: data,
       }),
@@ -360,7 +360,7 @@ export const apiSlice = createApi({
     }),
     deleteAdminProduct: builder.mutation<void, number>({
       query: (id) => ({
-        url: 'admin/products/${id}/`,
+        url: `manage/products/${id}/`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Products'],
@@ -368,7 +368,7 @@ export const apiSlice = createApi({
 
     // Order Admin Endpoints
     getAdminOrders: builder.query<Order[], void>({
-      query: () => 'admin/orders/',
+      query: () => 'manage/orders/',
       providesTags: ['Orders'],
     }),
     updateAdminOrder: builder.mutation<
@@ -376,7 +376,7 @@ export const apiSlice = createApi({
       { id: number; status?: string; payment_status?: string }
     >({
       query: ({ id, ...data }) => ({
-        url: `admin/orders/${id}/`,
+        url: `manage/orders/${id}/`,
         method: 'PUT',
         body: data,
       }),
@@ -385,7 +385,7 @@ export const apiSlice = createApi({
 
     // Payment Admin Endpoints
     getAdminPayments: builder.query<Payment[], void>({
-      query: () => 'admin/payments/',
+      query: () => 'manage/payments/',
       providesTags: ['Payments'],
     }),
     updateAdminPayment: builder.mutation<
@@ -393,7 +393,7 @@ export const apiSlice = createApi({
       { id: number; status?: string }
     >({
       query: ({ id, ...data }) => ({
-        url: `admin/payments/${id}/`,
+        url: `manage/payments/${id}/`,
         method: 'PUT',
         body: data,
       }),
@@ -402,7 +402,7 @@ export const apiSlice = createApi({
 
     // Delivery Admin Endpoints
     getAdminDeliveries: builder.query<Delivery[], void>({
-      query: () => 'admin/deliveries/',
+      query: () => 'manage/deliveries/',
       providesTags: ['Deliveries'],
     }),
     updateAdminDelivery: builder.mutation<
@@ -418,7 +418,7 @@ export const apiSlice = createApi({
       }
     >({
       query: ({ id, ...data }) => ({
-        url: `admin/deliveries/${id}/`,
+        url: `manage/deliveries/${id}/`,
         method: 'PUT',
         body: data,
       }),
