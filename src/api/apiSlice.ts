@@ -72,8 +72,10 @@ export const apiSlice = createApi({
     'Deliveries',
     'Categories',
     'User',
+    'Users', // New tag for user management
   ],
   endpoints: (builder) => ({
+    // Shared Endpoints
     register: builder.mutation<
       User,
       { username: string; email: string; password: string }
@@ -102,7 +104,7 @@ export const apiSlice = createApi({
             username: data.user.username,
             email: data.user.email,
             phone_number: data.user.phone_number ?? null,
-            role: data.user.role, // Use role directly from API
+            role: data.user.role,
           };
           console.log('User with Defaults:', JSON.stringify(userWithDefaults, null, 2));
           dispatch(
@@ -130,6 +132,8 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['User'],
     }),
+
+    // Customer Endpoints
     getProducts: builder.query<
       {
         count: number;
@@ -269,6 +273,44 @@ export const apiSlice = createApi({
       }),
       providesTags: ['Products'],
     }),
+
+    // Admin Endpoints
+    getAdminUsers: builder.query<User[], void>({
+      query: () => 'admin/users/',
+      providesTags: ['Users'],
+    }),
+    createAdminUser: builder.mutation<
+      User,
+      { username: string; email: string; password: string; role: Role; phone_number?: string }
+    >({
+      query: (data) => ({
+        url: 'admin/users/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Users'],
+    }),
+    updateAdminUser: builder.mutation<
+      User,
+      { id: number; username?: string; email?: string; role?: Role; phone_number?: string }
+    >({
+      query: ({ id, ...data }) => ({
+        url: `admin/users/${id}/`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Users'],
+    }),
+    deleteAdminUser: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `admin/users/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Users'],
+    }),
+
+    // Delivery Endpoints
+    // Placeholder for future endpoints (e.g., getDeliveryTasks)
   }),
 });
 
@@ -286,4 +328,8 @@ export const {
   useGetOrderQuery,
   useCheckoutMutation,
   useSearchProductsQuery,
+  useGetAdminUsersQuery,
+  useCreateAdminUserMutation,
+  useUpdateAdminUserMutation,
+  useDeleteAdminUserMutation,
 } = apiSlice;
