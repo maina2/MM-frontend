@@ -10,9 +10,10 @@ export interface User {
   email: string;
   is_admin: boolean;
   is_delivery_person: boolean;
-  phone_number?: string;
+  phone_number?: string | null; 
   role: Role;
 }
+
 
 // Category and Branch types (used in Product)
 export interface Category {
