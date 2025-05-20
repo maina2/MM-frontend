@@ -33,8 +33,8 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
-  category: Category;
-  branch: Branch;
+  category: Category | number; // Allow number for API input (e.g., createAdminProduct)
+  branch: Branch | number; // Allow number for API input
   image: string | null;
   created_at: string;
   discount_percentage?: number;
@@ -70,6 +70,7 @@ export interface Order {
   total_amount: number;
   status: string;
   payment_status: string;
+  payment_phone_number?: string | null;
   created_at: string;
   updated_at: string;
   items: OrderItem[];
