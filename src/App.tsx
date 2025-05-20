@@ -54,7 +54,7 @@ const App: React.FC = () => {
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin" element={<AdminDashboard />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />}>
               <Route path="users" element={<UserManagement />} />
               {/* Add more nested admin routes later, e.g., products, orders */}
             </Route>

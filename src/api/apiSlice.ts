@@ -278,9 +278,18 @@ export const apiSlice = createApi({
     }),
 
     // Admin Endpoints
-    getAdminUsers: builder.query<User[], void>({
-      query: () => 'users/manage/users/',
+    getAdminUsers: builder.query<{
+      count: number;
+      next: string | null;
+      previous: string | null;
+      results: User[];
+    }, { page?: number; page_size?: number }>({
+      query: ({ page = 1, page_size = 10 } = {}) => ({
+        url: 'users/manage/users/',
+        params: { page, page_size },
+      }),
       providesTags: ['Users'],
+      transformResponse: (response: { count: number; next: string | null; previous: string | null; results: User[] }) => response,
     }),
     createAdminUser: builder.mutation<
       User,

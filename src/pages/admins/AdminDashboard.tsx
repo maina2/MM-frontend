@@ -1,15 +1,16 @@
 // src/pages/admins/AdminDashboard.tsx
 import React from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { useGetProfileQuery } from "../../api/apiSlice";
 import { useAppSelector } from "../../store/hooks";
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAppSelector((state) => state.auth);
-  const { data: profile, isLoading, error } = useGetProfileQuery();
+  const { user, token } = useAppSelector((state) => state.auth);
 
-  if (isLoading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (error || !user || profile?.role !== "admin") {
+  if (!token || !user) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+
+  if (user.role !== "admin") {
     return <div className="flex justify-center items-center h-screen">Access Denied: Admin Only</div>;
   }
 
@@ -22,7 +23,7 @@ const AdminDashboard: React.FC = () => {
           <ul className="space-y-4">
             <li>
               <NavLink
-                to="/admin/users"
+                to="/admin/dashboard/users"
                 className={({ isActive }) =>
                   `block p-2 rounded ${
                     isActive ? "bg-blue-600 text-white" : "hover:bg-gray-700"
@@ -32,7 +33,6 @@ const AdminDashboard: React.FC = () => {
                 User Management
               </NavLink>
             </li>
-            {/* Placeholder for future sections */}
             <li>
               <NavLink
                 to="/admin/products"

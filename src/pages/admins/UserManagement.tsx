@@ -52,7 +52,7 @@ const UserManagement: React.FC = () => {
   };
 
   if (isLoading) return <div className="flex justify-center items-center h-full">Loading users...</div>;
-  if (error) return <div className="text-red-500 text-center">Error loading users</div>;
+  if (error) return <div className="text-red-500 text-center">Error loading users: {JSON.stringify(error)}</div>;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -122,7 +122,7 @@ const UserManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users?.map((user) => (
+            {users?.results?.map((user) => ( // Changed from users?.map to users?.results?.map
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="border p-3">{user.id}</td>
                 <td className="border p-3">{user.username}</td>
