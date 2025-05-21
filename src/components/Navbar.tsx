@@ -10,7 +10,11 @@ import {
   FaUser,
   FaThLarge,
   FaTags,
-  FaCog,
+  FaUsers,
+  FaBox,
+  FaShoppingBag,
+  FaCreditCard,
+  FaTruck,
   FaMapMarkerAlt,
 } from 'react-icons/fa';
 import { FiTruck } from 'react-icons/fi';
@@ -39,20 +43,24 @@ const Navbar: React.FC = () => {
             Muindi Mweusi
           </Link>
           <div className="flex space-x-6">
-            <Link to="/" className="hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link to="/products" className="hover:text-primary transition-colors">
-              Products
-            </Link>
-            <Link to="/categories" className="hover:text-primary transition-colors">
-              Categories
-            </Link>
-            <Link to="/offers" className="hover:text-primary transition-colors">
-              Offers
-            </Link>
+            {role === 'customer' && (
+              <>
+                <Link to="/" className="hover:text-primary transition-colors">
+                  Home
+                </Link>
+                <Link to="/products" className="hover:text-primary transition-colors">
+                  Products
+                </Link>
+                <Link to="/categories" className="hover:text-primary transition-colors">
+                  Categories
+                </Link>
+                <Link to="/offers" className="hover:text-primary transition-colors">
+                  Offers
+                </Link>
+              </>
+            )}
             {role === 'admin' && (
-              <Link to="/admin/dashboard" className="hover:text-primary transition-colors">
+              <Link to="/admin" className="hover:text-primary transition-colors">
                 Admin Dashboard
               </Link>
             )}
@@ -64,14 +72,16 @@ const Navbar: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <SearchBar />
-            <Link to="/cart" className="relative hover:text-primary transition-colors">
-              <FaShoppingCart size={20} />
-              {cartItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                  {cartItems}
-                </span>
-              )}
-            </Link>
+            {role === 'customer' && (
+              <Link to="/cart" className="relative hover:text-primary transition-colors">
+                <FaShoppingCart size={20} />
+                {cartItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                    {cartItems}
+                  </span>
+                )}
+              </Link>
+            )}
             {isAuthenticated ? (
               <div className="relative group">
                 <button className="flex items-center space-x-1 hover:text-primary transition-colors">
@@ -114,16 +124,18 @@ const Navbar: React.FC = () => {
             Muindi Mweusi
           </Link>
           <div className="flex items-center space-x-5">
-            <Link to="/cart" className="relative">
-              <FaShoppingCart size={22} />
-              {cartItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItems}
-                </span>
-              )}
-            </Link>
-            <Link to="/orders" className="relative">
-              <FiTruck size={22} />
+            {role === 'customer' && (
+              <Link to="/cart" className="relative">
+                <FaShoppingCart size={22} />
+                {cartItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItems}
+                  </span>
+                )}
+              </Link>
+            )}
+            <Link to="/profile" className="relative">
+              <FaUser size={22} />
             </Link>
           </div>
         </div>
@@ -134,40 +146,68 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
-        <div className="grid grid-cols-5 items-center">
-          <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === '/' ? 'text-primary' : ''}`}>
-            <FaHome size={20} />
-            <span className="text-xs mt-1">Home</span>
-          </Link>
-          <Link to="/categories" className={`flex flex-col items-center py-2 ${location.pathname === '/categories' ? 'text-primary' : ''}`}>
-            <FaThLarge size={20} />
-            <span className="text-xs mt-1">Categories</span>
-          </Link>
-          <Link to="/offers" className={`flex flex-col items-center py-2 ${location.pathname === '/offers' ? 'text-primary' : ''}`}>
-            <FaTags size={20} />
-            <span className="text-xs mt-1">Offers</span>
-          </Link>
-          {role === 'admin' ? (
-            <Link to="/admin/dashboard" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/dashboard' ? 'text-primary' : ''}`}>
-              <FaCog size={20} />
-              <span className="text-xs mt-1">Admin</span>
+        {role === 'admin' ? (
+          <div className="grid grid-cols-5 items-center">
+            <Link to="/admin/users" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/users' ? 'text-primary' : ''}`}>
+              <FaUsers size={20} />
+              <span className="text-xs mt-1">Users</span>
             </Link>
-          ) : role === 'delivery' ? (
+            <Link to="/admin/products" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/products' ? 'text-primary' : ''}`}>
+              <FaBox size={20} />
+              <span className="text-xs mt-1">Products</span>
+            </Link>
+            <Link to="/admin/orders" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/orders' ? 'text-primary' : ''}`}>
+              <FaShoppingBag size={20} />
+              <span className="text-xs mt-1">Orders</span>
+            </Link>
+            <Link to="/admin/payments" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/payments' ? 'text-primary' : ''}`}>
+              <FaCreditCard size={20} />
+              <span className="text-xs mt-1">Payments</span>
+            </Link>
+            <Link to="/admin/deliveries" className={`flex flex-col items-center py-2 ${location.pathname === '/admin/deliveries' ? 'text-primary' : ''}`}>
+              <FaTruck size={20} />
+              <span className="text-xs mt-1">Deliveries</span>
+            </Link>
+          </div>
+        ) : role === 'delivery' ? (
+          <div className="grid grid-cols-3 items-center">
             <Link to="/delivery/tasks" className={`flex flex-col items-center py-2 ${location.pathname === '/delivery/tasks' ? 'text-primary' : ''}`}>
               <FaMapMarkerAlt size={20} />
               <span className="text-xs mt-1">Tasks</span>
             </Link>
-          ) : (
             <Link to="/orders" className={`flex flex-col items-center py-2 ${location.pathname === '/orders' ? 'text-primary' : ''}`}>
               <FiTruck size={20} />
               <span className="text-xs mt-1">Orders</span>
             </Link>
-          )}
-          <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === '/profile' ? 'text-primary' : ''}`}>
-            <FaUser size={20} />
-            <span className="text-xs mt-1">Profile</span>
-          </Link>
-        </div>
+            <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === '/profile' ? 'text-primary' : ''}`}>
+              <FaUser size={20} />
+              <span className="text-xs mt-1">Profile</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-5 items-center">
+            <Link to="/" className={`flex flex-col items-center py-2 ${location.pathname === '/' ? 'text-primary' : ''}`}>
+              <FaHome size={20} />
+              <span className="text-xs mt-1">Home</span>
+            </Link>
+            <Link to="/categories" className={`flex flex-col items-center py-2 ${location.pathname === '/categories' ? 'text-primary' : ''}`}>
+              <FaThLarge size={20} />
+              <span className="text-xs mt-1">Categories</span>
+            </Link>
+            <Link to="/offers" className={`flex flex-col items-center py-2 ${location.pathname === '/offers' ? 'text-primary' : ''}`}>
+              <FaTags size={20} />
+              <span className="text-xs mt-1">Offers</span>
+            </Link>
+            <Link to="/orders" className={`flex flex-col items-center py-2 ${location.pathname === '/orders' ? 'text-primary' : ''}`}>
+              <FiTruck size={20} />
+              <span className="text-xs mt-1">Orders</span>
+            </Link>
+            <Link to="/profile" className={`flex flex-col items-center py-2 ${location.pathname === '/profile' ? 'text-primary' : ''}`}>
+              <FaUser size={20} />
+              <span className="text-xs mt-1">Profile</span>
+            </Link>
+          </div>
+        )}
       </nav>
     </>
   );
