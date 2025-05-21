@@ -35,39 +35,105 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route element={<Layout />}>
-          {/* Public Routes */}
+          {/* Truly Public Routes (accessible by all, including unauthenticated users) */}
           <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/payment/:orderId" element={<Payment />} />
-          <Route path="/delivery/:orderId" element={<Delivery />} />
+          <Route path="/discover" element={<div>Discover Page</div>} />
+          <Route path="/wallet" element={<div>Wallet Page</div>} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:id" element={<CategoryDetail />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/offers" element={<Offers />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/discover" element={<div>Discover Page</div>} />
-          <Route path="/wallet" element={<div>Wallet Page</div>} />
-          <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* Customer-Protected Routes */}
+          <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/payment/:orderId" element={<Payment />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route
+              path="/order-confirmation/:orderId"
+              element={<OrderConfirmation />}
+            />
+            <Route path="/orders" element={<Orders />} />
+          </Route>
+
+          {/* Profile Route (accessible by all authenticated users) */}
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["customer", "admin", "delivery"]}
+              />
+            }
+          >
+            <Route path="/profile" element={<Profile />} />
+          </Route>
 
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
-            <Route path="/admin/users" element={<ErrorBoundary><UserManagement /></ErrorBoundary>} />
-            <Route path="/admin/products" element={<ErrorBoundary><ProductManagement /></ErrorBoundary>} />
-            <Route path="/admin/orders" element={<ErrorBoundary><OrderManagement /></ErrorBoundary>} />
-            <Route path="/admin/payments" element={<ErrorBoundary><PaymentManagement /></ErrorBoundary>} />
-            <Route path="/admin/deliveries" element={<ErrorBoundary><DeliveryManagement /></ErrorBoundary>} />
-            <Route path="/admin/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
+            <Route
+              path="/admin"
+              element={
+                <ErrorBoundary>
+                  <AdminDashboard />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ErrorBoundary>
+                  <UserManagement />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/products"
+              element={
+                <ErrorBoundary>
+                  <ProductManagement />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ErrorBoundary>
+                  <OrderManagement />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/payments"
+              element={
+                <ErrorBoundary>
+                  <PaymentManagement />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/deliveries"
+              element={
+                <ErrorBoundary>
+                  <DeliveryManagement />
+                </ErrorBoundary>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ErrorBoundary>
+                  <Settings />
+                </ErrorBoundary>
+              }
+            />
           </Route>
 
           {/* Protected Delivery Routes */}
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />
+            <Route path="/delivery/:orderId" element={<Delivery />} />
           </Route>
         </Route>
         {/* Routes without Layout */}

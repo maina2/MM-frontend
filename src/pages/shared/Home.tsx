@@ -21,7 +21,7 @@ const carouselSettings = {
   slidesToScroll: 1,
   autoplay: true,
   autoplaySpeed: 5000,
-  arrows: false, // Remove arrows on mobile for more space
+  arrows: false,
   pauseOnHover: true,
   fade: true,
   cssEase: "cubic-bezier(0.7, 0, 0.3, 1)",
@@ -58,14 +58,14 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 md:space-y-16">
-      {/* Hero Section with Carousel - MOBILE OPTIMIZED */}
-      <section className="relative -mx-6 overflow-hidden rounded-b-xl md:rounded-b-3xl shadow-md">
+    <div className="space-y-8 md:space-y-16 w-full overflow-x-hidden">
+      {/* Hero Section with Carousel */}
+      <section className="relative overflow-hidden rounded-b-xl md:rounded-b-3xl shadow-md">
         <Slider {...carouselSettings}>
           {heroSlides.map((slide, index) => (
             <div key={index}>
               <div
-                className={`relative bg-gradient-to-r ${slide.bgClass} text-white py-10 md:py-20 px-4 md:px-6`}
+                className={`relative bg-gradient-to-r ${slide.bgClass} text-white py-10 md:py-20 px-4 md:px-6 w-full`}
               >
                 <div className="absolute inset-0 bg-pattern opacity-10"></div>
                 <div className="relative z-10 text-center max-w-4xl mx-auto">
@@ -92,7 +92,7 @@ const Home: React.FC = () => {
         </Slider>
       </section>
 
-      {/* Featured Products Section - MOVED UP FOR MOBILE */}
+      {/* Featured Products Section */}
       <section>
         <div className="flex items-center justify-between mb-4 md:mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
@@ -105,14 +105,14 @@ const Home: React.FC = () => {
             View All <ArrowRight size={14} />
           </Link>
         </div>
-        <div className="bg-gradient-to-r from-gray-50 to-white p-4 md:p-8 rounded-xl md:rounded-2xl shadow-sm">
+        <div className="bg-gradient-to-r from-gray-50 to-white p-4 md:p-8 rounded-xl md:rounded-2xl shadow-sm w-full overflow-x-hidden">
           <Products />
         </div>
       </section>
 
-      {/* Features Section - SIMPLIFIED FOR MOBILE */}
-      <section className="flex overflow-x-auto py-2 md:py-0 md:grid md:grid-cols-3 gap-3 md:gap-8 no-scrollbar">
-        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100">
+      {/* Features Section */}
+      <section className="flex overflow-x-auto py-2 md:py-0 md:grid md:grid-cols-3 gap-3 md:gap-8 no-scrollbar snap-x snap-mandatory">
+        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100 snap-start">
           <div className="flex md:block items-center">
             <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-0 md:mb-4 mr-3 md:mr-0">
               <ShoppingBag size={16} className="text-primary md:hidden" />
@@ -128,8 +128,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100">
+        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100 snap-start">
           <div className="flex md:block items-center">
             <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-0 md:mb-4 mr-3 md:mr-0">
               <TrendingUp size={16} className="text-primary md:hidden" />
@@ -145,8 +144,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100">
+        <div className="flex-shrink-0 w-40 md:w-auto bg-white rounded-lg md:rounded-2xl shadow-sm p-4 md:p-6 border border-gray-100 snap-start">
           <div className="flex md:block items-center">
             <div className="w-8 h-8 md:w-12 md:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-0 md:mb-4 mr-3 md:mr-0">
               <Gift size={16} className="text-primary md:hidden" />
@@ -177,7 +175,6 @@ const Home: React.FC = () => {
             All Categories <ArrowRight size={14} />
           </Link>
         </div>
-
         {categoriesLoading ? (
           <div className="flex justify-center items-center h-32 md:h-40">
             <div className="relative w-12 h-12 md:w-16 md:h-16">
@@ -211,11 +208,11 @@ const Home: React.FC = () => {
                         className="text-primary hidden md:block"
                       />
                     </div>
-                    <h3 className="text-sm md:text-lg font-bold text-gray-800 group-hover:text-primary transition-colors duration-300">
+                    <h3 className="text-sm md:text-lg font-bold text-gray-800 group-hover:text-primary transition-colors duration-300 max-w-full truncate">
                       {category.name}
                     </h3>
                     {category.description && (
-                      <p className="text-xs md:text-sm text-gray-500 mt-1 hidden md:block opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <p className="text-xs md:text-sm text-gray-500 mt-1 hidden md:block opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-w-full truncate">
                         {category.description.substring(0, 50)}
                         {category.description.length > 50 ? "..." : ""}
                       </p>

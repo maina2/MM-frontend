@@ -110,7 +110,7 @@ const UserManagement: React.FC = () => {
   };
 
   const renderCreateForm = () => (
-    <div className="mb-6 bg-white rounded-lg shadow-md overflow-hidden max-w-full">
+    <div className="mb-6 bg-white rounded-lg shadow-md overflow-hidden w-full">
       <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-800">Create New User</h3>
         <button
@@ -122,8 +122,8 @@ const UserManagement: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+      <div className="p-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
               Username
@@ -203,7 +203,7 @@ const UserManagement: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-4">
           <button
             onClick={handleCreate}
             disabled={isCreating}
@@ -243,7 +243,7 @@ const UserManagement: React.FC = () => {
     );
 
   return (
-    <div className="w-full max-w-full px-4 sm:px-6 lg:px-8">
+    <div className="w-full">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
         <button
@@ -257,44 +257,44 @@ const UserManagement: React.FC = () => {
 
       {isCreateFormVisible && renderCreateForm()}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   ID
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Username
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Email
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Role
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Phone
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Actions
                 </th>
@@ -303,23 +303,23 @@ const UserManagement: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {users?.results?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-4 text-center text-gray-500 sm:px-6">
+                  <td colSpan={6} className="px-3 py-4 text-center text-gray-500">
                     No users found
                   </td>
                 </tr>
               ) : (
                 users?.results?.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {user.id}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                       {user.username}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                       {user.email}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColorClass(
                           user.role
@@ -328,13 +328,13 @@ const UserManagement: React.FC = () => {
                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </span>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                       {user.phone_number || "N/A"}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium sm:px-6">
+                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => setEditingUser(user)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        className="text-blue-600 hover:text-blue-900 mr-3"
                         aria-label={`Edit ${user.username}`}
                       >
                         <FaEdit size={18} />
@@ -357,8 +357,8 @@ const UserManagement: React.FC = () => {
       </div>
 
       {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4 sm:mx-6 overflow-hidden shadow-xl transform transition-all">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden shadow-xl transform transition-all">
             <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-800">Edit User</h3>
               <button
@@ -370,7 +370,7 @@ const UserManagement: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div className="p-4">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>

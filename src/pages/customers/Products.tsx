@@ -103,45 +103,45 @@ const Products: React.FC = () => {
   }
 
   return (
-    <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+    <Box sx={{ flex: 1, width: "100%", maxWidth: "100%", p: { xs: 1, sm: 2, md: 3 } }} className="overflow-x-hidden">
       {/* Mobile Filter and View toggle */}
       <div className="md:hidden flex justify-between items-center mb-4 px-2">
-        <button className="flex items-center gap-1 bg-gray-100 rounded-lg px-4 py-2 text-gray-700">
-          <Filter size={16} />
-          <span className="text-sm font-medium">Filter</span>
+        <button className="flex items-center gap-1 bg-gray-100 rounded-lg px-3 py-1.5 text-gray-700">
+          <Filter size={14} />
+          <span className="text-xs font-medium">Filter</span>
         </button>
 
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg">
           <button
-            className={`flex items-center justify-center p-2 ${
+            className={`flex items-center justify-center p-1.5 ${
               viewMode === "grid"
                 ? "bg-primary text-white rounded-lg"
                 : "text-gray-700"
             }`}
             onClick={() => setViewMode("grid")}
           >
-            <Grid3X3 size={16} />
+            <Grid3X3 size={14} />
           </button>
           <button
-            className={`flex items-center justify-center p-2 ${
+            className={`flex items-center justify-center p-1.5 ${
               viewMode === "compact"
                 ? "bg-primary text-white rounded-lg"
                 : "text-gray-700"
             }`}
             onClick={() => setViewMode("compact")}
           >
-            <List size={16} />
+            <List size={14} />
           </button>
         </div>
       </div>
 
-      {/* Product Grid View - (2 columns on mobile) */}
+      {/* Product Grid View */}
       {viewMode === "grid" && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full max-w-full">
           {data.results.map((product: Product) => (
             <motion.div
               key={product.id}
-              className="group"
+              className="group w-full"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
@@ -152,7 +152,7 @@ const Products: React.FC = () => {
               <Link to={`/products/${product.id}`} className="block h-full">
                 <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col">
                   {/* Product Image with gradient overlay */}
-                  <div className="relative h-36 md:h-64 overflow-hidden bg-gray-100">
+                  <div className="relative h-32 sm:h-36 md:h-48 overflow-hidden bg-gray-100">
                     {product.image ? (
                       <img
                         src={product.image}
@@ -172,7 +172,7 @@ const Products: React.FC = () => {
 
                     {/* Category tag */}
                     <div className="absolute top-2 left-2">
-                      <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm truncate max-w-24">
+                      <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm truncate max-w-20 sm:max-w-24">
                         {product.category.name}
                       </span>
                     </div>
@@ -196,31 +196,31 @@ const Products: React.FC = () => {
                   </div>
 
                   {/* Product Details */}
-                  <div className="p-3 md:p-4 flex flex-col flex-grow">
-                    <h3 className="text-sm md:text-base font-bold text-gray-800 line-clamp-1">
+                  <div className="p-2 sm:p-3 md:p-4 flex flex-col flex-grow">
+                    <h3 className="text-sm font-bold text-gray-800 truncate">
                       {product.name}
                     </h3>
 
-                    <p className="text-xs text-gray-500 mb-2 line-clamp-1 md:line-clamp-2">
+                    <p className="text-xs text-gray-500 mb-2 truncate">
                       {product.description ||
                         "Quality products at great prices."}
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <p className="text-sm md:text-base font-bold text-primary truncate">
+                      <p className="text-sm font-bold text-primary truncate">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
 
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
                         disabled={product.stock === 0}
-                        className={`flex items-center justify-center rounded-full w-8 h-8 md:w-10 md:h-10 transition-all duration-300 ${
+                        className={`flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 transition-all duration-300 ${
                           product.stock === 0
                             ? "bg-gray-200 cursor-not-allowed"
                             : "bg-primary text-white hover:bg-primary/90"
                         }`}
                       >
-                        <ShoppingCart size={16} />
+                        <ShoppingCart size={14} />
                       </button>
                     </div>
                   </div>
@@ -231,22 +231,22 @@ const Products: React.FC = () => {
         </div>
       )}
 
-      {/* Product Compact View (horizontal cards for mobile) */}
+      {/* Product Compact View */}
       {viewMode === "compact" && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-full">
           {data.results.map((product: Product) => (
             <motion.div
               key={product.id}
-              className="group"
+              className="group w-full"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               whileHover="hover"
             >
               <Link to={`/products/${product.id}`} className="block h-full">
-                <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex">
+                <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex w-full">
                   {/* Product Image */}
-                  <div className="relative h-24 w-24 md:h-32 md:w-32 flex-shrink-0 overflow-hidden bg-gray-100">
+                  <div className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 flex-shrink-0 overflow-hidden bg-gray-100">
                     {product.image ? (
                       <img
                         src={product.image}
@@ -263,21 +263,21 @@ const Products: React.FC = () => {
 
                     {/* Category tag */}
                     <div className="absolute top-1 left-1">
-                      <span className="text-xs font-medium bg-white/90 text-primary px-2 py-0.5 rounded-full shadow-sm">
-                        {product.category.name.substring(0, 10)}
+                      <span className="text-xs font-medium bg-white/90 text-primary px-1.5 py-0.5 rounded-full shadow-sm truncate max-w-16 sm:max-w-20">
+                        {product.category.name}
                       </span>
                     </div>
                   </div>
 
                   {/* Product Details */}
-                  <div className="p-2 md:p-3 flex flex-col flex-grow">
+                  <div className="p-2 sm:p-3 flex flex-col flex-grow min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-gray-800 line-clamp-1">
+                      <h3 className="text-sm font-bold text-gray-800 truncate">
                         {product.name}
                       </h3>
                     </div>
 
-                    <p className="text-xs text-gray-500 mb-1 line-clamp-1">
+                    <p className="text-xs text-gray-500 mb-1 truncate">
                       {product.description ||
                         "Quality products at great prices."}
                     </p>
@@ -300,27 +300,27 @@ const Products: React.FC = () => {
                     )}
 
                     <div className="flex items-center justify-between mt-auto">
-                      <p className="text-sm font-bold text-primary">
+                      <p className="text-sm font-bold text-primary truncate">
                         KSh {Number(product.price).toLocaleString()}
                       </p>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 sm:gap-2">
                         <button
                           onClick={(e) => handleWishlist(e)}
-                          className="flex items-center justify-center rounded-full w-8 h-8 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          className="flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 text-gray-600 hover:bg-gray-200"
                         >
-                          <Heart size={14} />
+                          <Heart size={12} />
                         </button>
                         <button
                           onClick={(e) => handleAddToCart(product, e)}
                           disabled={product.stock === 0}
-                          className={`flex items-center justify-center rounded-full w-8 h-8 transition-all duration-300 ${
+                          className={`flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 transition-all duration-300 ${
                             product.stock === 0
                               ? "bg-gray-200 cursor-not-allowed"
                               : "bg-primary text-white hover:bg-primary/90"
                           }`}
                         >
-                          <ShoppingCart size={14} />
+                          <ShoppingCart size={12} />
                         </button>
                       </div>
                     </div>

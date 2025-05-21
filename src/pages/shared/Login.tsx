@@ -36,13 +36,24 @@ const Login: React.FC = () => {
           password,
         }
       );
+      const user = response.data.user;
       dispatch(
         setCredentials({
-          user: response.data.user,
+          user,
           token: response.data.access,
         })
       );
-      navigate("/");
+      // Navigate based on user role
+      if (user.role === "customer") {
+        navigate("/");
+      } else if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "delivery") {
+        navigate("/delivery/tasks");
+      } else {
+        // Fallback in case role is unexpected
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || "Invalid username or password");
     }
