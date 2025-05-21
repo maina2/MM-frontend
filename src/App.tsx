@@ -22,11 +22,11 @@ import Profile from "./pages/shared/Profile";
 import Orders from "./pages/customers/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
 import UserManagement from "./pages/admins/UserManagement";
-import ProductManagement from "./pages/admins/ProductManagement"; // Placeholder
-import OrderManagement from "./pages/admins/OrderManagement"; // Placeholder
-import PaymentManagement from "./pages/admins/PaymentManagement"; // Placeholder
-import DeliveryManagement from "./pages/admins/DeliveryManagement"; // Placeholder
-import Settings from "./pages/admins/Settings"; // Placeholder
+import ProductManagement from "./pages/admins/ProductManagement"; 
+import OrderManagement from "./pages/admins/OrderManagement"; 
+import PaymentManagement from "./pages/admins/PaymentManagement"; 
+import DeliveryManagement from "./pages/admins/DeliveryManagement"; 
+import Settings from "./pages/admins/Settings"; 
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
 import Unauthorized from "./pages/shared/Unauthorized";
 import ErrorBoundary from "./components/ErrorBoundary";
