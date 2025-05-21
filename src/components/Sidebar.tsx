@@ -1,15 +1,40 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { FaBars, FaTimes, FaTachometerAlt, FaUsers, FaCog } from "react-icons/fa";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../store/hooks";
+import { logout } from "../store/authSlice";
+import {
+  FaChartBar,
+  FaUsers,
+  FaBox,
+  FaClipboardList,
+  FaMoneyBillWave,
+  FaTruck,
+  FaCog,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+} from "react-icons/fa";
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+    setIsOpen(false);
+  };
+
   const navItems = [
-    { path: "/admin/dashboard", label: "Dashboard", icon: <FaTachometerAlt className="mr-2" /> },
-    { path: "/admin/users", label: "User Management", icon: <FaUsers className="mr-2" /> },
+    { path: "/admin", label: "Dashboard", icon: <FaChartBar className="mr-2" /> },
+    { path: "/admin/users", label: "Users", icon: <FaUsers className="mr-2" /> },
+    { path: "/admin/products", label: "Products", icon: <FaBox className="mr-2" /> },
+    { path: "/admin/orders", label: "Orders", icon: <FaClipboardList className="mr-2" /> },
+    { path: "/admin/payments", label: "Payments", icon: <FaMoneyBillWave className="mr-2" /> },
+    { path: "/admin/deliveries", label: "Deliveries", icon: <FaTruck className="mr-2" /> },
     { path: "/admin/settings", label: "Settings", icon: <FaCog className="mr-2" /> },
   ];
 
@@ -26,31 +51,48 @@ const Sidebar: React.FC = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-md transform ${
+        className={`fixed inset-y-0 left-0 bg-gray-900 text-white transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:w-64 transition-transform duration-300 ease-in-out z-40 md:min-h-screen`}
+        } md:translate-x-0 md:static md:w-56 transition-transform duration-300 ease-in-out z-40 md:min-h-screen overflow-y-auto box-border`}
       >
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
+        <div className="p-4 border-b border-gray-700">
+          <div className="flex items-center">
+            <FaChartBar className="text-primary mr-2" size={20} />
+            <h2 className="text-xl font-bold">Admin Panel</h2>
+          </div>
         </div>
-        <nav className="mt-4">
-          <ul className="space-y-2">
+        <nav className="mt-4 px-2" aria-label="Admin navigation">
+          <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
+                  end={item.path === "/admin"}
                   className={({ isActive }) =>
-                    `flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors ${
-                      isActive ? "bg-gray-100 text-primary font-semibold" : ""
+                    `flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 w-full ${
+                      isActive
+                        ? "bg-primary text-white shadow-md"
+                        : "hover:bg-gray-700 hover:text-primary"
                     }`
                   }
-                  onClick={() => setIsOpen(false)} // Close sidebar on mobile after click
+                  onClick={() => setIsOpen(false)}
+                  aria-label={item.label}
                 >
                   {item.icon}
                   {item.label}
                 </NavLink>
               </li>
             ))}
+            <li>
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full px-3 py-2 rounded-lg text-sm hover:bg-gray-700 hover:text-primary transition-all duration-200"
+                aria-label="Logout"
+              >
+                <FaSignOutAlt className="mr-2" />
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
       </div>

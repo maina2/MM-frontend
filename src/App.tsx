@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
@@ -22,11 +21,11 @@ import Profile from "./pages/shared/Profile";
 import Orders from "./pages/customers/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
 import UserManagement from "./pages/admins/UserManagement";
-import ProductManagement from "./pages/admins/ProductManagement"; 
-import OrderManagement from "./pages/admins/OrderManagement"; 
-import PaymentManagement from "./pages/admins/PaymentManagement"; 
-import DeliveryManagement from "./pages/admins/DeliveryManagement"; 
-import Settings from "./pages/admins/Settings"; 
+import ProductManagement from "./pages/admins/ProductManagement";
+import OrderManagement from "./pages/admins/OrderManagement";
+import PaymentManagement from "./pages/admins/PaymentManagement";
+import DeliveryManagement from "./pages/admins/DeliveryManagement";
+import Settings from "./pages/admins/Settings";
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
 import Unauthorized from "./pages/shared/Unauthorized";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -55,18 +54,18 @@ const App: React.FC = () => {
           <Route path="/wallet" element={<div>Wallet Page</div>} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Protected Routes */}
+          {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin" element={<AdminDashboard />}>
-              <Route index element={<div />} /> {/* Handled in AdminDashboard.tsx */}
-              <Route path="users" element={<ErrorBoundary><UserManagement /></ErrorBoundary>} />
-              <Route path="products" element={<ErrorBoundary><ProductManagement /></ErrorBoundary>} />
-              <Route path="orders" element={<ErrorBoundary><OrderManagement /></ErrorBoundary>} />
-              <Route path="payments" element={<ErrorBoundary><PaymentManagement /></ErrorBoundary>} />
-              <Route path="deliveries" element={<ErrorBoundary><DeliveryManagement /></ErrorBoundary>} />
-              <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
-            </Route>
+            <Route path="/admin" element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
+            <Route path="/admin/users" element={<ErrorBoundary><UserManagement /></ErrorBoundary>} />
+            <Route path="/admin/products" element={<ErrorBoundary><ProductManagement /></ErrorBoundary>} />
+            <Route path="/admin/orders" element={<ErrorBoundary><OrderManagement /></ErrorBoundary>} />
+            <Route path="/admin/payments" element={<ErrorBoundary><PaymentManagement /></ErrorBoundary>} />
+            <Route path="/admin/deliveries" element={<ErrorBoundary><DeliveryManagement /></ErrorBoundary>} />
+            <Route path="/admin/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
           </Route>
+
+          {/* Protected Delivery Routes */}
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />
           </Route>
