@@ -21,9 +21,15 @@ import Offers from "./pages/customers/Offers";
 import Profile from "./pages/shared/Profile";
 import Orders from "./pages/customers/Orders";
 import AdminDashboard from "./pages/admins/AdminDashboard";
-import UserManagement from "./pages/admins/UserManagement"; 
+import UserManagement from "./pages/admins/UserManagement";
+import ProductManagement from "./pages/admins/ProductManagement"; // Placeholder
+import OrderManagement from "./pages/admins/OrderManagement"; // Placeholder
+import PaymentManagement from "./pages/admins/PaymentManagement"; // Placeholder
+import DeliveryManagement from "./pages/admins/DeliveryManagement"; // Placeholder
+import Settings from "./pages/admins/Settings"; // Placeholder
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
 import Unauthorized from "./pages/shared/Unauthorized";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const App: React.FC = () => {
   return (
@@ -40,10 +46,7 @@ const App: React.FC = () => {
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:id" element={<CategoryDetail />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route
-            path="/order-confirmation/:orderId"
-            element={<OrderConfirmation />}
-          />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/profile" element={<Profile />} />
@@ -54,9 +57,14 @@ const App: React.FC = () => {
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin/dashboard/" element={<AdminDashboard />}>
-              <Route path="users" element={<UserManagement />} />
-              {/* Add more nested admin routes later, e.g., products, orders */}
+            <Route path="/admin" element={<AdminDashboard />}>
+              <Route index element={<div />} /> {/* Handled in AdminDashboard.tsx */}
+              <Route path="users" element={<ErrorBoundary><UserManagement /></ErrorBoundary>} />
+              <Route path="products" element={<ErrorBoundary><ProductManagement /></ErrorBoundary>} />
+              <Route path="orders" element={<ErrorBoundary><OrderManagement /></ErrorBoundary>} />
+              <Route path="payments" element={<ErrorBoundary><PaymentManagement /></ErrorBoundary>} />
+              <Route path="deliveries" element={<ErrorBoundary><DeliveryManagement /></ErrorBoundary>} />
+              <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
             </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
