@@ -322,8 +322,24 @@ export const apiSlice = createApi({
     }),
 
     // Product Admin Endpoints
-    getAdminProducts: builder.query<Product[], void>({
-      query: () => 'manage/products/',
+getAdminProducts: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Product[];
+      },
+      { page?: number; page_size?: number; search?: string; category?: number }
+    >({
+      query: ({ page = 1, page_size = 12, search, category } = {}) => ({
+        url: 'manage/products/',
+        params: {
+          page,
+          page_size,
+          ...(search && { search }),
+          ...(category && { category }),
+        },
+      }),
       providesTags: ['Products'],
     }),
     createAdminProduct: builder.mutation<
@@ -334,16 +350,24 @@ export const apiSlice = createApi({
         price: number;
         stock: number;
         category: number;
-        branch: number;
-        image?: string;
+        image?: File | string;
         discount_percentage?: number;
       }
     >({
-      query: (data) => ({
-        url: 'manage/products/',
-        method: 'POST',
-        body: data,
-      }),
+      query: (data) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value instanceof File ? value : String(value));
+          }
+        });
+        return {
+          url: 'manage/products/',
+          method: 'POST',
+          body: formData,
+          formData: true,
+        };
+      },
       invalidatesTags: ['Products'],
     }),
     updateAdminProduct: builder.mutation<
@@ -355,16 +379,24 @@ export const apiSlice = createApi({
         price?: number;
         stock?: number;
         category?: number;
-        branch?: number;
-        image?: string;
+        image?: File | string;
         discount_percentage?: number;
       }
     >({
-      query: ({ id, ...data }) => ({
-        url: `manage/products/${id}/`,
-        method: 'PUT',
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value instanceof File ? value : String(value));
+          }
+        });
+        return {
+          url: `manage/products/${id}/`,
+          method: 'PUT',
+          body: formData,
+          formData: true,
+        };
+      },
       invalidatesTags: ['Products'],
     }),
     deleteAdminProduct: builder.mutation<void, number>({
