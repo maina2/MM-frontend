@@ -119,7 +119,7 @@ const ProductManagement = () => {
       flex: 1,
       minWidth: 180,
       sortable: true,
-      renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}</Typography>,
+      renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 400 }}>{value}</Typography>,
     },
     {
       field: 'price',
@@ -128,7 +128,7 @@ const ProductManagement = () => {
       sortable: true,
       renderCell: ({ value }) => {
         const numericValue = Number(value);
-        return <Typography variant="body2">{isNaN(numericValue) ? '$0.00' : `$${numericValue.toFixed(2)}`}</Typography>;
+        return <Typography variant="body2">{isNaN(numericValue) ? '0.00' : `${numericValue.toFixed(2)}`}</Typography>;
       },
     },
     {

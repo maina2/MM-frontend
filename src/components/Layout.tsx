@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -8,6 +8,7 @@ import { RootState } from "../store/store";
 const Layout: React.FC = () => {
   const role = useSelector((state: RootState) => state.auth.user?.role);
   const isAdmin = role === "admin";
+  const [sidebarWidth, setSidebarWidth] = useState("14rem"); // 56 = 14rem
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -25,25 +26,67 @@ const Layout: React.FC = () => {
       }
     };
 
-    updateNavHeight();
-    window.addEventListener("resize", updateNavHeight);
+    const updateSidebarWidth = () => {
+      const sidebar = document.querySelector(".sidebar-container > div");
+      if (sidebar && isAdmin) {
+        const width = sidebar.getBoundingClientRect().width;
+        setSidebarWidth(`${width}px`);
+      } else if (!isAdmin) {
+        setSidebarWidth("0px");
+      }
+    };
 
-    return () => window.removeEventListener("resize", updateNavHeight);
-  }, []);
+    updateNavHeight();
+    // Small delay to ensure sidebar is rendered
+    setTimeout(updateSidebarWidth, 100);
+    
+    window.addEventListener("resize", updateNavHeight);
+    window.addEventListener("resize", updateSidebarWidth);
+
+    // Use MutationObserver to detect sidebar width changes
+    const sidebar = document.querySelector(".sidebar-container");
+    let observer: MutationObserver | null = null;
+    
+    if (sidebar) {
+      observer = new MutationObserver(() => {
+        setTimeout(updateSidebarWidth, 50);
+      });
+      observer.observe(sidebar, { 
+        attributes: true, 
+        attributeFilter: ['class', 'style'],
+        subtree: true,
+        childList: true
+      });
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateNavHeight);
+      window.removeEventListener("resize", updateSidebarWidth);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [isAdmin]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col overflow-x-hidden w-full">
       {/* Main Content Area with Sidebar and Content */}
-      <div className={`flex flex-1 w-full ${isAdmin ? 'md:pl-56' : ''}`}>
+      <div className={`flex flex-1 w-full`}>
         {/* Sidebar for Admins - Fixed position */}
         {isAdmin && (
-          <div className="fixed left-0 top-0 h-full w-56 z-30 md:block hidden">
+          <div className="sidebar-container fixed left-0 top-0 h-full z-30 md:block hidden">
             <Sidebar />
           </div>
         )}
 
         {/* Content Container */}
-        <div className="flex-1 flex flex-col w-full">
+        <div 
+          className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out"
+          style={{ 
+            marginLeft: isAdmin ? sidebarWidth : '0',
+            width: isAdmin ? `calc(100% - ${sidebarWidth})` : '100%'
+          }}
+        >
           <Navbar />
           <main className="flex-1 pt-[var(--mobile-nav-height)] md:pt-[var(--desktop-nav-height)] pb-16 md:pb-0 p-4 sm:p-6 w-full box-border">
             <div className="max-w-7xl mx-auto w-full">
@@ -55,7 +98,13 @@ const Layout: React.FC = () => {
 
       {/* Footer - Full Width */}
       <footer className="w-full bg-white border-t border-gray-100 py-8 px-6 md:block hidden">
-        <div className={`max-w-7xl mx-auto ${isAdmin ? 'md:pl-56' : ''}`}>
+        <div 
+          className="max-w-7xl mx-auto transition-all duration-300 ease-in-out"
+          style={{ 
+            marginLeft: isAdmin ? sidebarWidth : '0',
+            width: isAdmin ? `calc(100% - ${sidebarWidth})` : '100%'
+          }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-lg font-bold text-gray-800 mb-4">Muindi Mweusi Supermarket</h3>
