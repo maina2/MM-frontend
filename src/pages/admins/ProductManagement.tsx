@@ -1,5 +1,5 @@
 // src/components/admin/ProductManagement.tsx
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   useGetAdminProductsQuery,
   useCreateAdminProductMutation,
@@ -24,19 +24,26 @@ import {
   Alert,
   IconButton,
   Tooltip,
+  Fade,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Product, Category } from '../../types';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Product } from '../../types';
 
 const theme = createTheme({
   palette: {
-    primary: { main: '#1976d2' },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
+    primary: { main: '#6366f1' },
+    secondary: { main: '#10b981' },
+    background: { default: '#f8fafc', paper: '#ffffff' },
+    text: { primary: '#1e293b', secondary: '#64748b' },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
+    h4: { fontWeight: 700 },
+    body2: { fontSize: '0.875rem', fontWeight: 500 },
   },
   components: {
     MuiButton: {
@@ -44,50 +51,43 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           textTransform: 'none',
-          transition: 'all 0.3s ease',
-          '&:hover': { transform: 'scale(1.05)' },
+          padding: '8px 16px',
+          transition: 'all 0.2s ease',
+          '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' },
         },
       },
     },
     MuiDialog: {
+      styleOverrides: { paper: { borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } },
+    },
+    MuiTextField: {
       styleOverrides: {
-        paper: {
-          borderRadius: 16,
-          padding: '16px',
-        },
+        root: { '& .MuiOutlinedInput-root': { borderRadius: 8, backgroundColor: '#ffffff' } },
       },
     },
     MuiDataGrid: {
       styleOverrides: {
-        root: {
-          border: 'none',
-        },
+        root: { border: 'none', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
         columnHeader: {
-          backgroundColor: '#1976d2',
+          backgroundColor: '#6366f1',
           color: '#ffffff',
-          fontSize: '0.875rem',
           fontWeight: 600,
+          '& .MuiDataGrid-sortIcon': { color: '#ffffff' },
         },
-        cell: {
-          padding: '12px',
-        },
-        row: {
-          '&:hover': {
-            backgroundColor: '#f8f9fa',
-          },
-        },
+        cell: { padding: '0 12px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #e5e7eb' },
+        row: { '&:hover': { backgroundColor: '#f1f5f9' } },
       },
     },
   },
 });
 
 const ProductManagement = () => {
-  // Hooks
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<number | ''>('');
   const [openModal, setOpenModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [sortModel, setSortModel] = useState<GridSortModel>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -104,55 +104,63 @@ const ProductManagement = () => {
     page_size: 12,
     search: search || undefined,
     category: categoryFilter || undefined,
+    ordering: sortModel[0] ? `${sortModel[0].sort === 'desc' ? '-' : ''}${sortModel[0].field}` : undefined,
   });
   const { data: categories, isLoading: isCategoriesLoading } = useGetCategoriesQuery();
   const [createProduct, { isLoading: isCreating }] = useCreateAdminProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateAdminProductMutation();
   const [deleteProduct] = useDeleteAdminProductMutation();
 
-  // Debug: Log productsData and categories to inspect data
-  console.log('Products Data:', productsData?.results);
-  console.log('Categories:', categories);
-
-  // Table columns
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Name', width: 150, flex: 1 },
+    { field: 'id', headerName: 'ID', width: 80, sortable: true, renderCell: ({ value }) => <Typography variant="body2">{value}</Typography> },
+    {
+      field: 'name',
+      headerName: 'Name',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      renderCell: ({ value }) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}</Typography>,
+    },
     {
       field: 'price',
       headerName: 'Price',
       width: 100,
+      sortable: true,
       renderCell: ({ value }) => {
-        const numericValue = typeof value === 'string' ? parseFloat(value) : Number(value);
-        const formatted = isNaN(numericValue) || value == null ? '$0.00' : `$${numericValue.toFixed(2)}`;
-        return <Typography variant="body2">{formatted}</Typography>;
+        const numericValue = Number(value);
+        return <Typography variant="body2">{isNaN(numericValue) ? '$0.00' : `$${numericValue.toFixed(2)}`}</Typography>;
       },
     },
-    { field: 'stock', headerName: 'Stock', width: 70 },
+    {
+      field: 'stock',
+      headerName: 'Stock',
+      width: 80,
+      sortable: true,
+      renderCell: ({ value }) => <Typography variant="body2">{value}</Typography>,
+    },
     {
       field: 'category',
       headerName: 'Category',
       width: 120,
-      valueGetter: ({ value }) => {
-        console.log('Category value:', value); // Debug: Log category value
-        if (!value) return 'Unknown';
-        if (typeof value === 'object' && 'name' in value && value.name) {
-          return value.name;
-        }
-        if (typeof value === 'number' && categories) {
-          const category = categories.find((cat) => cat.id === value);
-          return category?.name || 'Unknown';
-        }
-        return 'Unknown';
+      renderCell: ({ value }) => {
+        const name = !value
+          ? 'Unknown'
+          : typeof value === 'object' && value.name
+          ? value.name
+          : typeof value === 'number' && categories
+          ? categories.find((cat) => cat.id === value)?.name || 'Unknown'
+          : 'Unknown';
+        return <Typography variant="body2">{name}</Typography>;
       },
     },
     {
       field: 'discount_percentage',
       headerName: 'Discount',
-      width: 80,
-      valueFormatter: ({ value }) => {
-        const numericValue = typeof value === 'string' ? parseFloat(value) : Number(value);
-        return isNaN(numericValue) || numericValue === 0 ? '0%' : `${numericValue}%`;
+      width: 100,
+      sortable: true,
+      renderCell: ({ value }) => {
+        const numericValue = Number(value);
+        return <Typography variant="body2">{isNaN(numericValue) || numericValue === 0 ? '0%' : `${numericValue}%`}</Typography>;
       },
     },
     {
@@ -161,11 +169,9 @@ const ProductManagement = () => {
       width: 80,
       renderCell: ({ value }) =>
         value ? (
-          <img src={value} alt="Product" style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />
+          <img src={value} alt="Product" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
         ) : (
-          <Typography variant="caption" color="text.secondary">
-            No Image
-          </Typography>
+          <Typography variant="body2" color="text.secondary">None</Typography>
         ),
     },
     {
@@ -173,108 +179,80 @@ const ProductManagement = () => {
       headerName: 'Actions',
       width: 100,
       renderCell: ({ row }) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title="Edit">
-            <IconButton size="small" onClick={() => handleEdit(row)}>
-              <Edit fontSize="small" color="primary" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" onClick={() => handleDelete(row.id)}>
-              <Delete fontSize="small" color="error" />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Edit"><IconButton onClick={() => handleEdit(row)}><Edit fontSize="small" color="primary" /></IconButton></Tooltip>
+          <Tooltip title="Delete"><IconButton onClick={() => handleDelete(row.id)}><Delete fontSize="small" color="error" /></IconButton></Tooltip>
         </Box>
       ),
     },
   ];
 
-  // Handlers
-  const handleEdit = (product: Product) => {
+  const handleEdit = useCallback((product: Product) => {
     setEditProduct(product);
-    const priceValue = product.price ? product.price.toString() : '';
-    const discountValue = product.discount_percentage ? product.discount_percentage.toString() : '';
-    let categoryValue = '';
-    if (product.category) {
-      if (typeof product.category === 'object' && product.category.id) {
-        categoryValue = product.category.id.toString();
-      } else if (typeof product.category === 'number') {
-        categoryValue = product.category.toString();
-      }
-    }
     setFormData({
       name: product.name || '',
       description: product.description || '',
-      price: priceValue,
-      stock: product.stock ? product.stock.toString() : '',
-      category: categoryValue,
-      discount_percentage: discountValue,
+      price: product.price?.toString() || '',
+      stock: product.stock?.toString() || '',
+      category: typeof product.category === 'object' && product.category.id ? product.category.id.toString() : product.category?.toString() || '',
+      discount_percentage: product.discount_percentage?.toString() || '',
       image: null,
     });
     setOpenModal(true);
-  };
+  }, []);
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+  const handleDelete = useCallback(async (id: number) => {
+    if (window.confirm('Delete this product?')) {
       try {
         await deleteProduct(id).unwrap();
-      } catch (err) {
-        alert('Failed to delete product');
+        toast.success('Product deleted', { position: 'top-right' });
+      } catch {
+        toast.error('Failed to delete product', { position: 'top-right' });
       }
     }
-  };
+  }, [deleteProduct]);
 
-  const handleModalOpen = () => {
+  const handleModalOpen = useCallback(() => {
     setEditProduct(null);
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      stock: '',
-      category: '',
-      discount_percentage: '',
-      image: null,
-    });
+    setFormData({ name: '', description: '', price: '', stock: '', category: '', discount_percentage: '', image: null });
     setOpenModal(true);
-  };
+  }, []);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setOpenModal(false);
     setFormError('');
-  };
+  }, []);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-    }
-  };
+    if (file) setFormData((prev) => ({ ...prev, image: file }));
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
-
     if (!formData.name || !formData.price || !formData.stock || !formData.category) {
-      setFormError('Please fill in all required fields');
+      setFormError('Required fields missing');
+      toast.error('Required fields missing', { position: 'top-right' });
       return;
     }
     const priceNum = Number(formData.price);
     const stockNum = Number(formData.stock);
     const discountNum = formData.discount_percentage ? Number(formData.discount_percentage) : undefined;
     if (priceNum <= 0 || stockNum < 0) {
-      setFormError('Price must be positive and stock cannot be negative');
+      setFormError('Invalid price or stock');
+      toast.error('Invalid price or stock', { position: 'top-right' });
       return;
     }
     if (discountNum !== undefined && (discountNum < 0 || discountNum > 100)) {
-      setFormError('Discount percentage must be between 0 and 100');
+      setFormError('Discount must be 0-100');
+      toast.error('Discount must be 0-100', { position: 'top-right' });
       return;
     }
-
     const payload = {
       name: formData.name,
       description: formData.description,
@@ -284,42 +262,41 @@ const ProductManagement = () => {
       discount_percentage: discountNum,
       image: formData.image,
     };
-
     try {
       if (editProduct) {
         await updateProduct({ id: editProduct.id, ...payload }).unwrap();
+        toast.success('Product updated', { position: 'top-right' });
       } else {
         await createProduct(payload).unwrap();
+        toast.success('Product created', { position: 'top-right' });
       }
       handleModalClose();
     } catch (err: any) {
-      setFormError(err.data?.detail || 'Failed to save product');
+      const errorMsg = err.data?.detail || 'Failed to save product';
+      setFormError(errorMsg);
+      toast.error(errorMsg, { position: 'top-right' });
     }
-  };
+  }, [formData, editProduct, createProduct, updateProduct, handleModalClose]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1);
-  };
+  }, []);
 
-  const handleCategoryFilterChange = (e: any) => {
+  const handleCategoryFilterChange = useCallback((e: any) => {
     setCategoryFilter(e.target.value || '');
     setPage(1);
-  };
+  }, []);
 
-  // Error message formatting
-  const getErrorMessage = (error: any): string => {
-    if (!error) return 'An unknown error occurred';
-    if (error.data?.detail) return error.data.detail;
-    if (error.status) return `Error ${error.status}: Failed to fetch products`;
-    return 'Failed to fetch products';
-  };
+  const handleSortModelChange = useCallback((model: GridSortModel) => {
+    setSortModel(model);
+    setPage(1);
+  }, []);
 
-  // Loading state
   if (isLoading || isCategoriesLoading || !productsData || !categories) {
     return (
       <ThemeProvider theme={theme}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <CircularProgress />
         </Box>
       </ThemeProvider>
@@ -328,189 +305,101 @@ const ProductManagement = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: 4 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Product Management
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleModalOpen}
-            sx={{
-              bgcolor: 'primary.main',
-              '&:hover': { bgcolor: 'primary.dark' },
-              borderRadius: 2,
-              textTransform: 'none',
-              px: 3,
-            }}
-          >
-            Add Product
-          </Button>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, sm: 3 } }}>
+        <ToastContainer position="top-right" autoClose={3000} />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="h4">Products</Typography>
+          <Button variant="contained" startIcon={<Add />} onClick={handleModalOpen}>Add Product</Button>
         </Box>
-
-        {/* Filters */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <TextField
-            label="Search Products"
-            variant="outlined"
+            label="Search"
             value={search}
             onChange={handleSearchChange}
-            sx={{ flex: 1 }}
+            sx={{ flex: 1, minWidth: 200 }}
             size="small"
           />
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel>Category</InputLabel>
-            <Select
-              value={categoryFilter}
-              onChange={handleCategoryFilterChange}
-              label="Category"
-            >
-              <MenuItem value="">All Categories</MenuItem>
+            <Select value={categoryFilter} onChange={handleCategoryFilterChange} label="Category">
+              <MenuItem value="">All</MenuItem>
               {categories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </MenuItem>
+                <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
         </Box>
-
-        {/* Error Handling */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {getErrorMessage(error)}
-          </Alert>
-        )}
-
-        {/* Product Table */}
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 2 }}>
-          <DataGrid
-            rows={productsData.results}
-            columns={columns}
-            pageSize={12}
-            rowsPerPageOptions={[12]}
-            pagination
-            paginationMode="server"
-            rowCount={productsData.count || 0}
-            onPageChange={(newPage) => setPage(newPage + 1)}
-            loading={isLoading}
-            autoHeight
-            disableColumnMenu
-            sx={{
-              '& .MuiDataGrid-cell:focus': { outline: 'none' },
-              '& .MuiDataGrid-columnHeader:focus': { outline: 'none' },
-            }}
-          />
-        </Box>
-
-        {/* Create/Edit Modal */}
-        <Dialog open={openModal} onClose={handleModalClose} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ pb: 1 }}>{editProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
+        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>{error.data?.detail || 'Failed to fetch products'}</Alert>}
+        <Fade in timeout={500}>
+          <Box>
+            <DataGrid
+              rows={productsData.results}
+              columns={columns}
+              pageSize={12}
+              rowsPerPageOptions={[12]}
+              pagination
+              paginationMode="server"
+              rowCount={productsData.count || 0}
+              onPageChange={(newPage) => setPage(newPage + 1)}
+              sortingMode="server"
+              sortModel={sortModel}
+              onSortModelChange={handleSortModelChange}
+              loading={isLoading}
+              autoHeight
+              disableColumnMenu
+              sx={{ bgcolor: 'background.paper' }}
+            />
+          </Box>
+        </Fade>
+        <Dialog open={openModal} onClose={handleModalClose} maxWidth="sm" fullWidth TransitionComponent={Fade}>
+          <DialogTitle sx={{ fontWeight: 600 }}>{editProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
           <DialogContent>
-            {formError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {formError}
-              </Alert>
-            )}
+            {formError && <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>{formError}</Alert>}
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <TextField
-                label="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleFormChange}
-                required
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleFormChange}
-                multiline
-                rows={3}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Price"
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleFormChange}
-                required
-                fullWidth
-                size="small"
-                inputProps={{ step: '0.01' }}
-              />
-              <TextField
-                label="Stock"
-                name="stock"
-                type="number"
-                value={formData.stock}
-                onChange={handleFormChange}
-                required
-                fullWidth
-                size="small"
-                inputProps={{ min: 0 }}
-              />
-              <FormControl fullWidth required size="small">
+              <TextField label="Name" name="name" value={formData.name} onChange={handleFormChange} required size="small" />
+              <TextField label="Description" name="description" value={formData.description} onChange={handleFormChange} multiline rows={3} size="small" />
+              <TextField label="Price" name="price" type="number" value={formData.price} onChange={handleFormChange} required size="small" inputProps={{ step: '0.01' }} />
+              <TextField label="Stock" name="stock" type="number" value={formData.stock} onChange={handleFormChange} required size="small" inputProps={{ min: 0 }} />
+              <FormControl required size="small">
                 <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleFormChange}
-                  label="Category"
-                >
+                <Select name="category" value={formData.category} onChange={handleFormChange} label="Category">
                   {categories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </MenuItem>
+                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <TextField
-                label="Discount Percentage"
+                label="Discount %"
                 name="discount_percentage"
                 type="number"
                 value={formData.discount_percentage}
                 onChange={handleFormChange}
-                fullWidth
                 size="small"
                 inputProps={{ min: 0, max: 100, step: '0.01' }}
               />
               <Box>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Image Upload
-                </Typography>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  style={{ marginBottom: 16 }}
-                />
+                <Button variant="outlined" component="label" sx={{ borderRadius: 8, textTransform: 'none' }}>
+                  Upload Image
+                  <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+                </Button>
                 {formData.image && (
                   <img
                     src={URL.createObjectURL(formData.image)}
                     alt="Preview"
-                    style={{ maxWidth: 100, borderRadius: 4 }}
+                    style={{ maxWidth: 80, borderRadius: 8, mt: 2 }}
                   />
                 )}
               </Box>
             </Box>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={handleModalClose} color="inherit">
-              Cancel
-            </Button>
+            <Button onClick={handleModalClose} color="inherit">Cancel</Button>
             <Button
               type="submit"
               variant="contained"
               onClick={handleSubmit}
               disabled={isCreating || isUpdating}
-              sx={{ minWidth: 100 }}
+              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: '#059669' } }}
             >
               {isCreating || isUpdating ? <CircularProgress size={20} /> : editProduct ? 'Update' : 'Create'}
             </Button>
