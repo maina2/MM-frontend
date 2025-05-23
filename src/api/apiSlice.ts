@@ -495,20 +495,87 @@ getAdminProducts: builder.query<
     }),
 
     // Payment Admin Endpoints
-    getAdminPayments: builder.query<Payment[], void>({
-      query: () => 'manage/payments/',
+    getAdminPayments: builder.query<
+      { count: number; next: string | null; previous: string | null; results: Payment[] },
+      { page?: number; status?: string; search?: string; ordering?: string }
+    >({
+      query: ({ page = 1, status, search, ordering }) => {
+        const params = new URLSearchParams({ page: page.toString(), page_size: '12' });
+        if (status) params.append('status', status);
+        if (search) params.append('search', search);
+        if (ordering) params.append('ordering', ordering);
+        return `manage/payments/?${params.toString()}`;
+      },
       providesTags: ['Payments'],
+      transformResponse: (response: {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: any[];
+      }) => {
+        // Transform order.customer (string) to User object
+        return {
+          ...response,
+          results: response.results.map((payment) => ({
+            ...payment,
+            order: {
+              ...payment.order,
+              customer: {
+                username: payment.order.customer,
+                id: 0,
+                email: '',
+                role: 'customer',
+              } as User,
+            },
+          })),
+        };
+      },
+    }),
+    getAdminPayment: builder.query<Payment, number>({
+      query: (id) => `manage/payments/${id}/`,
+      providesTags: ['Payments'],
+      transformResponse: (payment: any) => ({
+        ...payment,
+        order: {
+          ...payment.order,
+          customer: {
+            username: payment.order.customer,
+            id: 0,
+            email: '',
+            role: 'customer',
+          } as User,
+        },
+      }),
     }),
     updateAdminPayment: builder.mutation<
       Payment,
-      { id: number; status?: string }
+      { id: number; status?: string; phone_number?: string }
     >({
       query: ({ id, ...data }) => ({
         url: `manage/payments/${id}/`,
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Payments', 'Orders'],
+      invalidatesTags: ['Payments', 'Orders'], // Invalidate Orders due to sync_order_status
+      transformResponse: (payment: any) => ({
+        ...payment,
+        order: {
+          ...payment.order,
+          customer: {
+            username: payment.order.customer,
+            id: 0,
+            email: '',
+            role: 'customer',
+          } as User,
+        },
+      }),
+    }),
+    deleteAdminPayment: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `manage/payments/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Payments', 'Orders'], 
     }),
 
     // Delivery Admin Endpoints
@@ -586,7 +653,9 @@ export const {
   useUpdateAdminOrderMutation,
   useDeleteAdminOrderMutation,
   useGetAdminPaymentsQuery,
+  useGetAdminPaymentQuery,
   useUpdateAdminPaymentMutation,
+  useDeleteAdminPaymentMutation,
   useGetAdminDeliveriesQuery,
   useUpdateAdminDeliveryMutation,
   useGetDeliveryTasksQuery,
