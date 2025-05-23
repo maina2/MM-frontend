@@ -31,13 +31,13 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  price: string; // Change to string to match API
   stock: number;
-  category: Category | number; // Allow number for API input (e.g., createAdminProduct)
-  branch: Branch | number; // Allow number for API input
+  category: Category | number;
+  branch: Branch | number;
   image: string | null;
   created_at: string;
-  discount_percentage?: number;
+  discount_percentage?: number | string; // Also string in API
   discounted_price?: number;
 }
 

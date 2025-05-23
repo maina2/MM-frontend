@@ -1,5 +1,5 @@
 // src/components/admin/ProductManagement.tsx
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   useGetAdminProductsQuery,
   useCreateAdminProductMutation,
@@ -24,16 +24,65 @@ import {
   Alert,
   IconButton,
   Tooltip,
-  Switch,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Add, Edit, Delete, LightMode, DarkMode } from '@mui/icons-material';
+import { Add, Edit, Delete } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Product, Category } from '../../types';
 
+const theme = createTheme({
+  palette: {
+    primary: { main: '#1976d2' },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          transition: 'all 0.3s ease',
+          '&:hover': { transform: 'scale(1.05)' },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 16,
+          padding: '16px',
+        },
+      },
+    },
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          border: 'none',
+        },
+        columnHeader: {
+          backgroundColor: '#1976d2',
+          color: '#ffffff',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+        },
+        cell: {
+          padding: '12px',
+        },
+        row: {
+          '&:hover': {
+            backgroundColor: '#f8f9fa',
+          },
+        },
+      },
+    },
+  },
+});
+
 const ProductManagement = () => {
   // Hooks
-  const [darkMode, setDarkMode] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<number | ''>('');
@@ -50,42 +99,6 @@ const ProductManagement = () => {
   });
   const [formError, setFormError] = useState('');
 
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: darkMode ? 'dark' : 'light',
-          primary: { main: '#1976d2' },
-          background: {
-            default: darkMode ? '#121212' : '#f5f5f5',
-            paper: darkMode ? '#1e1e1e' : '#ffffff',
-          },
-        },
-        components: {
-          MuiButton: {
-            styleOverrides: {
-              root: {
-                borderRadius: 8,
-                textTransform: 'none',
-                transition: 'all 0.3s ease',
-                '&:hover': { transform: 'scale(1.05)' },
-              },
-            },
-          },
-          MuiDialog: {
-            styleOverrides: {
-              paper: {
-                borderRadius: 16,
-                padding: '16px',
-                animation: 'fadeIn 0.3s ease-in',
-              },
-            },
-          },
-        },
-      }),
-    [darkMode]
-  );
-
   const { data: productsData, isLoading, error } = useGetAdminProductsQuery({
     page,
     page_size: 12,
@@ -97,64 +110,81 @@ const ProductManagement = () => {
   const [updateProduct, { isLoading: isUpdating }] = useUpdateAdminProductMutation();
   const [deleteProduct] = useDeleteAdminProductMutation();
 
+  // Debug: Log productsData and categories to inspect data
+  console.log('Products Data:', productsData?.results);
+  console.log('Categories:', categories);
+
   // Table columns
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    { field: 'name', headerName: 'Name', width: 200 },
+    { field: 'id', headerName: 'ID', width: 70 },
+    { field: 'name', headerName: 'Name', width: 150, flex: 1 },
     {
       field: 'price',
       headerName: 'Price',
-      width: 120,
-      valueFormatter: ({ value }) => `$${Number(value).toFixed(2)}`,
+      width: 100,
+      renderCell: ({ value }) => {
+        const numericValue = typeof value === 'string' ? parseFloat(value) : Number(value);
+        const formatted = isNaN(numericValue) || value == null ? '$0.00' : `$${numericValue.toFixed(2)}`;
+        return <Typography variant="body2">{formatted}</Typography>;
+      },
     },
-    { field: 'stock', headerName: 'Stock', width: 100 },
+    { field: 'stock', headerName: 'Stock', width: 70 },
     {
       field: 'category',
       headerName: 'Category',
-      width: 150,
+      width: 120,
       valueGetter: ({ value }) => {
+        console.log('Category value:', value); // Debug: Log category value
         if (!value) return 'Unknown';
-        if (typeof value === 'number') {
-          const category = categories?.find((cat) => cat.id === value);
+        if (typeof value === 'object' && 'name' in value && value.name) {
+          return value.name;
+        }
+        if (typeof value === 'number' && categories) {
+          const category = categories.find((cat) => cat.id === value);
           return category?.name || 'Unknown';
         }
-        return (value as Category).name || 'Unknown';
+        return 'Unknown';
       },
     },
     {
       field: 'discount_percentage',
-      headerName: 'Discount (%)',
-      width: 120,
-      valueFormatter: ({ value }) => (value ? `${value}%` : '0%'),
+      headerName: 'Discount',
+      width: 80,
+      valueFormatter: ({ value }) => {
+        const numericValue = typeof value === 'string' ? parseFloat(value) : Number(value);
+        return isNaN(numericValue) || numericValue === 0 ? '0%' : `${numericValue}%`;
+      },
     },
     {
       field: 'image',
       headerName: 'Image',
-      width: 100,
+      width: 80,
       renderCell: ({ value }) =>
         value ? (
-          <img src={value} alt="Product" style={{ width: 50, borderRadius: 4 }} />
+          <img src={value} alt="Product" style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />
         ) : (
-          'No Image'
+          <Typography variant="caption" color="text.secondary">
+            No Image
+          </Typography>
         ),
     },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 150,
+      width: 100,
       renderCell: ({ row }) => (
-        <>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
           <Tooltip title="Edit">
-            <IconButton onClick={() => handleEdit(row)}>
-              <Edit color="primary" />
+            <IconButton size="small" onClick={() => handleEdit(row)}>
+              <Edit fontSize="small" color="primary" />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton onClick={() => handleDelete(row.id)}>
-              <Delete color="error" />
+            <IconButton size="small" onClick={() => handleDelete(row.id)}>
+              <Delete fontSize="small" color="error" />
             </IconButton>
           </Tooltip>
-        </>
+        </Box>
       ),
     },
   ];
@@ -162,13 +192,23 @@ const ProductManagement = () => {
   // Handlers
   const handleEdit = (product: Product) => {
     setEditProduct(product);
+    const priceValue = product.price ? product.price.toString() : '';
+    const discountValue = product.discount_percentage ? product.discount_percentage.toString() : '';
+    let categoryValue = '';
+    if (product.category) {
+      if (typeof product.category === 'object' && product.category.id) {
+        categoryValue = product.category.id.toString();
+      } else if (typeof product.category === 'number') {
+        categoryValue = product.category.toString();
+      }
+    }
     setFormData({
-      name: product.name,
-      description: product.description,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-      category: typeof product.category === 'number' ? product.category.toString() : (product.category as Category).id.toString(),
-      discount_percentage: product.discount_percentage?.toString() || '',
+      name: product.name || '',
+      description: product.description || '',
+      price: priceValue,
+      stock: product.stock ? product.stock.toString() : '',
+      category: categoryValue,
+      discount_percentage: discountValue,
       image: null,
     });
     setOpenModal(true);
@@ -219,16 +259,18 @@ const ProductManagement = () => {
     e.preventDefault();
     setFormError('');
 
-    // Validate form
     if (!formData.name || !formData.price || !formData.stock || !formData.category) {
       setFormError('Please fill in all required fields');
       return;
     }
-    if (Number(formData.price) <= 0 || Number(formData.stock) < 0) {
+    const priceNum = Number(formData.price);
+    const stockNum = Number(formData.stock);
+    const discountNum = formData.discount_percentage ? Number(formData.discount_percentage) : undefined;
+    if (priceNum <= 0 || stockNum < 0) {
       setFormError('Price must be positive and stock cannot be negative');
       return;
     }
-    if (formData.discount_percentage && (Number(formData.discount_percentage) < 0 || Number(formData.discount_percentage) > 100)) {
+    if (discountNum !== undefined && (discountNum < 0 || discountNum > 100)) {
       setFormError('Discount percentage must be between 0 and 100');
       return;
     }
@@ -236,10 +278,10 @@ const ProductManagement = () => {
     const payload = {
       name: formData.name,
       description: formData.description,
-      price: Number(formData.price),
-      stock: Number(formData.stock),
+      price: priceNum,
+      stock: stockNum,
       category: Number(formData.category),
-      discount_percentage: formData.discount_percentage ? Number(formData.discount_percentage) : undefined,
+      discount_percentage: discountNum,
       image: formData.image,
     };
 
@@ -257,7 +299,7 @@ const ProductManagement = () => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPage(1); // Reset to page 1 on search
+    setPage(1);
   };
 
   const handleCategoryFilterChange = (e: any) => {
@@ -265,12 +307,22 @@ const ProductManagement = () => {
     setPage(1);
   };
 
+  // Error message formatting
+  const getErrorMessage = (error: any): string => {
+    if (!error) return 'An unknown error occurred';
+    if (error.data?.detail) return error.data.detail;
+    if (error.status) return `Error ${error.status}: Failed to fetch products`;
+    return 'Failed to fetch products';
+  };
+
   // Loading state
-  if (isLoading || isCategoriesLoading) {
+  if (isLoading || isCategoriesLoading || !productsData || !categories) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
-        <CircularProgress />
-      </Box>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+          <CircularProgress />
+        </Box>
+      </ThemeProvider>
     );
   }
 
@@ -282,24 +334,20 @@ const ProductManagement = () => {
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             Product Management
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <Switch
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                icon={<LightMode />}
-                checkedIcon={<DarkMode />}
-              />
-            </Tooltip>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={handleModalOpen}
-              sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
-            >
-              Add Product
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleModalOpen}
+            sx={{
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+            }}
+          >
+            Add Product
+          </Button>
         </Box>
 
         {/* Filters */}
@@ -310,8 +358,9 @@ const ProductManagement = () => {
             value={search}
             onChange={handleSearchChange}
             sx={{ flex: 1 }}
+            size="small"
           />
-          <FormControl sx={{ minWidth: 200 }}>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Category</InputLabel>
             <Select
               value={categoryFilter}
@@ -319,7 +368,7 @@ const ProductManagement = () => {
               label="Category"
             >
               <MenuItem value="">All Categories</MenuItem>
-              {categories?.map((cat) => (
+              {categories.map((cat) => (
                 <MenuItem key={cat.id} value={cat.id}>
                   {cat.name}
                 </MenuItem>
@@ -331,34 +380,34 @@ const ProductManagement = () => {
         {/* Error Handling */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            Error: {JSON.stringify(error)}
+            {getErrorMessage(error)}
           </Alert>
         )}
 
         {/* Product Table */}
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3 }}>
+        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 2 }}>
           <DataGrid
-            rows={productsData?.results || []}
+            rows={productsData.results}
             columns={columns}
             pageSize={12}
             rowsPerPageOptions={[12]}
             pagination
             paginationMode="server"
-            rowCount={productsData?.count || 0}
+            rowCount={productsData.count || 0}
             onPageChange={(newPage) => setPage(newPage + 1)}
             loading={isLoading}
             autoHeight
+            disableColumnMenu
             sx={{
-              '& .MuiDataGrid-cell': { py: 2 },
-              '& .MuiDataGrid-columnHeader': { bgcolor: 'primary.main', color: 'white' },
-              '& .MuiDataGrid-row:hover': { bgcolor: darkMode ? '#2a2a2a' : '#f0f0f0' },
+              '& .MuiDataGrid-cell:focus': { outline: 'none' },
+              '& .MuiDataGrid-columnHeader:focus': { outline: 'none' },
             }}
           />
         </Box>
 
         {/* Create/Edit Modal */}
-        <Dialog open={openModal} onClose={handleModalClose}>
-          <DialogTitle>{editProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
+        <Dialog open={openModal} onClose={handleModalClose} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ pb: 1 }}>{editProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
           <DialogContent>
             {formError && (
               <Alert severity="error" sx={{ mb: 2 }}>
@@ -373,6 +422,7 @@ const ProductManagement = () => {
                 onChange={handleFormChange}
                 required
                 fullWidth
+                size="small"
               />
               <TextField
                 label="Description"
@@ -382,6 +432,7 @@ const ProductManagement = () => {
                 multiline
                 rows={3}
                 fullWidth
+                size="small"
               />
               <TextField
                 label="Price"
@@ -391,6 +442,7 @@ const ProductManagement = () => {
                 onChange={handleFormChange}
                 required
                 fullWidth
+                size="small"
                 inputProps={{ step: '0.01' }}
               />
               <TextField
@@ -401,9 +453,10 @@ const ProductManagement = () => {
                 onChange={handleFormChange}
                 required
                 fullWidth
+                size="small"
                 inputProps={{ min: 0 }}
               />
-              <FormControl fullWidth required>
+              <FormControl fullWidth required size="small">
                 <InputLabel>Category</InputLabel>
                 <Select
                   name="category"
@@ -411,7 +464,7 @@ const ProductManagement = () => {
                   onChange={handleFormChange}
                   label="Category"
                 >
-                  {categories?.map((cat) => (
+                  {categories.map((cat) => (
                     <MenuItem key={cat.id} value={cat.id}>
                       {cat.name}
                     </MenuItem>
@@ -425,6 +478,7 @@ const ProductManagement = () => {
                 value={formData.discount_percentage}
                 onChange={handleFormChange}
                 fullWidth
+                size="small"
                 inputProps={{ min: 0, max: 100, step: '0.01' }}
               />
               <Box>
@@ -447,15 +501,18 @@ const ProductManagement = () => {
               </Box>
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleModalClose}>Cancel</Button>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={handleModalClose} color="inherit">
+              Cancel
+            </Button>
             <Button
               type="submit"
               variant="contained"
               onClick={handleSubmit}
               disabled={isCreating || isUpdating}
+              sx={{ minWidth: 100 }}
             >
-              {isCreating || isUpdating ? <CircularProgress size={24} /> : editProduct ? 'Update' : 'Create'}
+              {isCreating || isUpdating ? <CircularProgress size={20} /> : editProduct ? 'Update' : 'Create'}
             </Button>
           </DialogActions>
         </Dialog>
