@@ -139,7 +139,7 @@ const PaymentManagement = () => {
       headerName: 'Amount',
       width: 100,
       sortable: true,
-      renderCell: ({ value }) => <Typography variant="body2">${Number(value).toFixed(2)}</Typography>,
+      renderCell: ({ value }) => <Typography variant="body2">{Number(value).toFixed(2)}</Typography>,
     },
     {
       field: 'phone_number',
