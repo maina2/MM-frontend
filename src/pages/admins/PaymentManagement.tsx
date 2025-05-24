@@ -161,25 +161,26 @@ const PaymentManagement = () => {
       sortable: true,
       renderCell: ({ value }) => <Typography variant="body2">{format(new Date(value), 'MM/dd/yyyy')}</Typography>,
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      renderCell: ({ row }) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Edit">
-            <IconButton onClick={() => handleEdit(row)}>
-              <Edit fontSize="small" color="primary" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton onClick={() => handleDelete(row.id)}>
-              <Delete fontSize="small" color="error" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    width: 100, 
+    flex: 1,    
+    renderCell: ({ row }) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Edit">
+          <IconButton onClick={() => handleEdit(row)}>
+            <Edit fontSize="small" color="primary" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete">
+          <IconButton onClick={() => handleDelete(row.id)}>
+            <Delete fontSize="small" color="error" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
   ];
 
   const handleEdit = useCallback((payment: Payment) => {

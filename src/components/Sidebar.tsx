@@ -33,13 +33,41 @@ const Sidebar: React.FC = () => {
   };
 
   const navItems = [
-    { path: "/admin", label: "Dashboard", icon: <FaChartBar className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/users", label: "Users", icon: <FaUsers className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/products", label: "Products", icon: <FaBox className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/orders", label: "Orders", icon: <FaClipboardList className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/payments", label: "Payments", icon: <FaMoneyBillWave className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/deliveries", label: "Deliveries", icon: <FaTruck className={isCollapsed ? "" : "mr-2"} /> },
-    { path: "/admin/settings", label: "Settings", icon: <FaCog className={isCollapsed ? "" : "mr-2"} /> },
+    {
+      path: "/admin",
+      label: "Dashboard",
+      icon: <FaChartBar className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/users",
+      label: "Users",
+      icon: <FaUsers className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/products",
+      label: "Products",
+      icon: <FaBox className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/orders",
+      label: "Orders",
+      icon: <FaClipboardList className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/payments",
+      label: "Payments",
+      icon: <FaMoneyBillWave className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/deliveries",
+      label: "Deliveries",
+      icon: <FaTruck className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/settings",
+      label: "Settings",
+      icon: <FaCog className={isCollapsed ? "" : "mr-2"} />,
+    },
   ];
 
   return (
@@ -62,15 +90,26 @@ const Sidebar: React.FC = () => {
         } transition-all duration-300 ease-in-out z-40 md:min-h-screen overflow-y-auto box-border w-56`}
       >
         {/* Header */}
-        <div className={`p-4 border-b border-gray-700 ${isCollapsed ? "px-2" : ""}`}>
-          <div className={`flex items-center ${isCollapsed ? "justify-center" : ""}`}>
+        <div
+          className={`p-4 border-b border-gray-700 ${
+            isCollapsed ? "px-2" : ""
+          }`}
+        >
+          <div
+            className={`flex items-center ${
+              isCollapsed ? "justify-center" : ""
+            }`}
+          >
             <FaChartBar className="text-primary" size={20} />
-            {!isCollapsed && <h2 className="text-xl font-bold ml-2">Admin Panel</h2>}
+            {!isCollapsed && (
+              <h2 className="text-xl font-bold ml-2">Admin Panel</h2>
+            )}
           </div>
         </div>
 
         {/* Desktop Collapse Toggle Button */}
-        <div className="hidden md:block">
+        <div className="hidden md:block pt-4">
+          {" "}
           <button
             onClick={toggleCollapse}
             className={`w-full p-3 hover:bg-gray-700 transition-colors duration-200 flex items-center ${
@@ -87,7 +126,10 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Navigation */}
-        <nav className={`mt-2 ${isCollapsed ? "px-1" : "px-2"}`} aria-label="Admin navigation">
+        <nav
+          className={`mt-2 ${isCollapsed ? "px-1" : "px-2"}`}
+          aria-label="Admin navigation"
+        >
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
@@ -107,7 +149,7 @@ const Sidebar: React.FC = () => {
                 >
                   {item.icon}
                   {!isCollapsed && item.label}
-                  
+
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
@@ -129,7 +171,7 @@ const Sidebar: React.FC = () => {
               >
                 <FaSignOutAlt className={isCollapsed ? "" : "mr-2"} />
                 {!isCollapsed && "Logout"}
-                
+
                 {/* Tooltip for collapsed state */}
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">

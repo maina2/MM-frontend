@@ -1,4 +1,3 @@
-// src/api/apiSlice.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { setCredentials, logout } from '../store/authSlice';
 import {
@@ -50,7 +49,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
             token: newAccessToken,
-            refreshToken: newRefreshToken,
+            refreshToken: personally,
           })
         );
         result = await baseQuery(args, api, extraOptions);
@@ -322,7 +321,7 @@ export const apiSlice = createApi({
     }),
 
     // Product Admin Endpoints
-getAdminProducts: builder.query<
+    getAdminProducts: builder.query<
       {
         count: number;
         next: string | null;
@@ -427,12 +426,11 @@ getAdminProducts: builder.query<
         previous: string | null;
         results: any[];
       }) => {
-        // Transform customer (string) to User object for type compatibility
         return {
           ...response,
           results: response.results.map((order) => ({
             ...order,
-            customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User, // Minimal User object
+            customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User,
           })),
         };
       },
@@ -513,7 +511,6 @@ getAdminProducts: builder.query<
         previous: string | null;
         results: any[];
       }) => {
-        // Transform order.customer (string) to User object
         return {
           ...response,
           results: response.results.map((payment) => ({
@@ -556,7 +553,7 @@ getAdminProducts: builder.query<
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Payments', 'Orders'], // Invalidate Orders due to sync_order_status
+      invalidatesTags: ['Payments', 'Orders'],
       transformResponse: (payment: any) => ({
         ...payment,
         order: {
@@ -575,20 +572,73 @@ getAdminProducts: builder.query<
         url: `manage/payments/${id}/`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Payments', 'Orders'], 
+      invalidatesTags: ['Payments', 'Orders'],
     }),
 
     // Delivery Admin Endpoints
-    getAdminDeliveries: builder.query<Delivery[], void>({
-      query: () => 'manage/deliveries/',
+    getAdminDeliveries: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Delivery[];
+      },
+      {
+        page?: number;
+        page_size?: number;
+        status?: string;
+        delivery_person?: number;
+        order_id?: number;
+        search?: string;
+        ordering?: string;
+      }
+    >({
+      query: ({
+        page = 1,
+        page_size = 12,
+        status,
+        delivery_person,
+        order_id,
+        search,
+        ordering,
+      } = {}) => {
+        const params = new URLSearchParams({ page: page.toString(), page_size: page_size.toString() });
+        if (status) params.append('status', status);
+        if (delivery_person) params.append('delivery_person', delivery_person.toString());
+        if (order_id) params.append('order__id', order_id.toString());
+        if (search) params.append('search', search);
+        if (ordering) params.append('ordering', ordering);
+        return `admin/deliveries/?${params.toString()}`;
+      },
       providesTags: ['Deliveries'],
+    }),
+    getAdminDelivery: builder.query<Delivery, number>({
+      query: (id) => `admin/deliveries/${id}/`,
+      providesTags: (result, error, id) => [{ type: 'Deliveries', id }],
+    }),
+    createAdminDelivery: builder.mutation<
+      Delivery,
+      {
+        order_id: number;
+        delivery_person_id?: number;
+        delivery_address: string;
+        latitude?: number;
+        longitude?: number;
+        estimated_delivery_time?: string;
+      }
+    >({
+      query: (data) => ({
+        url: 'admin/deliveries/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Deliveries', 'Orders'],
     }),
     updateAdminDelivery: builder.mutation<
       Delivery,
       {
         id: number;
-        status?: string;
-        delivery_person?: number;
+        delivery_person_id?: number;
         delivery_address?: string;
         latitude?: number;
         longitude?: number;
@@ -596,11 +646,40 @@ getAdminProducts: builder.query<
       }
     >({
       query: ({ id, ...data }) => ({
-        url: `manage/deliveries/${id}/`,
-        method: 'PUT',
+        url: `admin/deliveries/${id}/`,
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Deliveries'],
+    }),
+    deleteAdminDelivery: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `admin/deliveries/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Deliveries', 'Orders'],
+    }),
+    assignDeliveryPerson: builder.mutation<
+      Delivery,
+      { id: number; delivery_person_id: number }
+    >({
+      query: ({ id, delivery_person_id }) => ({
+        url: `admin/deliveries/${id}/assign-delivery-person/`,
+        method: 'PATCH',
+        body: { delivery_person_id },
+      }),
+      invalidatesTags: ['Deliveries'],
+    }),
+    updateDeliveryStatus: builder.mutation<
+      Delivery,
+      { id: number; status: string }
+    >({
+      query: ({ id, status }) => ({
+        url: `admin/deliveries/${id}/update-status/`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: ['Deliveries', 'Orders'],
     }),
 
     // Delivery Endpoints
@@ -617,10 +696,10 @@ getAdminProducts: builder.query<
     >({
       query: ({ id, ...data }) => ({
         url: `delivery/tasks/${id}/`,
-        method: 'PUT',
+        method: 'PATCH', // Changed to PATCH for partial updates
         body: data,
       }),
-      invalidatesTags: ['Deliveries'],
+      invalidatesTags: ['Deliveries', 'Orders'],
     }),
   }),
 });
@@ -657,7 +736,12 @@ export const {
   useUpdateAdminPaymentMutation,
   useDeleteAdminPaymentMutation,
   useGetAdminDeliveriesQuery,
+  useGetAdminDeliveryQuery,
+  useCreateAdminDeliveryMutation,
   useUpdateAdminDeliveryMutation,
+  useDeleteAdminDeliveryMutation,
+  useAssignDeliveryPersonMutation,
+  useUpdateDeliveryStatusMutation,
   useGetDeliveryTasksQuery,
   useUpdateDeliveryTaskMutation,
 } = apiSlice;

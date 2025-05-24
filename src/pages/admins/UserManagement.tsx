@@ -1,462 +1,483 @@
-import React, { useState } from "react";
+// src/components/admin/UserManagement.tsx
+import React, { useState, useCallback, useEffect } from "react";
 import {
   useGetAdminUsersQuery,
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
 } from "../../api/apiSlice";
-import { User, Role } from "../../types";
-import { FaUserPlus, FaEdit, FaTrash, FaTimes, FaSave, FaSpinner } from "react-icons/fa";
+import { User, Role, ApiError } from "../../types"; // Assuming ApiError type for error handling
+
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Typography,
+  CircularProgress,
+  Alert,
+  IconButton,
+  Tooltip,
+  Chip,
+  Container,
+} from "@mui/material";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { Add, Edit, Delete, Close, Save } from "@mui/icons-material";
+import { ThemeProvider, createTheme, alpha } from "@mui/material/styles"; // alpha is needed for the first approach, but not strictly for the second. Keeping it for flexibility.
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Theme consistent with ProductManagement
+const theme = createTheme({
+  palette: {
+    primary: { main: "#6366f1", dark: "#4f46e5" },
+    secondary: { main: "#10b981", dark: "#059669" },
+    info: { main: "#3b82f6", dark: "#2563eb" }, // Added for potential use with alpha()
+    background: { default: "#f8fafc", paper: "#ffffff" },
+    text: { primary: "#1e293b", secondary: "#64748b" },
+    error: { main: "#ef4444" },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
+    h4: { fontWeight: 700, color: "#1e293b", marginBottom: '1rem' },
+    h6: { fontWeight: 600 },
+    body2: { fontSize: "0.875rem" },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: "none",
+          padding: "8px 16px",
+          fontWeight: 500,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            transform: "translateY(-1px)",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          },
+        },
+        containedPrimary: {
+          "&:hover": { backgroundColor: alpha("#6366f1", 0.85) },
+        },
+        containedSecondary: {
+           "&:hover": { backgroundColor: alpha("#10b981", 0.85) },
+        }
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 8,
+            backgroundColor: "#ffffff",
+          },
+        },
+      },
+    },
+    MuiSelect: {
+        styleOverrides: {
+            root: {
+                borderRadius: 8,
+                backgroundColor: "#ffffff",
+            }
+        }
+    },
+    MuiDataGrid: {
+      styleOverrides: {
+        root: {
+          border: "none",
+          borderRadius: 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          backgroundColor: "#ffffff",
+          "--DataGrid-overlayHeight": "300px",
+        },
+        columnHeader: {
+          backgroundColor: "#6366f1",
+          color: "#ffffff",
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          "& .MuiDataGrid-sortIcon": { color: "#ffffff" },
+          "& .MuiDataGrid-menuIconButton": {color: "#ffffff"},
+        },
+        cell: {
+          padding: "0 12px",
+          display: "flex",
+          alignItems: "center",
+          borderBottom: "1px solid #e5e7eb",
+          fontSize: '0.875rem',
+        },
+        row: { "&:hover": { backgroundColor: "#f1f5f9" } },
+        footerContainer: {
+            borderTop: '1px solid #e5e7eb',
+        }
+      },
+    },
+    MuiChip: { // General Chip style overrides (can be overridden by sx prop)
+        styleOverrides: {
+            root: {
+                // fontWeight: 500, // fontWeight will be set in sx for more specificity
+                fontSize: '0.8rem', // Slightly larger for readability
+                padding: '4px 2px', // Adjust horizontal padding
+                height: '26px', // Slightly taller
+                // borderRadius: '16px', // Default is already quite rounded
+            }
+        }
+    }
+  },
+});
+
+const initialFormData = {
+  id: undefined as number | undefined,
+  username: "",
+  email: "",
+  password: "",
+  role: "customer" as Role,
+  phone_number: "",
+};
+
+// Using specific hex codes for closer image match:
+const getRoleChipStyled = (role: Role) => {
+    let backgroundColor = "";
+    let textColor = "";
+    let label = role.charAt(0).toUpperCase() + role.slice(1);
+
+    switch (role) {
+      case "admin":
+        backgroundColor = "#f3e8ff"; // Lighter purple from your image's feel
+        textColor = "#a855f7";    // More vibrant purple text (Tailwind purple-500)
+        break;
+      case "delivery":
+        backgroundColor = "#e0f2fe"; // Light blue (Tailwind sky-100)
+        textColor = "#0ea5e9";    // Darker, vibrant blue (Tailwind sky-500)
+        break;
+      case "customer":
+      default:
+        backgroundColor = "#dcfce7"; // Light green (Tailwind green-100)
+        textColor = "#22c55e";    // Darker, vibrant green (Tailwind green-500)
+        break;
+    }
+
+    return (
+      <Chip
+        label={label}
+        size="small" // keep size small for table cells
+        sx={{
+          backgroundColor: backgroundColor,
+          color: textColor,
+          fontWeight: 600,
+          borderRadius: '16px', // Pill shape
+          paddingLeft: '6px', // Small horizontal padding adjustments
+          paddingRight: '6px',
+          height: '24px', // Standard small chip height
+          fontSize: '0.78rem', // Ensure text fits well
+        }}
+      />
+    );
+  };
+
 
 const UserManagement: React.FC = () => {
-  const { data: users, isLoading, error } = useGetAdminUsersQuery();
+  const { data: usersData, isLoading, error: fetchError, refetch } = useGetAdminUsersQuery();
   const [createAdminUser, { isLoading: isCreating }] = useCreateAdminUserMutation();
   const [updateAdminUser, { isLoading: isUpdating }] = useUpdateAdminUserMutation();
   const [deleteAdminUser, { isLoading: isDeleting }] = useDeleteAdminUserMutation();
-  const [isCreateFormVisible, setIsCreateFormVisible] = useState(false);
-  const [newUser, setNewUser] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: "customer" as Role,
-    phone_number: "",
-  });
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formErrors, setFormErrors] = useState({
-    username: "",
-    email: "",
-    password: "",
-    phone_number: "",
-  });
 
-  const validateForm = (user: typeof newUser) => {
-    const errors = {
-      username: "",
-      email: "",
-      password: "",
-      phone_number: "",
-    };
+  const [openModal, setOpenModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState(initialFormData);
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof typeof initialFormData, string>>>({});
 
-    if (!user.username.trim()) {
-      errors.username = "Username is required";
-    }
-
-    if (!user.email.trim()) {
+  const validateForm = () => {
+    const errors: Partial<Record<keyof typeof initialFormData, string>> = {};
+    if (!formData.username.trim()) errors.username = "Username is required";
+    if (!formData.email.trim()) {
       errors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(user.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Email is invalid";
     }
-
-    if (!user.password && !editingUser) {
-      errors.password = "Password is required";
-    } else if (user.password && user.password.length < 6 && !editingUser) {
+    if (!isEditMode && !formData.password) {
+      errors.password = "Password is required for new users";
+    } else if (formData.password && formData.password.length < 6) {
       errors.password = "Password must be at least 6 characters";
     }
-
-    if (user.phone_number && !/^\+?[0-9\s-]{10,15}$/.test(user.phone_number)) {
-      errors.phone_number = "Enter a valid phone number";
+    if (formData.phone_number && !/^\+?[0-9\s-]{10,15}$/.test(formData.phone_number)) {
+      errors.phone_number = "Enter a valid phone number (e.g., +1234567890)";
     }
-
     setFormErrors(errors);
-    return !Object.values(errors).some((error) => error);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleCreate = async () => {
-    if (!validateForm(newUser)) {
-      return;
-    }
-
-    try {
-      await createAdminUser(newUser).unwrap();
-      setNewUser({ username: "", email: "", password: "", role: "customer", phone_number: "" });
-      setIsCreateFormVisible(false);
-    } catch (err) {
-      console.error("Failed to create user:", err);
-    }
+  const handleOpenCreateModal = () => {
+    setIsEditMode(false);
+    setFormData(initialFormData);
+    setFormErrors({});
+    setOpenModal(true);
   };
 
-  const handleUpdate = async (user: User) => {
-    if (!validateForm(user as typeof newUser)) {
-      return;
+  const handleOpenEditModal = (user: User) => {
+    setIsEditMode(true);
+    setFormData({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        password: "", // Password not shown, only set if changed
+        role: user.role,
+        phone_number: user.phone_number || "",
+    });
+    setFormErrors({});
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name as string]: value }));
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    const payload = { ...formData };
+    if (isEditMode && !payload.password) { 
+        delete payload.password;
+    }
+    if (!payload.phone_number) { 
+        delete payload.phone_number;
     }
 
+
     try {
-      await updateAdminUser({ id: user.id, ...user }).unwrap();
-      setEditingUser(null);
+      if (isEditMode && payload.id) {
+        await updateAdminUser({ id: payload.id, ...payload }).unwrap();
+        toast.success("User updated successfully!");
+      } else {
+        await createAdminUser(payload).unwrap();
+        toast.success("User created successfully!");
+      }
+      handleCloseModal();
+      refetch(); 
     } catch (err) {
-      console.error("Failed to update user:", err);
+        const apiError = err as ApiError;
+        console.error("Failed to save user:", apiError);
+        if (apiError.data && typeof apiError.data === 'object') {
+            const serverErrors: Partial<Record<keyof typeof initialFormData, string>> = {};
+            for (const key in apiError.data) {
+                if (initialFormData.hasOwnProperty(key)) {
+                    serverErrors[key as keyof typeof initialFormData] = (apiError.data[key] as string[] | string).toString();
+                }
+            }
+            setFormErrors(prev => ({...prev, ...serverErrors}));
+            if (apiError.data.detail) { 
+                 toast.error(apiError.data.detail);
+            } else {
+                 toast.error("Validation error. Please check the form.");
+            }
+        } else {
+            toast.error(`Failed to ${isEditMode ? "update" : "create"} user. Please try again.`);
+        }
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       try {
         await deleteAdminUser(id).unwrap();
+        toast.success("User deleted successfully!");
+        refetch();
       } catch (err) {
+        toast.error("Failed to delete user. They might be associated with other data.");
         console.error("Failed to delete user:", err);
       }
     }
   };
 
-  const roleColorClass = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-purple-100 text-purple-800";
-      case "delivery":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-green-100 text-green-800";
-    }
-  };
+  const columns: GridColDef[] = [
+    { field: "id", headerName: "ID", width: 70 },
+    { field: "username", headerName: "Username", flex: 1, minWidth: 150 },
+    { field: "email", headerName: "Email", flex: 1, minWidth: 200 },
+    {
+      field: "role",
+      headerName: "Role",
+      width: 120,
+      renderCell: (params: GridRenderCellParams<Role>) => getRoleChipStyled(params.value), // Using the updated function
+    },
+    {
+      field: "phone_number",
+      headerName: "Phone",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (params) => params.value || "N/A",
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 120,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: (params: GridRenderCellParams<any, User>) => (
+        <Box>
+          <Tooltip title="Edit User">
+            <IconButton onClick={() => handleOpenEditModal(params.row)} color="primary" size="small">
+              <Edit />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete User">
+            <IconButton onClick={() => handleDelete(params.row.id)} color="error" size="small" disabled={isDeleting}>
+              <Delete />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
 
-  const renderCreateForm = () => (
-    <div className="mb-6 bg-white rounded-lg shadow-md overflow-hidden w-full">
-      <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-800">Create New User</h3>
-        <button
-          onClick={() => setIsCreateFormVisible(false)}
-          className="text-gray-400 hover:text-gray-600"
-          aria-label="Close form"
-        >
-          <FaTimes />
-        </button>
-      </div>
 
-      <div className="p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              placeholder="Username"
-              value={newUser.username}
-              onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-              className={`border ${formErrors.username ? "border-red-500" : "border-gray-300"} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formErrors.username && <p className="mt-1 text-sm text-red-500">{formErrors.username}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              className={`border ${formErrors.email ? "border-red-500" : "border-gray-300"} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-              className={`border ${formErrors.password ? "border-red-500" : "border-gray-300"} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-              Role
-            </label>
-            <select
-              id="role"
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value as Role })}
-              className="border border-gray-300 p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="customer">Customer</option>
-              <option value="admin">Admin</option>
-              <option value="delivery">Delivery</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              type="text"
-              placeholder="Phone Number"
-              value={newUser.phone_number}
-              onChange={(e) => setNewUser({ ...newUser, phone_number: e.target.value })}
-              className={`border ${formErrors.phone_number ? "border-red-500" : "border-gray-300"} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formErrors.phone_number && (
-              <p className="mt-1 text-sm text-red-500">{formErrors.phone_number}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <button
-            onClick={handleCreate}
-            disabled={isCreating}
-            className="flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70 w-full sm:w-auto"
-          >
-            {isCreating ? (
-              <>
-                <FaSpinner className="animate-spin mr-2" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <FaUserPlus className="mr-2" />
-                Create User
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (isLoading)
+  if (fetchError) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <span className="ml-3 text-gray-600">Loading users...</span>
-      </div>
+      <ThemeProvider theme={theme}>
+        <Container maxWidth="lg" sx={{ mt: 4, p: { xs: 1, sm: 2 } }}>
+          <Alert severity="error">Failed to load users: { (fetchError as ApiError).data?.detail || (fetchError as any).message || "Unknown error"}</Alert>
+        </Container>
+      </ThemeProvider>
     );
-
-  if (error)
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-        <p className="font-medium">Error loading users</p>
-        <p className="text-sm">{JSON.stringify(error)}</p>
-      </div>
-    );
+  }
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-        <button
-          onClick={() => setIsCreateFormVisible(!isCreateFormVisible)}
-          className="mt-3 sm:mt-0 flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-        >
-          <FaUserPlus className="mr-2" />
-          {isCreateFormVisible ? "Hide Form" : "Add New User"}
-        </button>
-      </div>
+    <ThemeProvider theme={theme}>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb:4, p: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Typography variant="h4">User Management</Typography>
+          <Button variant="contained" color="primary" startIcon={<Add />} onClick={handleOpenCreateModal}>
+            Add New User
+          </Button>
+        </Box>
 
-      {isCreateFormVisible && renderCreateForm()}
+        <Box sx={{ height: 600, width: "100%" }}>
+          <DataGrid
+            rows={usersData?.results || []}
+            columns={columns}
+            pageSize={10}
+            rowsPerPageOptions={[10, 20, 50]}
+            pagination
+            loading={isLoading || isCreating || isUpdating || isDeleting}
+            autoHeight={false} 
+            disableSelectionOnClick
+            getRowId={(row) => row.id}
+          />
+        </Box>
+      </Container>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  ID
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Username
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Role
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Phone
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users?.results?.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3 py-4 text-center text-gray-500">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                users?.results?.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {user.id}
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {user.username}
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {user.email}
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${roleColorClass(
-                          user.role
-                        )}`}
-                      >
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {user.phone_number || "N/A"}
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => setEditingUser(user)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                        aria-label={`Edit ${user.username}`}
-                      >
-                        <FaEdit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        disabled={isDeleting}
-                        className="text-red-600 hover:text-red-900"
-                        aria-label={`Delete ${user.username}`}
-                      >
-                        <FaTrash size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden shadow-xl transform transition-all">
-            <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-800">Edit User</h3>
-              <button
-                onClick={() => setEditingUser(null)}
-                className="text-gray-400 hover:text-gray-600"
-                aria-label="Close modal"
+      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth TransitionProps={{ timeout: 300 }}>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">{isEditMode ? "Edit User" : "Create New User"}</Typography>
+          <IconButton onClick={handleCloseModal}><Close/></IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box component="form" noValidate sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              value={formData.username}
+              onChange={handleFormChange}
+              error={!!formErrors.username}
+              helperText={formErrors.username}
+              size="small"
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleFormChange}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
+              size="small"
+            />
+            <TextField
+              margin="normal"
+              required={!isEditMode} 
+              fullWidth
+              name="password"
+              label={isEditMode ? "New Password (leave blank to keep current)" : "Password"}
+              type="password"
+              id="password"
+              value={formData.password}
+              onChange={handleFormChange}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
+              size="small"
+            />
+            <FormControl fullWidth margin="normal" required size="small" error={!!formErrors.role}>
+              <InputLabel id="role-label">Role</InputLabel>
+              <Select
+                labelId="role-label"
+                id="role"
+                name="role"
+                value={formData.role}
+                label="Role"
+                onChange={handleFormChange as any} 
               >
-                <FaTimes size={20} />
-              </button>
-            </div>
-
-            <div className="p-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                  <input
-                    type="text"
-                    value={editingUser.username}
-                    onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
-                    className={`border ${
-                      formErrors.username ? "border-red-500" : "border-gray-300"
-                    } p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  />
-                  {formErrors.username && <p className="mt-1 text-sm text-red-500">{formErrors.username}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={editingUser.email}
-                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                    className={`border ${
-                      formErrors.email ? "border-red-500" : "border-gray-300"
-                    } p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  />
-                  {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                  <select
-                    value={editingUser.role}
-                    onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as Role })}
-                    className="border border-gray-300 p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                    <option value="delivery">Delivery</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    value={editingUser.phone_number || ""}
-                    onChange={(e) => setEditingUser({ ...editingUser, phone_number: e.target.value })}
-                    className={`border ${
-                      formErrors.phone_number ? "border-red-500" : "border-gray-300"
-                    } p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  />
-                  {formErrors.phone_number && (
-                    <p className="mt-1 text-sm text-red-500">{formErrors.phone_number}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => setEditingUser(null)}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleUpdate(editingUser)}
-                  disabled={isUpdating}
-                  className="flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-70"
-                >
-                  {isUpdating ? (
-                    <>
-                      <FaSpinner className="animate-spin mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <FaSave className="mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+                <MenuItem value="customer">Customer</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="delivery">Delivery</MenuItem>
+              </Select>
+              {formErrors.role && <Typography color="error" variant="caption">{formErrors.role}</Typography>}
+            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              id="phone_number"
+              label="Phone Number (Optional)"
+              name="phone_number"
+              value={formData.phone_number}
+              onChange={handleFormChange}
+              error={!!formErrors.phone_number}
+              helperText={formErrors.phone_number}
+              size="small"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px:3, pb:2 }}>
+          <Button onClick={handleCloseModal} color="inherit" sx={{ "&:hover": { backgroundColor: alpha(theme.palette.text.secondary || '#000000', 0.1) }}}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color={isEditMode ? "secondary" : "primary"}
+            disabled={isCreating || isUpdating}
+            startIcon={isCreating || isUpdating ? <CircularProgress size={20} color="inherit" /> : <Save />}
+          >
+            {isEditMode ? "Save Changes" : "Create User"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </ThemeProvider>
   );
 };
 
