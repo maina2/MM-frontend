@@ -13,13 +13,18 @@ import {
   List,
   ListItem,
   ListItemText,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { RootState } from "../../store/store";
-import { useCheckoutMutation } from "../../api/apiSlice";
+import { useCheckoutMutation, useGetBranchesQuery } from "../../api/apiSlice";
 import { clearCart } from "../../store/cartSlice";
+import { Branch } from "../../types";
 
 // Fix for Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -31,7 +36,7 @@ L.Icon.Default.mergeOptions({
 });
 
 interface CartItem {
-  product: { id: number; name: string; price: number };
+  product: { id: number; name: string; price: number; branch?: Branch | number };
   quantity: number;
 }
 
@@ -46,8 +51,31 @@ const Checkout: React.FC = () => {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
     null
   );
+  const [selectedBranch, setSelectedBranch] = useState<number | "">("");
   const [error, setError] = useState<string | null>(null);
   const [checkout, { isLoading }] = useCheckoutMutation();
+  const { data: branches, isLoading: branchesLoading, error: branchesError } =
+    useGetBranchesQuery();
+
+  // Debug branches and cart items
+  useEffect(() => {
+    console.log("Branches data:", branches);
+    console.log("Branches loading:", branchesLoading);
+    console.log("Branches error:", branchesError);
+    console.log("Cart items:", JSON.stringify(cartItems, null, 2));
+  }, [branches, branchesLoading, branchesError, cartItems]);
+
+  // Check for empty branches
+  useEffect(() => {
+    if (
+      !branchesLoading &&
+      branches &&
+      Array.isArray(branches.results) &&
+      branches.results.length === 0
+    ) {
+      setError("No branches available. Please contact support.");
+    }
+  }, [branches, branchesLoading]);
 
   // Get user's current location on component mount
   useEffect(() => {
@@ -88,7 +116,13 @@ const Checkout: React.FC = () => {
     0
   );
 
-  // Checkout.tsx
+  // Handle branch selection
+  const handleBranchChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setSelectedBranch(event.target.value as number);
+    setError(null);
+  };
+
+  // Checkout handler
   const handleCheckout = async () => {
     if (!user) {
       setError("You must be logged in to checkout.");
@@ -106,8 +140,13 @@ const Checkout: React.FC = () => {
       return;
     }
 
+    if (!selectedBranch) {
+      setError("Please select a branch.");
+      return;
+    }
+
     if (!cartItems.length) {
-      setError("Cart is empty");
+      setError("Cart is empty.");
       return;
     }
 
@@ -119,17 +158,36 @@ const Checkout: React.FC = () => {
       return;
     }
 
+    // Validate cart items' branch
+    const invalidItems = cartItems.filter((item) => {
+      const branch = item.product.branch;
+      return typeof branch === "object" && branch !== null && branch.id !== selectedBranch;
+    });
+
+    if (invalidItems.length > 0) {
+      setError("Some items are not available at the selected branch.");
+      return;
+    }
+
     setError(null);
 
     try {
       const checkoutData = {
         cart_items: cartItems.map((item) => ({
-          product: { id: item.product.id, price: item.product.price },
+          product: {
+            id: item.product.id,
+            price: item.product.price,
+            branch_id:
+              typeof item.product.branch === "object" && item.product.branch !== null
+                ? item.product.branch.id
+                : item.product.branch || selectedBranch,
+          },
           quantity: item.quantity,
         })),
         phone_number: phoneNumber,
         latitude: position.lat,
         longitude: position.lng,
+        branch_id: selectedBranch,
       };
 
       console.log(
@@ -219,7 +277,7 @@ const Checkout: React.FC = () => {
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <Marker position={[position.lat, position.lng]} />
             <MapEvents />
@@ -231,14 +289,53 @@ const Checkout: React.FC = () => {
         )}
       </Box>
 
+      {/* Branch Selection */}
+      <FormControl fullWidth margin="normal" disabled={isLoading || branchesLoading}>
+        <InputLabel id="branch-select-label">Select Branch</InputLabel>
+        <Select
+          labelId="branch-select-label"
+          value={selectedBranch}
+          label="Select Branch"
+          onChange={(e) => setSelectedBranch(e.target.value as number)}
+        >
+          <MenuItem value="">
+            <em>Select a branch</em>
+          </MenuItem>
+          {branchesLoading ? (
+            <MenuItem disabled>Loading branches...</MenuItem>
+          ) : Array.isArray(branches?.results) && branches.results.length > 0 ? (
+            branches.results.map((branch: Branch) => (
+              <MenuItem key={branch.id} value={branch.id}>
+                {branch.name} - {branch.address}, {branch.city}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled>No branches available</MenuItem>
+          )}
+        </Select>
+      </FormControl>
+      {branchesError && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Failed to load branches. Please try again.
+        </Alert>
+      )}
+
       {/* Checkout Button */}
       <Button
         variant="contained"
         color="primary"
         onClick={handleCheckout}
-        disabled={isLoading || cartItems.length === 0 || !position}
+        disabled={
+          isLoading ||
+          cartItems.length === 0 ||
+          !position ||
+          !selectedBranch ||
+          branchesLoading ||
+          !Array.isArray(branches?.results) ||
+          branches.results.length === 0
+        }
         fullWidth
-        sx={{ py: 1.5 }}
+        sx={{ py: 1.5, mt: 2 }}
       >
         {isLoading ? <CircularProgress size={24} /> : "Checkout with M-Pesa"}
       </Button>
