@@ -12,7 +12,7 @@ export interface User {
   role: Role;
 }
 
-// Category and Branch types (used in Product)
+// Category and Branch types (used in Product and Order)
 export interface Category {
   id: number;
   name: string;
@@ -24,6 +24,10 @@ export interface Branch {
   id: number;
   name: string;
   address: string;
+  city: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  is_active?: boolean;
 }
 
 // Product type
@@ -74,6 +78,7 @@ export interface Order {
   created_at: string;
   updated_at: string;
   items: OrderItem[];
+  branch: Branch | number;
 }
 
 // Payment type
@@ -83,9 +88,10 @@ export interface Payment {
   amount: number;
   phone_number: string;
   status: string;
-  transaction_id: string | null;
-  checkout_request_id: string | null;
-  error_message: string | null;
+  transaction_id: number | null;
+  checkout_request_id: number | null;
+  error_message?: string | null;
+  payment_methods: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -101,8 +107,8 @@ export interface Delivery {
   longitude: number | null;
   estimated_delivery_time: string | null;
   actual_delivery_time: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // Cart Item type (for local cart state)

@@ -9,7 +9,7 @@ import {
   Category,
   Payment,
   Delivery,
-  OrderItem,
+  Branch,
 } from '../types';
 import { RootState } from '../store/store';
 
@@ -29,6 +29,7 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   let result = await baseQuery(args, api, extraOptions);
+
   if (result.error && result.error.status === 401) {
     const refreshToken = (api.getState() as RootState).auth.refreshToken;
     if (refreshToken) {
@@ -39,18 +40,18 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
           body: { refresh: refreshToken },
         },
         api,
-        extraOptions
+        extraOptions,
       );
+
       if (refreshResult.data) {
         const newAccessToken = (refreshResult.data as any).access;
-        const newRefreshToken =
-          (refreshResult.data as any).refresh || refreshToken;
+        const newRefreshToken = (refreshResult.data as any).refresh || refreshToken;
         api.dispatch(
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
             token: newAccessToken,
-            refreshToken: personally,
-          })
+            refreshToken: newRefreshToken, // Changed from 'personally' to newRefreshToken
+          }),
         );
         result = await baseQuery(args, api, extraOptions);
       } else {
@@ -69,6 +70,7 @@ export const apiSlice = createApi({
   tagTypes: [
     'Products',
     'Orders',
+    'Branches',
     'ProductDetail',
     'Payments',
     'Deliveries',
@@ -114,7 +116,7 @@ export const apiSlice = createApi({
               user: userWithDefaults,
               token: data.access,
               refreshToken: data.refresh,
-            })
+            }),
           );
           console.log('Dispatched setCredentials with user:', JSON.stringify(userWithDefaults, null, 2));
         } catch (error: any) {
@@ -318,6 +320,45 @@ export const apiSlice = createApi({
         method: 'DELETE',
       }),
       invalidatesTags: ['Users'],
+    }),
+
+    // Branch Endpoints
+    getBranches: builder.query<Branch[], void>({
+      query: () => 'branches/',
+      providesTags: ['Branches'],
+    }),
+    getAdminBranches: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Branch[];
+      },
+      { page?: number; page_size?: number }
+    >({
+      query: ({ page = 1, page_size = 10 } = {}) => ({
+        url: 'admin/branches/',
+        params: { page, page_size },
+      }),
+      providesTags: ['Branches'],
+    }),
+    createAdminBranch: builder.mutation<
+      Branch,
+      {
+        name: string;
+        address: string;
+        city: string;
+        latitude?: number | null;
+        longitude?: number | null;
+        is_active?: boolean;
+      }
+    >({
+      query: (data) => ({
+        url: 'admin/branches/',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Branches'],
     }),
 
     // Product Admin Endpoints
@@ -722,6 +763,9 @@ export const {
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
+  useGetBranchesQuery, 
+  useGetAdminBranchesQuery,
+  useCreateAdminBranchMutation, 
   useGetAdminProductsQuery,
   useCreateAdminProductMutation,
   useUpdateAdminProductMutation,
