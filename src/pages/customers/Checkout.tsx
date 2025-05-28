@@ -161,7 +161,9 @@ const Checkout: React.FC = () => {
     // Validate cart items' branch
     const invalidItems = cartItems.filter((item) => {
       const branch = item.product.branch;
-      return typeof branch === "object" && branch !== null && branch.id !== selectedBranch;
+      const branchId =
+        typeof branch === "object" && branch !== null ? branch.id : branch;
+      return branchId && branchId !== selectedBranch;
     });
 
     if (invalidItems.length > 0) {
@@ -176,18 +178,14 @@ const Checkout: React.FC = () => {
         cart_items: cartItems.map((item) => ({
           product: {
             id: item.product.id,
-            price: item.product.price,
-            branch_id:
-              typeof item.product.branch === "object" && item.product.branch !== null
-                ? item.product.branch.id
-                : item.product.branch || selectedBranch,
+            price: Number(item.product.price), // Ensure price is a number
           },
           quantity: item.quantity,
         })),
         phone_number: phoneNumber,
         latitude: position.lat,
         longitude: position.lng,
-        branch_id: selectedBranch,
+        branch_id: Number(selectedBranch), // Ensure branch_id is a number
       };
 
       console.log(
