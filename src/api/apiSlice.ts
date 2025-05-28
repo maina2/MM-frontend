@@ -208,11 +208,11 @@ export const apiSlice = createApi({
       providesTags: (result, error, id) => [{ type: 'Categories', id }],
     }),
     getOrders: builder.query<Order[], void>({
-      query: () => 'orders/orders-list/',
+      query: () => 'orders-list/',
       providesTags: ['Orders'],
     }),
     getOrder: builder.query({
-      query: (orderId) => `orders/orders-details/${orderId}/`,
+      query: (orderId) => `orders-details/${orderId}/`,
     }),
     checkout: builder.mutation<
       {
