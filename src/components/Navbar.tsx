@@ -35,8 +35,8 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Desktop Navbar */}
-      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar overflow-x-hidden">
+      {/* Desktop Navbar - REMOVED overflow-hidden */}
+      <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
             Muindi Mweusi
@@ -87,16 +87,24 @@ const Navbar: React.FC = () => {
                   <FaUser size={20} />
                   <span className="text-sm">{user?.username || "Account"}</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[1300] hidden group-hover:block">
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                {/* Enhanced dropdown with better positioning and higher z-index */}
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[10000] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                  <Link 
+                    to="/profile" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
                     My Profile
                   </Link>
-                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <Link 
+                    to="/orders" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
                     My Orders
                   </Link>
+                  <hr className="my-1 border-gray-200" />
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
                     Logout
                   </button>
@@ -116,8 +124,8 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar overflow-x-hidden">
+      {/* Mobile Top Bar - REMOVED overflow-x-hidden */}
+      <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
             Muindi Mweusi
@@ -143,8 +151,8 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200] overflow-x-hidden">
+      {/* Mobile Bottom Navigation - REMOVED overflow-x-hidden */}
+      <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
         {role === "admin" ? (
           <div className="grid grid-cols-5 gap-1 py-2 px-2">
             <Link
