@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { setCredentials, logout } from '../store/authSlice';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setCredentials, logout } from "../store/authSlice";
 import {
   User,
   Product,
@@ -10,10 +10,10 @@ import {
   Payment,
   Delivery,
   Branch,
-} from '../types';
-import { RootState } from '../store/store';
+} from "../types";
+import { RootState } from "../store/store";
 
-const BASE_URL = 'http://localhost:8000/api/';
+const BASE_URL = "http://localhost:8000/api/";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -21,7 +21,7 @@ const baseQuery = fetchBaseQuery({
     const state = getState() as RootState;
     const token = state.auth.token;
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      headers.set("Authorization", `Bearer ${token}`);
     }
     return headers;
   },
@@ -35,23 +35,24 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     if (refreshToken) {
       const refreshResult = await baseQuery(
         {
-          url: 'users/refresh/',
-          method: 'POST',
+          url: "users/refresh/",
+          method: "POST",
           body: { refresh: refreshToken },
         },
         api,
-        extraOptions,
+        extraOptions
       );
 
       if (refreshResult.data) {
         const newAccessToken = (refreshResult.data as any).access;
-        const newRefreshToken = (refreshResult.data as any).refresh || refreshToken;
+        const newRefreshToken =
+          (refreshResult.data as any).refresh || refreshToken;
         api.dispatch(
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
             token: newAccessToken,
             refreshToken: newRefreshToken, // Changed from 'personally' to newRefreshToken
-          }),
+          })
         );
         result = await baseQuery(args, api, extraOptions);
       } else {
@@ -65,18 +66,18 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 };
 
 export const apiSlice = createApi({
-  reducerPath: 'api',
+  reducerPath: "api",
   baseQuery: baseQueryWithReauth,
   tagTypes: [
-    'Products',
-    'Orders',
-    'Branches',
-    'ProductDetail',
-    'Payments',
-    'Deliveries',
-    'Categories',
-    'User',
-    'Users',
+    "Products",
+    "Orders",
+    "Branches",
+    "ProductDetail",
+    "Payments",
+    "Deliveries",
+    "Categories",
+    "User",
+    "Users",
   ],
   endpoints: (builder) => ({
     // Shared Endpoints
@@ -85,8 +86,8 @@ export const apiSlice = createApi({
       { username: string; email: string; password: string }
     >({
       query: (credentials) => ({
-        url: 'users/register/',
-        method: 'POST',
+        url: "users/register/",
+        method: "POST",
         body: credentials,
       }),
     }),
@@ -95,14 +96,14 @@ export const apiSlice = createApi({
       { username: string; password: string }
     >({
       query: (credentials) => ({
-        url: 'users/login/',
-        method: 'POST',
+        url: "users/login/",
+        method: "POST",
         body: credentials,
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          console.log('Login Response:', JSON.stringify(data, null, 2));
+          console.log("Login Response:", JSON.stringify(data, null, 2));
           const userWithDefaults: User = {
             id: data.user.id,
             username: data.user.username,
@@ -110,31 +111,40 @@ export const apiSlice = createApi({
             phone_number: data.user.phone_number ?? null,
             role: data.user.role,
           };
-          console.log('User with Defaults:', JSON.stringify(userWithDefaults, null, 2));
+          console.log(
+            "User with Defaults:",
+            JSON.stringify(userWithDefaults, null, 2)
+          );
           dispatch(
             setCredentials({
               user: userWithDefaults,
               token: data.access,
               refreshToken: data.refresh,
-            }),
+            })
           );
-          console.log('Dispatched setCredentials with user:', JSON.stringify(userWithDefaults, null, 2));
+          console.log(
+            "Dispatched setCredentials with user:",
+            JSON.stringify(userWithDefaults, null, 2)
+          );
         } catch (error: any) {
-          console.error('Login failed:', error?.data?.detail || 'Unknown error');
+          console.error(
+            "Login failed:",
+            error?.data?.detail || "Unknown error"
+          );
         }
       },
     }),
     getProfile: builder.query<User, void>({
-      query: () => 'users/profile/',
-      providesTags: ['User'],
+      query: () => "users/profile/",
+      providesTags: ["User"],
     }),
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (data) => ({
-        url: 'users/profile/update/',
-        method: 'PUT',
+        url: "users/profile/update/",
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
 
     // Customer Endpoints
@@ -148,10 +158,10 @@ export const apiSlice = createApi({
       { page?: number; page_size?: number }
     >({
       query: ({ page = 1, page_size = 12 } = {}) => ({
-        url: 'products/',
+        url: "products/",
         params: { page, page_size },
       }),
-      providesTags: ['Products'],
+      providesTags: ["Products"],
     }),
     getOffers: builder.query<
       {
@@ -177,7 +187,7 @@ export const apiSlice = createApi({
         max_price,
         sort_by,
       } = {}) => ({
-        url: 'products/offers/',
+        url: "products/offers/",
         params: {
           page,
           page_size,
@@ -187,15 +197,15 @@ export const apiSlice = createApi({
           ...(sort_by && { sort_by }),
         },
       }),
-      providesTags: ['Products'],
+      providesTags: ["Products"],
     }),
     getProductById: builder.query<ProductDetail, number>({
       query: (id) => `products/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'ProductDetail', id }],
+      providesTags: (result, error, id) => [{ type: "ProductDetail", id }],
     }),
     getCategories: builder.query<Category[], void>({
-      query: () => 'categories/',
-      providesTags: ['Categories'],
+      query: () => "categories/",
+      providesTags: ["Categories"],
       transformResponse: (response: any) => {
         return response.results ? response.results : response;
       },
@@ -205,14 +215,15 @@ export const apiSlice = createApi({
       number
     >({
       query: (id) => `categories/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'Categories', id }],
+      providesTags: (result, error, id) => [{ type: "Categories", id }],
     }),
     getOrders: builder.query<Order[], void>({
-      query: () => 'orders-list/',
-      providesTags: ['Orders'],
+      query: () => "orders-list/",
+      providesTags: ["Orders"],
     }),
-    getOrder: builder.query({
+    getOrder: builder.query<Order, number>({
       query: (orderId) => `orders-details/${orderId}/`,
+      providesTags: (result, error, id) => [{ type: 'Orders', id }],
     }),
     checkout: builder.mutation<
       {
@@ -232,11 +243,11 @@ export const apiSlice = createApi({
       }
     >({
       query: (checkoutData) => ({
-        url: 'orders/checkout/',
-        method: 'POST',
+        url: "orders/checkout/",
+        method: "POST",
         body: checkoutData,
       }),
-      invalidatesTags: ['Orders', 'Payments', 'Deliveries'],
+      invalidatesTags: ["Orders", "Payments", "Deliveries"],
     }),
     searchProducts: builder.query<
       {
@@ -264,7 +275,7 @@ export const apiSlice = createApi({
         page = 1,
         page_size = 12,
       }) => ({
-        url: 'products/search/',
+        url: "products/search/",
         params: {
           q,
           ...(category && { category }),
@@ -275,57 +286,77 @@ export const apiSlice = createApi({
           page_size,
         },
       }),
-      providesTags: ['Products'],
+      providesTags: ["Products"],
     }),
 
     // Admin Endpoints
-    getAdminUsers: builder.query<{
-      count: number;
-      next: string | null;
-      previous: string | null;
-      results: User[];
-    }, { page?: number; page_size?: number }>({
+    getAdminUsers: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: User[];
+      },
+      { page?: number; page_size?: number }
+    >({
       query: ({ page = 1, page_size = 10 } = {}) => ({
-        url: 'users/manage/users/',
+        url: "users/manage/users/",
         params: { page, page_size },
       }),
-      providesTags: ['Users'],
-      transformResponse: (response: { count: number; next: string | null; previous: string | null; results: User[] }) => response,
+      providesTags: ["Users"],
+      transformResponse: (response: {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: User[];
+      }) => response,
     }),
     createAdminUser: builder.mutation<
       User,
-      { username: string; email: string; password: string; role: Role; phone_number?: string }
+      {
+        username: string;
+        email: string;
+        password: string;
+        role: Role;
+        phone_number?: string;
+      }
     >({
       query: (data) => ({
-        url: 'users/manage/users/',
-        method: 'POST',
+        url: "users/manage/users/",
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ["Users"],
     }),
     updateAdminUser: builder.mutation<
       User,
-      { id: number; username?: string; email?: string; role?: Role; phone_number?: string }
+      {
+        id: number;
+        username?: string;
+        email?: string;
+        role?: Role;
+        phone_number?: string;
+      }
     >({
       query: ({ id, ...data }) => ({
         url: `users/manage/users/${id}/`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ["Users"],
     }),
     deleteAdminUser: builder.mutation<void, number>({
       query: (id) => ({
         url: `users/manage/users/${id}/`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ["Users"],
     }),
 
     // Branch Endpoints
     getBranches: builder.query<Branch[], void>({
-      query: () => 'branches/',
-      providesTags: ['Branches'],
+      query: () => "branches/",
+      providesTags: ["Branches"],
     }),
     getAdminBranches: builder.query<
       {
@@ -337,10 +368,10 @@ export const apiSlice = createApi({
       { page?: number; page_size?: number }
     >({
       query: ({ page = 1, page_size = 10 } = {}) => ({
-        url: 'admin/branches/',
+        url: "admin/branches/",
         params: { page, page_size },
       }),
-      providesTags: ['Branches'],
+      providesTags: ["Branches"],
     }),
     createAdminBranch: builder.mutation<
       Branch,
@@ -354,11 +385,11 @@ export const apiSlice = createApi({
       }
     >({
       query: (data) => ({
-        url: 'admin/branches/',
-        method: 'POST',
+        url: "admin/branches/",
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Branches'],
+      invalidatesTags: ["Branches"],
     }),
 
     // Product Admin Endpoints
@@ -372,7 +403,7 @@ export const apiSlice = createApi({
       { page?: number; page_size?: number; search?: string; category?: number }
     >({
       query: ({ page = 1, page_size = 12, search, category } = {}) => ({
-        url: 'manage/products/',
+        url: "manage/products/",
         params: {
           page,
           page_size,
@@ -380,7 +411,7 @@ export const apiSlice = createApi({
           ...(category && { category }),
         },
       }),
-      providesTags: ['Products'],
+      providesTags: ["Products"],
     }),
     createAdminProduct: builder.mutation<
       Product,
@@ -402,13 +433,13 @@ export const apiSlice = createApi({
           }
         });
         return {
-          url: 'manage/products/',
-          method: 'POST',
+          url: "manage/products/",
+          method: "POST",
           body: formData,
           formData: true,
         };
       },
-      invalidatesTags: ['Products'],
+      invalidatesTags: ["Products"],
     }),
     updateAdminProduct: builder.mutation<
       Product,
@@ -432,35 +463,49 @@ export const apiSlice = createApi({
         });
         return {
           url: `manage/products/${id}/`,
-          method: 'PUT',
+          method: "PUT",
           body: formData,
           formData: true,
         };
       },
-      invalidatesTags: ['Products'],
+      invalidatesTags: ["Products"],
     }),
     deleteAdminProduct: builder.mutation<void, number>({
       query: (id) => ({
         url: `manage/products/${id}/`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Products'],
+      invalidatesTags: ["Products"],
     }),
 
     // Order Admin Endpoints
     getAdminOrders: builder.query<
-      { count: number; next: string | null; previous: string | null; results: Order[] },
-      { page?: number; status?: string; payment_status?: string; search?: string; ordering?: string }
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Order[];
+      },
+      {
+        page?: number;
+        status?: string;
+        payment_status?: string;
+        search?: string;
+        ordering?: string;
+      }
     >({
       query: ({ page = 1, status, payment_status, search, ordering }) => {
-        const params = new URLSearchParams({ page: page.toString(), page_size: '12' });
-        if (status) params.append('status', status);
-        if (payment_status) params.append('payment_status', payment_status);
-        if (search) params.append('search', search);
-        if (ordering) params.append('ordering', ordering);
+        const params = new URLSearchParams({
+          page: page.toString(),
+          page_size: "12",
+        });
+        if (status) params.append("status", status);
+        if (payment_status) params.append("payment_status", payment_status);
+        if (search) params.append("search", search);
+        if (ordering) params.append("ordering", ordering);
         return `manage/orders/?${params.toString()}`;
       },
-      providesTags: ['Orders'],
+      providesTags: ["Orders"],
       transformResponse: (response: {
         count: number;
         next: string | null;
@@ -471,17 +516,27 @@ export const apiSlice = createApi({
           ...response,
           results: response.results.map((order) => ({
             ...order,
-            customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User,
+            customer: {
+              username: order.customer,
+              id: 0,
+              email: "",
+              role: "customer",
+            } as User,
           })),
         };
       },
     }),
     getAdminOrder: builder.query<Order, number>({
       query: (id) => `manage/orders/${id}/`,
-      providesTags: ['Orders'],
+      providesTags: ["Orders"],
       transformResponse: (order: any) => ({
         ...order,
-        customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User,
+        customer: {
+          username: order.customer,
+          id: 0,
+          email: "",
+          role: "customer",
+        } as User,
       }),
     }),
     createAdminOrder: builder.mutation<
@@ -494,14 +549,19 @@ export const apiSlice = createApi({
       }
     >({
       query: (data) => ({
-        url: 'manage/orders/',
-        method: 'POST',
+        url: "manage/orders/",
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Orders'],
+      invalidatesTags: ["Orders"],
       transformResponse: (order: any) => ({
         ...order,
-        customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User,
+        customer: {
+          username: order.customer,
+          id: 0,
+          email: "",
+          role: "customer",
+        } as User,
       }),
     }),
     updateAdminOrder: builder.mutation<
@@ -516,36 +576,49 @@ export const apiSlice = createApi({
     >({
       query: ({ id, ...data }) => ({
         url: `manage/orders/${id}/`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Orders'],
+      invalidatesTags: ["Orders"],
       transformResponse: (order: any) => ({
         ...order,
-        customer: { username: order.customer, id: 0, email: '', role: 'customer' } as User,
+        customer: {
+          username: order.customer,
+          id: 0,
+          email: "",
+          role: "customer",
+        } as User,
       }),
     }),
     deleteAdminOrder: builder.mutation<void, number>({
       query: (id) => ({
         url: `manage/orders/${id}/`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Orders'],
+      invalidatesTags: ["Orders"],
     }),
 
     // Payment Admin Endpoints
     getAdminPayments: builder.query<
-      { count: number; next: string | null; previous: string | null; results: Payment[] },
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Payment[];
+      },
       { page?: number; status?: string; search?: string; ordering?: string }
     >({
       query: ({ page = 1, status, search, ordering }) => {
-        const params = new URLSearchParams({ page: page.toString(), page_size: '12' });
-        if (status) params.append('status', status);
-        if (search) params.append('search', search);
-        if (ordering) params.append('ordering', ordering);
+        const params = new URLSearchParams({
+          page: page.toString(),
+          page_size: "12",
+        });
+        if (status) params.append("status", status);
+        if (search) params.append("search", search);
+        if (ordering) params.append("ordering", ordering);
         return `manage/payments/?${params.toString()}`;
       },
-      providesTags: ['Payments'],
+      providesTags: ["Payments"],
       transformResponse: (response: {
         count: number;
         next: string | null;
@@ -561,8 +634,8 @@ export const apiSlice = createApi({
               customer: {
                 username: payment.order.customer,
                 id: 0,
-                email: '',
-                role: 'customer',
+                email: "",
+                role: "customer",
               } as User,
             },
           })),
@@ -571,7 +644,7 @@ export const apiSlice = createApi({
     }),
     getAdminPayment: builder.query<Payment, number>({
       query: (id) => `manage/payments/${id}/`,
-      providesTags: ['Payments'],
+      providesTags: ["Payments"],
       transformResponse: (payment: any) => ({
         ...payment,
         order: {
@@ -579,8 +652,8 @@ export const apiSlice = createApi({
           customer: {
             username: payment.order.customer,
             id: 0,
-            email: '',
-            role: 'customer',
+            email: "",
+            role: "customer",
           } as User,
         },
       }),
@@ -591,10 +664,10 @@ export const apiSlice = createApi({
     >({
       query: ({ id, ...data }) => ({
         url: `manage/payments/${id}/`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Payments', 'Orders'],
+      invalidatesTags: ["Payments", "Orders"],
       transformResponse: (payment: any) => ({
         ...payment,
         order: {
@@ -602,8 +675,8 @@ export const apiSlice = createApi({
           customer: {
             username: payment.order.customer,
             id: 0,
-            email: '',
-            role: 'customer',
+            email: "",
+            role: "customer",
           } as User,
         },
       }),
@@ -611,9 +684,9 @@ export const apiSlice = createApi({
     deleteAdminPayment: builder.mutation<void, number>({
       query: (id) => ({
         url: `manage/payments/${id}/`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Payments', 'Orders'],
+      invalidatesTags: ["Payments", "Orders"],
     }),
 
     // Delivery Admin Endpoints
@@ -643,104 +716,83 @@ export const apiSlice = createApi({
         search,
         ordering,
       } = {}) => {
-        const params = new URLSearchParams({ page: page.toString(), page_size: page_size.toString() });
-        if (status) params.append('status', status);
-        if (delivery_person) params.append('delivery_person', delivery_person.toString());
-        if (order_id) params.append('order__id', order_id.toString());
-        if (search) params.append('search', search);
-        if (ordering) params.append('ordering', ordering);
+        const params = new URLSearchParams({
+          page: page.toString(),
+          page_size: page_size.toString(),
+        });
+        if (status) params.append("status", status);
+        if (delivery_person)
+          params.append("delivery_person", delivery_person.toString());
+        if (order_id) params.append("order__id", order_id.toString());
+        if (search) params.append("search", search);
+        if (ordering) params.append("ordering", ordering);
         return `admin/deliveries/?${params.toString()}`;
       },
-      providesTags: ['Deliveries'],
-    }),
-    getAdminDelivery: builder.query<Delivery, number>({
-      query: (id) => `admin/deliveries/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'Deliveries', id }],
-    }),
-    createAdminDelivery: builder.mutation<
-      Delivery,
-      {
-        order_id: number;
-        delivery_person_id?: number;
-        delivery_address: string;
-        latitude?: number;
-        longitude?: number;
-        estimated_delivery_time?: string;
-      }
-    >({
-      query: (data) => ({
-        url: 'admin/deliveries/',
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['Deliveries', 'Orders'],
-    }),
-    updateAdminDelivery: builder.mutation<
-      Delivery,
-      {
-        id: number;
-        delivery_person_id?: number;
-        delivery_address?: string;
-        latitude?: number;
-        longitude?: number;
-        estimated_delivery_time?: string;
-      }
-    >({
-      query: ({ id, ...data }) => ({
-        url: `admin/deliveries/${id}/`,
-        method: 'PATCH',
-        body: data,
-      }),
-      invalidatesTags: ['Deliveries'],
-    }),
-    deleteAdminDelivery: builder.mutation<void, number>({
-      query: (id) => ({
-        url: `admin/deliveries/${id}/`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Deliveries', 'Orders'],
-    }),
-    assignDeliveryPerson: builder.mutation<
-      Delivery,
-      { id: number; delivery_person_id: number }
-    >({
-      query: ({ id, delivery_person_id }) => ({
-        url: `admin/deliveries/${id}/assign-delivery-person/`,
-        method: 'PATCH',
-        body: { delivery_person_id },
-      }),
-      invalidatesTags: ['Deliveries'],
-    }),
-    updateDeliveryStatus: builder.mutation<
-      Delivery,
-      { id: number; status: string }
-    >({
-      query: ({ id, status }) => ({
-        url: `admin/deliveries/${id}/update-status/`,
-        method: 'PATCH',
-        body: { status },
-      }),
-      invalidatesTags: ['Deliveries', 'Orders'],
+      providesTags: ["Deliveries"],
+      transformResponse: (response: {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: any[];
+      }) => {
+        return {
+          ...response,
+          results: response.results.map((delivery) => ({
+            ...delivery,
+            order: {
+              ...delivery.order,
+              customer: {
+                username: delivery.order.customer,
+                id: 0,
+                email: "",
+                role: "customer",
+              } as User,
+            },
+          })),
+        };
+      },
     }),
 
-    // Delivery Endpoints
-    getDeliveryTasks: builder.query<Delivery[], void>({
-      query: () => 'delivery/tasks/',
+    // Delivery Person Endpoints
+    getDeliveryTasks: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Delivery[];
+      },
+      { page?: number; page_size?: number }
+    >({
+      query: ({ page = 1, page_size = 10 } = {}) => ({
+        url: 'delivery/tasks/',
+        params: { page, page_size },
+      }),
       providesTags: ['Deliveries'],
+      transformResponse: (response: {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Delivery[];
+      }) => response,
+    }),
+    getDeliveryTaskDetail: builder.query<Delivery, number>({
+      query: (id) => `delivery/tasks/${id}/detail/`,
+      providesTags: (result, error, id) => [{ type: 'Deliveries', id }],
     }),
     updateDeliveryTask: builder.mutation<
       Delivery,
       {
         id: number;
-        status?: string;
+        status: string;
       }
     >({
       query: ({ id, ...data }) => ({
-        url: `delivery/tasks/${id}/`,
-        method: 'PATCH', // Changed to PATCH for partial updates
+        url: `delivery/tasks/${id}/update/`,
+        method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['Deliveries', 'Orders'],
+
+      invalidatesTags: ["Deliveries", "Orders"],
     }),
   }),
 });
@@ -763,9 +815,9 @@ export const {
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
-  useGetBranchesQuery, 
+  useGetBranchesQuery,
   useGetAdminBranchesQuery,
-  useCreateAdminBranchMutation, 
+  useCreateAdminBranchMutation,
   useGetAdminProductsQuery,
   useCreateAdminProductMutation,
   useUpdateAdminProductMutation,
@@ -785,7 +837,8 @@ export const {
   useUpdateAdminDeliveryMutation,
   useDeleteAdminDeliveryMutation,
   useAssignDeliveryPersonMutation,
-  useUpdateDeliveryStatusMutation,
+  useUpdateDeliveryStatusMutation, // Added missing admin hook
   useGetDeliveryTasksQuery,
+  useGetDeliveryTaskDetailQuery, // Fixed typo
   useUpdateDeliveryTaskMutation,
 } = apiSlice;

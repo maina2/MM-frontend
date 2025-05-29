@@ -101,14 +101,14 @@ export interface Delivery {
   id: number;
   order: Order;
   delivery_person: User | null;
-  status: string;
+  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
   delivery_address: string;
   latitude: number | null;
   longitude: number | null;
   estimated_delivery_time: string | null;
   actual_delivery_time: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Cart Item type (for local cart state)
