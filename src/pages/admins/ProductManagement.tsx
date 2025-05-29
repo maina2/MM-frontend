@@ -1,4 +1,3 @@
-// src/components/admin/ProductManagement.tsx
 import { useState, useCallback } from "react";
 import {
   useGetAdminProductsQuery,
@@ -8,97 +7,18 @@ import {
   useGetCategoriesQuery,
 } from "../../api/apiSlice";
 import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Typography,
-  CircularProgress,
-  Alert,
-  IconButton,
-  Tooltip,
-  Fade,
-} from "@mui/material";
-import { DataGrid, GridColDef, GridSortModel } from "@mui/x-data-grid";
-import { Add, Edit, Delete } from "@mui/icons-material";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+  Edit3,
+  Trash2,
+  Plus,
+  Mail,
+  Phone,
+  Shield,
+  Truck,
+  User,
+  X,
+  Save,
+} from "lucide-react";
 import { Product } from "../../types";
-
-const theme = createTheme({
-  palette: {
-    primary: { main: "#6366f1" },
-    secondary: { main: "#10b981" },
-    background: { default: "#f8fafc", paper: "#ffffff" },
-    text: { primary: "#1e293b", secondary: "#64748b" },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
-    h4: { fontWeight: 700 },
-    body2: { fontSize: "0.875rem", fontWeight: 500 },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: "none",
-          padding: "8px 16px",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            transform: "translateY(-1px)",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-          },
-        },
-      },
-    },
-    MuiDialog: {
-      styleOverrides: {
-        paper: { borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 8,
-            backgroundColor: "#ffffff",
-          },
-        },
-      },
-    },
-    MuiDataGrid: {
-      styleOverrides: {
-        root: {
-          border: "none",
-          borderRadius: 12,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        },
-        columnHeader: {
-          backgroundColor: "#6366f1",
-          color: "#ffffff",
-          fontWeight: 600,
-          "& .MuiDataGrid-sortIcon": { color: "#ffffff" },
-        },
-        cell: {
-          padding: "0 12px",
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid #e5e7eb",
-        },
-        row: { "&:hover": { backgroundColor: "#f1f5f9" } },
-      },
-    },
-  },
-});
 
 const ProductManagement = () => {
   const [page, setPage] = useState(1);
@@ -106,7 +26,6 @@ const ProductManagement = () => {
   const [categoryFilter, setCategoryFilter] = useState<number | "">("");
   const [openModal, setOpenModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [sortModel, setSortModel] = useState<GridSortModel>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -127,9 +46,7 @@ const ProductManagement = () => {
     page_size: 12,
     search: search || undefined,
     category: categoryFilter || undefined,
-    ordering: sortModel[0]
-      ? `${sortModel[0].sort === "desc" ? "-" : ""}${sortModel[0].field}`
-      : undefined,
+    ordering: undefined, // Simplified for now; adjust as needed
   });
   const { data: categories, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery();
@@ -138,126 +55,6 @@ const ProductManagement = () => {
   const [updateProduct, { isLoading: isUpdating }] =
     useUpdateAdminProductMutation();
   const [deleteProduct] = useDeleteAdminProductMutation();
-
-  const columns: GridColDef[] = [
-    {
-      field: "id",
-      headerName: "ID",
-      width: 80,
-      sortable: true,
-      renderCell: ({ value }) => (
-        <Typography variant="body2">{value}</Typography>
-      ),
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      minWidth: 180,
-      sortable: true,
-      renderCell: ({ value }) => (
-        <Typography variant="body2" sx={{ fontWeight: 400 }}>
-          {value}
-        </Typography>
-      ),
-    },
-    {
-      field: "price",
-      headerName: "Price",
-      width: 100,
-      sortable: true,
-      renderCell: ({ value }) => {
-        const numericValue = Number(value);
-        return (
-          <Typography variant="body2">
-            {isNaN(numericValue) ? "0.00" : `${numericValue.toFixed(2)}`}
-          </Typography>
-        );
-      },
-    },
-    {
-      field: "stock",
-      headerName: "Stock",
-      width: 80,
-      sortable: true,
-      renderCell: ({ value }) => (
-        <Typography variant="body2">{value}</Typography>
-      ),
-    },
-    {
-      field: "category",
-      headerName: "Category",
-      width: 120,
-      renderCell: ({ value }) => {
-        const name = !value
-          ? "Unknown"
-          : typeof value === "object" && value.name
-          ? value.name
-          : typeof value === "number" && categories
-          ? categories.find((cat) => cat.id === value)?.name || "Unknown"
-          : "Unknown";
-        return <Typography variant="body2">{name}</Typography>;
-      },
-    },
-    {
-      field: "discount_percentage",
-      headerName: "Discount",
-      width: 100,
-      sortable: true,
-      renderCell: ({ value }) => {
-        const numericValue = Number(value);
-        return (
-          <Typography variant="body2">
-            {isNaN(numericValue) || numericValue === 0
-              ? "0%"
-              : `${numericValue}%`}
-          </Typography>
-        );
-      },
-    },
-    {
-      field: "image",
-      headerName: "Image",
-      width: 80,
-      renderCell: ({ value }) =>
-        value ? (
-          <img
-            src={value}
-            alt="Product"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            None
-          </Typography>
-        ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 100,
-      flex: 1,
-      renderCell: ({ row }) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="Edit">
-            <IconButton onClick={() => handleEdit(row)}>
-              <Edit fontSize="small" color="primary" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton onClick={() => handleDelete(row.id)}>
-              <Delete fontSize="small" color="error" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ];
 
   const handleEdit = useCallback((product: Product) => {
     setEditProduct(product);
@@ -281,9 +78,9 @@ const ProductManagement = () => {
       if (window.confirm("Delete this product?")) {
         try {
           await deleteProduct(id).unwrap();
-          toast.success("Product deleted", { position: "top-right" });
+          alert("Product deleted successfully!");
         } catch {
-          toast.error("Failed to delete product", { position: "top-right" });
+          alert("Failed to delete product");
         }
       }
     },
@@ -328,14 +125,8 @@ const ProductManagement = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setFormError("");
-      if (
-        !formData.name ||
-        !formData.price ||
-        !formData.stock ||
-        !formData.category
-      ) {
+      if (!formData.name || !formData.price || !formData.stock || !formData.category) {
         setFormError("Required fields missing");
-        toast.error("Required fields missing", { position: "top-right" });
         return;
       }
       const priceNum = Number(formData.price);
@@ -345,12 +136,10 @@ const ProductManagement = () => {
         : undefined;
       if (priceNum <= 0 || stockNum < 0) {
         setFormError("Invalid price or stock");
-        toast.error("Invalid price or stock", { position: "top-right" });
         return;
       }
       if (discountNum !== undefined && (discountNum < 0 || discountNum > 100)) {
         setFormError("Discount must be 0-100");
-        toast.error("Discount must be 0-100", { position: "top-right" });
         return;
       }
       const payload = {
@@ -365,16 +154,14 @@ const ProductManagement = () => {
       try {
         if (editProduct) {
           await updateProduct({ id: editProduct.id, ...payload }).unwrap();
-          toast.success("Product updated", { position: "top-right" });
+          alert("Product updated successfully!");
         } else {
           await createProduct(payload).unwrap();
-          toast.success("Product created", { position: "top-right" });
+          alert("Product created successfully!");
         }
         handleModalClose();
       } catch (err: any) {
-        const errorMsg = err.data?.detail || "Failed to save product";
-        setFormError(errorMsg);
-        toast.error(errorMsg, { position: "top-right" });
+        setFormError(err.data?.detail || "Failed to save product");
       }
     },
     [formData, editProduct, createProduct, updateProduct, handleModalClose]
@@ -393,239 +180,332 @@ const ProductManagement = () => {
     setPage(1);
   }, []);
 
-  const handleSortModelChange = useCallback((model: GridSortModel) => {
-    setSortModel(model);
-    setPage(1);
-  }, []);
-
   if (isLoading || isCategoriesLoading || !productsData || !categories) {
     return (
-      <ThemeProvider theme={theme}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "100vh",
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      </ThemeProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "background.default",
-          p: { xs: 2, sm: 3 },
-        }}
-      >
-        <ToastContainer position="top-right" autoClose={3000} />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Typography variant="h4">Products</Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleModalOpen}
-          >
-            Add Product
-          </Button>
-        </Box>
-        <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
-          <TextField
-            label="Search"
-            value={search}
-            onChange={handleSearchChange}
-            sx={{ flex: 1, minWidth: 200 }}
-            size="small"
-          />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+            </div>
+            <button
+              onClick={handleModalOpen}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Product</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          <div className="flex-1 relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <svg
+              className="text-gray-500 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
+              />
+            </svg>
+            <select
               value={categoryFilter}
               onChange={handleCategoryFilterChange}
-              label="Category"
+              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
-              <MenuItem value="">All</MenuItem>
+              <option value="">All Categories</option>
               {categories.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
+                <option key={cat.id} value={cat.id}>
                   {cat.name}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
-          </FormControl>
-        </Box>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      <div className="max-w-7xl mx-auto">
         {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
             {error.data?.detail || "Failed to fetch products"}
-          </Alert>
+          </div>
         )}
-        <Fade in timeout={500}>
-          <Box>
-            <DataGrid
-              rows={productsData.results}
-              columns={columns}
-              pageSize={12}
-              rowsPerPageOptions={[12]}
-              pagination
-              paginationMode="server"
-              rowCount={productsData.count || 0}
-              onPageChange={(newPage) => setPage(newPage + 1)}
-              sortingMode="server"
-              sortModel={sortModel}
-              onSortModelChange={handleSortModelChange}
-              loading={isLoading}
-              autoHeight
-              disableColumnMenu
-              sx={{ bgcolor: "background.paper" }}
-            />
-          </Box>
-        </Fade>
-        <Dialog
-          open={openModal}
-          onClose={handleModalClose}
-          maxWidth="sm"
-          fullWidth
-          TransitionComponent={Fade}
-        >
-          <DialogTitle sx={{ fontWeight: 600 }}>
-            {editProduct ? "Edit Product" : "Add Product"}
-          </DialogTitle>
-          <DialogContent>
-            {formError && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>
-                {formError}
-              </Alert>
-            )}
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {productsData.results.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
-              <TextField
-                label="Name"
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {product.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-1">
+                        <h3 className="font-bold text-gray-900 text-base">
+                          {product.name}
+                        </h3>
+                        <span className="text-xs text-gray-500">
+                          #{product.id}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="text-sm font-medium">Price:</span>
+                    <span className="text-sm">
+                      ${Number(product.price).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="text-sm font-medium">Stock:</span>
+                    <span className="text-sm">{product.stock}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="text-sm font-medium">Category:</span>
+                    <span className="text-sm">
+                      {typeof product.category === "object" && product.category.name
+                        ? product.category.name
+                        : categories.find((cat) => cat.id === Number(product.category))?.name || "Unknown"}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="text-sm font-medium">Discount:</span>
+                    <span className="text-sm">
+                      {Number(product.discount_percentage) || 0}%
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="text-sm font-medium">Image:</span>
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-400">None</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit Product"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Product"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+          }
+        </div>
+      </div>
+
+      {/* Modal */}
+      {openModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden"
+            style={{ marginTop: "10vh" }} // Added margin to lower the modal
+          >
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">
+                {editProduct ? "Edit Product" : "Add Product"}
+              </h2>
+              <button
+                onClick={handleModalClose}
+                className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {formError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">
+                  {formError}
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Name"
                 name="name"
                 value={formData.name}
                 onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 required
-                size="small"
               />
-              <TextField
-                label="Description"
+              <textarea
+                placeholder="Description"
                 name="description"
                 value={formData.description}
                 onChange={handleFormChange}
-                multiline
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 rows={3}
-                size="small"
               />
-              <TextField
-                label="Price"
-                name="price"
+              <input
                 type="number"
+                placeholder="Price"
+                name="price"
                 value={formData.price}
                 onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 required
-                size="small"
-                inputProps={{ step: "0.01" }}
+                step="0.01"
               />
-              <TextField
-                label="Stock"
-                name="stock"
+              <input
                 type="number"
+                placeholder="Stock"
+                name="stock"
                 value={formData.stock}
                 onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 required
-                size="small"
-                inputProps={{ min: 0 }}
+                min="0"
               />
-              <FormControl required size="small">
-                <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleFormChange}
-                  label="Category"
-                >
-                  {categories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Discount %"
-                name="discount_percentage"
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                required
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <input
                 type="number"
+                placeholder="Discount %"
+                name="discount_percentage"
                 value={formData.discount_percentage}
                 onChange={handleFormChange}
-                size="small"
-                inputProps={{ min: 0, max: 100, step: "0.01" }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                min="0"
+                max="100"
+                step="0.01"
               />
-              <Box>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  sx={{ borderRadius: 8, textTransform: "none" }}
-                >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Upload Image
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    hidden
-                  />
-                </Button>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                />
                 {formData.image && (
                   <img
                     src={URL.createObjectURL(formData.image)}
                     alt="Preview"
-                    style={{ maxWidth: 80, borderRadius: 8, mt: 2 }}
+                    className="mt-2 w-20 h-20 rounded-lg object-cover"
                   />
                 )}
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={handleModalClose} color="inherit">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={isCreating || isUpdating}
-              sx={{
-                bgcolor: "secondary.main",
-                "&:hover": { bgcolor: "#059669" },
-              }}
-            >
-              {isCreating || isUpdating ? (
-                <CircularProgress size={20} />
-              ) : editProduct ? (
-                "Update"
-              ) : (
-                "Create"
-              )}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </ThemeProvider>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 flex items-center justify-end space-x-3">
+              <button
+                onClick={handleModalClose}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isCreating || isUpdating}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+              >
+                {isCreating || isUpdating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : editProduct ? (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Update</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Create</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

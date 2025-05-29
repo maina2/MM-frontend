@@ -6,101 +6,13 @@ import {
   useDeleteAdminPaymentMutation,
 } from '../../api/apiSlice';
 import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Typography,
-  CircularProgress,
-  Alert,
-  IconButton,
-  Tooltip,
-  Fade,
-} from '@mui/material';
-import { DataGrid, GridColDef, GridSortModel } from '@mui/x-data-grid';
-import { Edit, Delete } from '@mui/icons-material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+  Edit3, // Lucide icon for Edit
+  Trash2, // Lucide icon for Delete
+  Save, // Lucide icon for Save
+  X // Lucide icon for Close
+} from 'lucide-react'; // Import Lucide icons
 import { Payment } from '../../types';
 import { format } from 'date-fns';
-
-const theme = createTheme({
-  palette: {
-    primary: { main: '#6366f1' },
-    secondary: { main: '#10b981' },
-    background: { default: '#f8fafc', paper: '#ffffff' },
-    text: { primary: '#1e293b', secondary: '#64748b' },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Arial", sans-serif',
-    h4: { fontWeight: 700 },
-    body2: { fontSize: '0.875rem', fontWeight: 500 },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          padding: '8px 16px',
-          transition: 'all 0.2s ease',
-          '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' },
-        },
-      },
-    },
-    MuiDialog: {
-      styleOverrides: { paper: { borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: { '& .MuiOutlinedInput-root': { borderRadius: 8, backgroundColor: '#ffffff' } },
-      },
-    },
-    MuiDataGrid: {
-      styleOverrides: {
-        root: {
-          border: 'none',
-          borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          width: '100%',
-        },
-        columnHeaders: {
-          backgroundColor: '#6366f1',
-          color: '#ffffff',
-          width: '100% !important',
-          minWidth: '100% !important',
-          display: 'flex',
-        },
-        columnHeader: {
-          backgroundColor: '#6366f1',
-          color: '#ffffff',
-          fontWeight: 600,
-          '& .MuiDataGrid-sortIcon': { color: '#ffffff' },
-        },
-        columnHeadersInner: {
-          width: '100% !important',
-          '& .MuiDataGrid-colCell': { backgroundColor: '#6366f1' },
-        },
-        virtualScroller: { width: '100% !important' },
-        cell: {
-          padding: '0 12px',
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid #e5e7eb',
-        },
-        row: { '&:hover': { backgroundColor: '#f1f5f9' } },
-      },
-    },
-  },
-});
 
 const statusOptions = ['pending', 'successful', 'failed', 'cancelled'];
 
@@ -110,7 +22,7 @@ const PaymentManagement = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [editPayment, setEditPayment] = useState<Payment | null>(null);
-  const [sortModel, setSortModel] = useState<GridSortModel>([]);
+  const [sortModel, setSortModel] = useState<any>([]); // Simplified sort model type
   const [formData, setFormData] = useState({
     status: '',
     phone_number: '',
@@ -126,63 +38,6 @@ const PaymentManagement = () => {
   const [updatePayment, { isLoading: isUpdating }] = useUpdateAdminPaymentMutation();
   const [deletePayment] = useDeleteAdminPaymentMutation();
 
-  const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 80, sortable: true, renderCell: ({ value }) => <Typography variant="body2">{value}</Typography> },
-    {
-      field: 'order_id',
-      headerName: 'Order ID',
-      width: 100,
-      renderCell: ({ row }) => <Typography variant="body2">{(row as Payment).order.id}</Typography>,
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      width: 100,
-      sortable: true,
-      renderCell: ({ value }) => <Typography variant="body2">{Number(value).toFixed(2)}</Typography>,
-    },
-    {
-      field: 'phone_number',
-      headerName: 'Phone Number',
-      width: 150,
-      renderCell: ({ value }) => <Typography variant="body2">{value}</Typography>,
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 120,
-      sortable: true,
-      renderCell: ({ value }) => <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>{value}</Typography>,
-    },
-    {
-      field: 'created_at',
-      headerName: 'Date',
-      width: 120,
-      sortable: true,
-      renderCell: ({ value }) => <Typography variant="body2">{format(new Date(value), 'MM/dd/yyyy')}</Typography>,
-    },
-  {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 100, 
-    flex: 1,    
-    renderCell: ({ row }) => (
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Tooltip title="Edit">
-          <IconButton onClick={() => handleEdit(row)}>
-            <Edit fontSize="small" color="primary" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton onClick={() => handleDelete(row.id)}>
-            <Delete fontSize="small" color="error" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    ),
-  },
-  ];
-
   const handleEdit = useCallback((payment: Payment) => {
     setEditPayment(payment);
     setFormData({
@@ -196,23 +51,19 @@ const PaymentManagement = () => {
     if (window.confirm('Delete this payment?')) {
       try {
         await deletePayment(id).unwrap();
-        toast.success('Payment deleted', { position: 'top-right' });
+        alert('Payment deleted successfully!');
       } catch {
-        toast.error('Failed to delete payment', { position: 'top-right' });
+        alert('Failed to delete payment');
       }
     }
   }, [deletePayment]);
-
-  const handleModalOpen = useCallback(() => {
-    setOpenModal(true);
-  }, []);
 
   const handleModalClose = useCallback(() => {
     setOpenModal(false);
     setFormError('');
   }, []);
 
-  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name as string]: value }));
   }, []);
@@ -224,12 +75,10 @@ const PaymentManagement = () => {
 
       if (!formData.status) {
         setFormError('Status is required');
-        toast.error('Status is required', { position: 'top-right' });
         return;
       }
       if (formData.phone_number && !/^\+2547[0-9]{8}$/.test(formData.phone_number)) {
         setFormError('Phone number must be in format +2547XXXXXXXX');
-        toast.error('Invalid phone number', { position: 'top-right' });
         return;
       }
 
@@ -241,13 +90,11 @@ const PaymentManagement = () => {
       try {
         if (editPayment) {
           await updatePayment({ id: editPayment.id, ...payload }).unwrap();
-          toast.success('Payment updated', { position: 'top-right' });
+          alert('Payment updated successfully!');
         }
         handleModalClose();
       } catch (err: any) {
-        const errorMsg = err.data?.detail || 'Failed to update payment';
-        setFormError(errorMsg);
-        toast.error(errorMsg, { position: 'top-right' });
+        setFormError(err.data?.detail || 'Failed to update payment');
       }
     },
     [formData, editPayment, updatePayment, handleModalClose]
@@ -258,125 +105,260 @@ const PaymentManagement = () => {
     setPage(1);
   }, []);
 
-  const handleFilterChange = useCallback((e: any) => {
+  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value || '');
     setPage(1);
   }, []);
 
-  const handleSortModelChange = useCallback((model: GridSortModel) => {
+  // Simplified sorting for demonstration; a full DataGrid replacement would be complex
+  const handleSortModelChange = useCallback((model: any) => {
     setSortModel(model);
     setPage(1);
   }, []);
 
   if (isLoading || !paymentsData) {
     return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <CircularProgress />
-        </Box>
-      </ThemeProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: { xs: 2, sm: 3 } }}>
-        <ToastContainer position="top-right" autoClose={3000} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Typography variant="h4">Payments</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <TextField
-            label="Search by Order ID or Phone"
-            value={search}
-            onChange={handleSearchChange}
-            sx={{ flex: 1, minWidth: 200 }}
-            size="small"
-          />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Status</InputLabel>
-            <Select value={statusFilter} onChange={handleFilterChange} label="Status">
-              <MenuItem value="">All</MenuItem>
-              {statusOptions.map((opt) => (
-                <MenuItem key={opt} value={opt}>
-                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>
-            {(error as any).data?.detail || 'Failed to fetch payments'}
-          </Alert>
-        )}
-        <Fade in timeout={500}>
-          <Box sx={{ width: '100%' }}>
-            <DataGrid
-              rows={paymentsData.results}
-              columns={columns}
-              pageSize={12}
-              rowsPerPageOptions={[12]}
-              pagination
-              paginationMode="server"
-              rowCount={paymentsData.count || 0}
-              onPageChange={(newPage) => setPage(newPage + 1)}
-              sortingMode="server"
-              sortModel={sortModel}
-              onSortModelChange={handleSortModelChange}
-              loading={isLoading}
-              autoHeight
-              disableColumnMenu
-              sx={{ bgcolor: 'background.paper', width: '100%' }}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h.01M17 9h2a2 2 0 012 2v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-1M7 9h10"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          <div className="flex-1 relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by Order ID or Phone"
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
-          </Box>
-        </Fade>
-        <Dialog open={openModal} onClose={handleModalClose} maxWidth="sm" fullWidth TransitionComponent={Fade}>
-          <DialogTitle sx={{ fontWeight: 600 }}>Edit Payment</DialogTitle>
-          <DialogContent>
-            {formError && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 8 }}>
-                {formError}
-              </Alert>
-            )}
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <FormControl required size="small">
-                <InputLabel>Status</InputLabel>
-                <Select name="status" value={formData.status} onChange={handleFormChange} label="Status">
-                  {statusOptions.map((opt) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Phone Number"
+          </div>
+          <div className="flex items-center space-x-3">
+            <svg
+              className="text-gray-500 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
+              />
+            </svg>
+            <select
+              value={statusFilter}
+              onChange={handleFilterChange}
+              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">All Statuses</option>
+              {statusOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Payments Table/Grid */}
+      <div className="max-w-7xl mx-auto">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {(error as any).data?.detail || 'Failed to fetch payments'}
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {paymentsData.results.map((payment: Payment) => (
+            <div
+              key={payment.id}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  {/* Removed the circular amount display */}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 text-lg">
+                      Payment for Order ID: {payment.order.id}
+                    </h3>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+                    ${Number(payment.amount).toFixed(2)}
+                  </span>
+                </div>
+                <div className="space-y-2 mb-4 text-gray-600">
+                  <p className="text-sm font-medium">
+                    Phone: <span className="font-normal">{payment.phone_number}</span>
+                  </p>
+                  <p className="text-sm font-medium">
+                    Status: <span className="font-normal capitalize">{payment.status}</span>
+                  </p>
+                  <p className="text-sm font-medium">
+                    Date: <span className="font-normal">{format(new Date(payment.created_at), 'MM/dd/yyyy')}</span>
+                  </p>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <button
+                    onClick={() => handleEdit(payment)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit Payment"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(payment.id)}
+                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Payment"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {paymentsData.count > 12 && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 mx-1 bg-blue-600 text-white rounded-lg">
+              {page}
+            </span>
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={page * 12 >= paymentsData.count}
+              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      {openModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden"
+            style={{ marginTop: "10vh" }}
+          >
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Edit Payment</h2>
+              <button
+                onClick={handleModalClose}
+                className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {formError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">
+                  {formError}
+                </div>
+              )}
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                required
+              >
+                <option value="">Select Status</option>
+                {statusOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Phone Number (+2547XXXXXXXX)"
                 name="phone_number"
                 value={formData.phone_number}
                 onChange={handleFormChange}
-                size="small"
-                placeholder="+2547XXXXXXXX"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
               />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={handleModalClose} color="inherit">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              onClick={handleSubmit}
-              disabled={isUpdating}
-              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: '#059669' } }}
-            >
-              {isUpdating ? <CircularProgress size={20} /> : 'Update'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </ThemeProvider>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 flex items-center justify-end space-x-3">
+              <button
+                onClick={handleModalClose}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isUpdating}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+              >
+                {isUpdating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Update</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

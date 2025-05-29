@@ -35,7 +35,7 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  price: string; // Change to string to match API
+  price: string | number; 
   stock: number;
   category: Category | number;
   branch: Branch | number;
@@ -49,7 +49,7 @@ export interface ProductDetail {
   id: number;
   name: string;
   description: string;
-  price: number;
+  price: string | number;
   stock: number;
   category: Category;
   branch: Branch;
@@ -71,7 +71,7 @@ export interface OrderItem {
 export interface Order {
   id: number;
   customer: User;
-  total_amount: number;
+  total_amount: string | number;
   status: string;
   payment_status: string;
   payment_phone_number?: string | null;
