@@ -8,7 +8,7 @@ import Register from "./pages/shared/Register";
 import Cart from "./pages/customers/Cart";
 import Payment from "./pages/customers/Payment";
 import DeliveryTasks from "./pages/delivery/DeliveryTasks";
-import DeliveryDetail from "./pages/delivery/DeliveryDetails"; 
+import DeliveryDetail from "./pages/delivery/DeliveryDetails";
 import GoogleCallback from "./pages/shared/GoogleCallback";
 import Products from "./pages/customers/Products";
 import ProductDetail from "./pages/customers/ProductDetail";
@@ -29,6 +29,7 @@ import DeliveryManagement from "./pages/admins/DeliveryManagement";
 import Settings from "./pages/admins/Settings";
 import Unauthorized from "./pages/shared/Unauthorized";
 import ErrorBoundary from "./components/ErrorBoundary";
+import DeliveryRoute from "./pages/delivery/DeliveryRoute";
 
 const App: React.FC = () => {
   return (
@@ -62,7 +63,9 @@ const App: React.FC = () => {
           {/* Profile Route (accessible by all authenticated users) */}
           <Route
             element={
-              <ProtectedRoute allowedRoles={["customer", "admin", "delivery"]} />
+              <ProtectedRoute
+                allowedRoles={["customer", "admin", "delivery"]}
+              />
             }
           >
             <Route path="/profile" element={<Profile />} />
@@ -132,6 +135,10 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />
             <Route path="/delivery/tasks/:id" element={<DeliveryDetail />} />
+            {/* <Route
+              path="/test-route"
+              element={<DeliveryRoute deliveryIds={[1, 10]} />}
+            /> */}
           </Route>
         </Route>
         {/* Routes without Layout */}

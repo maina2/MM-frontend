@@ -153,8 +153,12 @@ const DeliveryManagement: React.FC = () => {
       try {
         await deleteDelivery(deliveryId).unwrap();
         alert('Delivery deleted successfully!');
-      } catch (error: any) {
-        alert(`Failed to delete delivery: ${error?.data?.detail || 'Unknown error'}`);
+      } catch (error: unknown) {
+        if (typeof error === 'object' && error !== null && 'data' in error && typeof (error as any).data === 'object') {
+          alert(`Failed to delete delivery: ${(error as { data?: { detail?: string } }).data?.detail || 'Unknown error'}`);
+        } else {
+          alert('Failed to delete delivery: Unknown error');
+        }
       }
     }
   }, [deleteDelivery]);
