@@ -855,6 +855,13 @@ export const apiSlice = createApi({
       }) => response,
     }),
     // Delivery Person Endpoints
+      postOptimizeRoute: builder.mutation<OptimizeRouteResponse, OptimizeRouteRequest>({
+      query: (body) => ({
+        url: '/delivery-person/optimize-route/',
+        method: 'POST',
+        body,
+      }),
+    }),
     getDeliveryTasks: builder.query<
       {
         count: number;
@@ -939,6 +946,7 @@ export const {
   useDeleteAdminDeliveryMutation,
   useAssignDeliveryPersonMutation,
   useUpdateDeliveryStatusMutation, 
+  usePostOptimizeRouteMutation,
   useGetDeliveryTasksQuery,
   useGetDeliveryTaskDetailQuery,
   useUpdateDeliveryTaskMutation,
