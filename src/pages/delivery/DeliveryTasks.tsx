@@ -10,7 +10,9 @@ import {
   Filter,
   Eye,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Mail,  // Add Mail icon for email
+  Phone  // Add Phone icon for phone number
 } from 'lucide-react';
 import { useGetDeliveryTasksQuery } from '../../api/apiSlice';
 import { Delivery } from '../../types';
@@ -269,6 +271,28 @@ const DeliveryTasks = () => {
                           <p className="text-sm font-medium text-gray-500">Customer</p>
                           <p className="text-sm text-gray-900 font-medium">
                             {delivery.order.customer?.username || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Add Customer Email */}
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-5 h-5 text-gray-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Customer Email</p>
+                          <p className="text-sm text-gray-900 font-medium">
+                            {delivery.order.customer?.email || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Add Customer Phone Number */}
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-5 h-5 text-gray-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Customer Phone</p>
+                          <p className="text-sm text-gray-900 font-medium">
+                            {delivery.order.customer?.phone_number || 'N/A'}
                           </p>
                         </div>
                       </div>

@@ -1,49 +1,19 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Package, Clock, User, DollarSign, Truck, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
-
-// Mock data for demonstration
-const mockDelivery = {
-  id: 1,
-  status: 'in_transit',
-  delivery_address: '123 Main Street, Downtown City, NY 10001',
-  estimated_delivery_time: '2024-12-15T14:30:00Z',
-  actual_delivery_time: null,
-  latitude: 40.7128,
-  longitude: -74.0060,
-  order: {
-    id: 12345,
-    total_amount: 89.97,
-    customer: {
-      username: 'john_doe'
-    },
-    items: [
-      {
-        product: {
-          id: 1,
-          name: 'Premium Wireless Headphones',
-          price: 59.99
-        },
-        quantity: 1
-      },
-      {
-        product: {
-          id: 2,
-          name: 'Phone Case',
-          price: 14.99
-        },
-        quantity: 2
-      }
-    ]
-  }
-};
+import { ArrowLeft, MapPin, Package, Clock, User, Truck, CheckCircle, AlertCircle, XCircle, Mail, Phone } from 'lucide-react';
+import { useGetDeliveryTaskDetailQuery } from '../../api/apiSlice';
+import { Delivery } from '../../types';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const DeliveryDetails = () => {
+  const { id } = useParams<{ id: string }>(); // Get delivery ID from URL params
+  const navigate = useNavigate();
   const [newStatus, setNewStatus] = useState('');
-  const [updateError, setUpdateError] = useState(null);
-  const [updateSuccess, setUpdateSuccess] = useState(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const delivery = mockDelivery;
+  // Fetch delivery details
+  const { data: delivery, isLoading, isError, error } = useGetDeliveryTaskDetailQuery(Number(id));
 
   const statusConfig = {
     pending: { 
@@ -91,7 +61,7 @@ const DeliveryDetails = () => {
     { value: 'cancelled', label: 'Cancelled', disabled: !['pending', 'assigned', 'in_transit'].includes(delivery?.status || '') },
   ];
 
-  const handleStatusChange = (event) => {
+  const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setNewStatus(event.target.value);
     setUpdateError(null);
     setUpdateSuccess(null);
@@ -105,7 +75,7 @@ const DeliveryDetails = () => {
     
     setIsUpdating(true);
     try {
-      // Simulate API call
+      // Simulate API call (replace with actual mutation when available)
       await new Promise(resolve => setTimeout(resolve, 1500));
       setUpdateSuccess('Status updated successfully.');
       setNewStatus('');
@@ -116,7 +86,7 @@ const DeliveryDetails = () => {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | null) => {
     if (!date) return 'N/A';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -127,11 +97,43 @@ const DeliveryDetails = () => {
     }).format(new Date(date));
   };
 
-  const formatPrice = (value) => {
+  const formatPrice = (value: string | number | null) => {
     if (value == null) return 'N/A';
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
+    return isNaN(num) ? 'N/A' : `KSh ${num.toFixed(2)}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading delivery details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !delivery) {
+    const errorMessage = (error as any)?.data?.error || 'Failed to load delivery details. Please try again.';
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-red-200 p-8 max-w-md w-full">
+          <div className="text-center">
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Details</h2>
+            <p className="text-red-600 mb-4">{errorMessage}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentStatus = statusConfig[delivery.status];
   const StatusIcon = currentStatus.icon;
@@ -142,7 +144,7 @@ const DeliveryDetails = () => {
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <button onClick={() => navigate('/delivery/tasks')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to Tasks</span>
             </button>
@@ -191,10 +193,17 @@ const DeliveryDetails = () => {
                       <span className="text-sm font-medium text-gray-500">Customer</span>
                       <span className="font-bold text-gray-900">{delivery.order.customer?.username || 'N/A'}</span>
                     </div>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                      <span className="text-sm font-medium text-gray-500">Customer Email</span>
+                      <span className="font-bold text-gray-900">{delivery.order.customer?.email || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                      <span className="text-sm font-medium text-gray-500">Customer Phone</span>
+                      <span className="font-bold text-gray-900">{delivery.order.customer?.phone_number || 'N/A'}</span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
                     <div className="text-center">
-                      <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
                       <p className="text-sm text-green-700 font-medium">Total Amount</p>
                       <p className="text-3xl font-bold text-green-800">{formatPrice(delivery.order.total_amount)}</p>
                     </div>
