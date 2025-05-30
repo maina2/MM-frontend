@@ -726,7 +726,7 @@ export const apiSlice = createApi({
         if (order_id) params.append("order__id", order_id.toString());
         if (search) params.append("search", search);
         if (ordering) params.append("ordering", ordering);
-        return `admin/deliveries/?${params.toString()}`;
+        return `manage/deliveries/?${params.toString()}`;
       },
       providesTags: ["Deliveries"],
       transformResponse: (response: {
@@ -742,9 +742,9 @@ export const apiSlice = createApi({
             order: {
               ...delivery.order,
               customer: {
-                username: delivery.order.customer,
-                id: 0,
-                email: "",
+                username: delivery.order.customer?.username || delivery.order.customer,
+                id: delivery.order.customer?.id || 0,
+                email: delivery.order.customer?.email || "",
                 role: "customer",
               } as User,
             },
@@ -752,7 +752,108 @@ export const apiSlice = createApi({
         };
       },
     }),
-
+    getAdminDelivery: builder.query<Delivery, number>({
+      query: (id) => `manage/deliveries/${id}/`,
+      providesTags: (result, error, id) => [{ type: "Deliveries", id }],
+      transformResponse: (delivery: any) => ({
+        ...delivery,
+        order: {
+          ...delivery.order,
+          customer: {
+            username: delivery.order.customer?.username || delivery.order.customer,
+            id: delivery.order.customer?.id || 0,
+            email: delivery.order.customer?.email || "",
+            role: "customer",
+          } as User,
+        },
+      }),
+    }),
+    createAdminDelivery: builder.mutation<
+      Delivery,
+      {
+        order_id: number;
+        delivery_person_id?: number;
+        delivery_address: string;
+        latitude?: number;
+        longitude?: number;
+        estimated_delivery_time?: string;
+      }
+    >({
+      query: (data) => ({
+        url: "manage/deliveries/",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Deliveries", "Orders"],
+    }),
+    updateAdminDelivery: builder.mutation<
+      Delivery,
+      {
+        id: number;
+        delivery_person_id?: number;
+        delivery_address?: string;
+        latitude?: number;
+        longitude?: number;
+        estimated_delivery_time?: string;
+      }
+    >({
+      query: ({ id, ...data }) => ({
+        url: `manage/deliveries/${id}/`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["Deliveries"],
+    }),
+    deleteAdminDelivery: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `manage/deliveries/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Deliveries", "Orders"],
+    }),
+    assignDeliveryPerson: builder.mutation<
+      Delivery,
+      { id: number; delivery_person_id: number }
+    >({
+      query: ({ id, delivery_person_id }) => ({
+        url: `manage/deliveries/${id}/assign-delivery-person/`,
+        method: "PATCH",
+        body: { delivery_person_id },
+      }),
+      invalidatesTags: ["Deliveries"],
+    }),
+    updateDeliveryStatus: builder.mutation<
+      Delivery,
+      { id: number; status: string }
+    >({
+      query: ({ id, status }) => ({
+        url: `manage/deliveries/${id}/update-status/`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: ["Deliveries", "Orders"],
+    }),
+    getDeliveryPersons: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: User[];
+      },
+      { page?: number; page_size?: number }
+    >({
+      query: ({ page = 1, page_size = 10 } = {}) => ({
+        url: "users/manage/users/",
+        params: { page, page_size, role: "delivery" },
+      }),
+      providesTags: ["Users"],
+      transformResponse: (response: {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: User[];
+      }) => response,
+    }),
     // Delivery Person Endpoints
     getDeliveryTasks: builder.query<
       {
@@ -837,8 +938,8 @@ export const {
   useUpdateAdminDeliveryMutation,
   useDeleteAdminDeliveryMutation,
   useAssignDeliveryPersonMutation,
-  useUpdateDeliveryStatusMutation, // Added missing admin hook
+  useUpdateDeliveryStatusMutation, 
   useGetDeliveryTasksQuery,
-  useGetDeliveryTaskDetailQuery, // Fixed typo
+  useGetDeliveryTaskDetailQuery,
   useUpdateDeliveryTaskMutation,
 } = apiSlice;
