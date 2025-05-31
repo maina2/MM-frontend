@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { usePostOptimizeRouteMutation } from '../api/apiSlice'; // Adjust path
+import { usePostOptimizeRouteMutation } from '../../api/apiSlice';
 
 // Define props
 interface DeliveryRouteProps {
@@ -23,31 +23,28 @@ const deliveryIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
-  deliveryIds,
-  startLocation = [-1.2833, 36.8167], // Nairobi CBD
-}) => {
-  const [optimizeRoute, { data, isLoading, error }] = usePostOptimizeRouteMutation();
-  const [hasFetched, setHasFetched] = useState(false); // Track if route was fetched
+const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocation = [-1.2833, 36.8167] }) => {
+  const [optimizeRoute, { data, isLoading, error, isUninitialized }] = usePostOptimizeRouteMutation();
+
+  // Memoize props to prevent unnecessary re-renders
+  const stableDeliveryIds = useMemo(() => [...deliveryIds].sort(), [deliveryIds]);
+  const stableStartLocation = useMemo(() => [...startLocation], [startLocation]);
 
   // Fetch route only once or when props change
   useEffect(() => {
-    if (deliveryIds.length > 0 && !hasFetched) {
-      optimizeRoute({
-        start_location: startLocation,
-        delivery_ids: deliveryIds,
-      });
-      setHasFetched(true); // Prevent re-fetching
+    if (stableDeliveryIds.length > 0 && isUninitialized) {
+      const timer = setTimeout(() => {
+        optimizeRoute({
+          start_location: stableStartLocation,
+          delivery_ids: stableDeliveryIds,
+        });
+      }, 500); // Debounce by 500ms
+      return () => clearTimeout(timer); // Cleanup on unmount
     }
-  }, [deliveryIds, startLocation, hasFetched]); // Removed optimizeRoute from deps
-
-  // Reset hasFetched when props change
-  useEffect(() => {
-    setHasFetched(false); // Allow new fetch if deliveryIds/startLocation change
-  }, [deliveryIds, startLocation]);
+  }, [stableDeliveryIds, stableStartLocation, isUninitialized]);
 
   // Map center
-  const mapCenter: [number, number] = startLocation;
+  const mapCenter: [number, number] = stableStartLocation;
 
   // Loading state
   if (isLoading) {
@@ -73,7 +70,7 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Route</h3>
           <p className="text-red-600 mb-4">{errorMessage}</p>
           <button
-            onClick={() => setHasFetched(false)} // Retry fetch
+            onClick={() => optimizeRoute({ start_location: stableStartLocation, delivery_ids: stableDeliveryIds })}
             className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
           >
             Try Again
@@ -103,7 +100,7 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
   // Markers
   const markers = data.optimized_route.map((point, index) => ({
     position: point as [number, number],
-    label: index === 0 ? 'Start (Warehouse)' : index === data.optimized_route.length - 1 ? 'Return to Warehouse' : `Delivery #${deliveryIds[index - 1] || index}`,
+    label: index === 0 ? 'Start (Warehouse)' : index === data.optimized_route.length - 1 ? 'Return to Warehouse' : `Delivery #${stableDeliveryIds[index - 1] || index}`,
     isStart: index === 0 || index === data.optimized_route.length - 1,
   }));
 
