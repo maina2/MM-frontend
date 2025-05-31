@@ -135,10 +135,7 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={["delivery"]} />}>
             <Route path="/delivery/tasks" element={<DeliveryTasks />} />
             <Route path="/delivery/tasks/:id" element={<DeliveryDetail />} />
-            <Route
-              path="/test-route"
-              element={<DeliveryRoute deliveryIds={[1, 10]} />}
-            />
+            <Route path="/delivery/route" element={<DeliveryRoute />} />
           </Route>
         </Route>
         {/* Routes without Layout */}

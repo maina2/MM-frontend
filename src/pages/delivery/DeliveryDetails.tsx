@@ -1,56 +1,36 @@
+// src/components/DeliveryDetails.tsx
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Package, Clock, User, Truck, CheckCircle, AlertCircle, XCircle, Mail, Phone } from 'lucide-react';
-import { useGetDeliveryTaskDetailQuery } from '../../api/apiSlice';
+import { ArrowLeft, MapPin, Package, Clock, User, Truck, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import { useGetDeliveryTaskDetailQuery, useUpdateDeliveryTaskMutation } from '../../api/apiSlice';
 import { Delivery } from '../../types';
 import { useNavigate, useParams } from 'react-router-dom';
 
+const deliveryIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
 const DeliveryDetails = () => {
-  const { id } = useParams<{ id: string }>(); // Get delivery ID from URL params
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [newStatus, setNewStatus] = useState('');
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Fetch delivery details
   const { data: delivery, isLoading, isError, error } = useGetDeliveryTaskDetailQuery(Number(id));
+  const [updateDeliveryTask] = useUpdateDeliveryTaskMutation();
 
   const statusConfig = {
-    pending: { 
-      icon: Clock, 
-      color: 'text-yellow-600', 
-      bgColor: 'bg-yellow-50', 
-      borderColor: 'border-yellow-200',
-      label: 'Pending'
-    },
-    assigned: { 
-      icon: User, 
-      color: 'text-blue-600', 
-      bgColor: 'bg-blue-50', 
-      borderColor: 'border-blue-200',
-      label: 'Assigned'
-    },
-    in_transit: { 
-      icon: Truck, 
-      color: 'text-purple-600', 
-      bgColor: 'bg-purple-50', 
-      borderColor: 'border-purple-200',
-      label: 'In Transit'
-    },
-    delivered: { 
-      icon: CheckCircle, 
-      color: 'text-green-600', 
-      bgColor: 'bg-green-50', 
-      borderColor: 'border-green-200',
-      label: 'Delivered'
-    },
-    cancelled: { 
-      icon: XCircle, 
-      color: 'text-red-600', 
-      bgColor: 'bg-red-50', 
-      borderColor: 'border-red-200',
-      label: 'Cancelled'
-    }
+    pending: { icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', label: 'Pending' },
+    assigned: { icon: User, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', label: 'Assigned' },
+    in_transit: { icon: Truck, color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', label: 'In Transit' },
+    delivered: { icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50', borderColor: 'border-green-200', label: 'Delivered' },
+    cancelled: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', label: 'Cancelled' },
   };
 
   const statusOptions = [
@@ -72,11 +52,9 @@ const DeliveryDetails = () => {
       setUpdateError('Please select a different status.');
       return;
     }
-    
     setIsUpdating(true);
     try {
-      // Simulate API call (replace with actual mutation when available)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await updateDeliveryTask({ id: Number(id), status: newStatus }).unwrap();
       setUpdateSuccess('Status updated successfully.');
       setNewStatus('');
     } catch (err) {
@@ -93,7 +71,7 @@ const DeliveryDetails = () => {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     }).format(new Date(date));
   };
 
@@ -123,7 +101,7 @@ const DeliveryDetails = () => {
             <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Details</h2>
             <p className="text-red-600 mb-4">{errorMessage}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
             >
@@ -140,22 +118,23 @@ const DeliveryDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button onClick={() => navigate('/delivery/tasks')} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <button
+              onClick={() => navigate('/delivery/tasks')}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to Tasks</span>
             </button>
             <h1 className="text-xl font-bold text-gray-900">Delivery Details</h1>
-            <div className="w-24"></div> {/* Spacer for centering */}
+            <div className="w-24"></div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Status Banner */}
         <div className={`${currentStatus.bgColor} ${currentStatus.borderColor} border-2 rounded-2xl p-6 mb-8 shadow-sm`}>
           <div className="flex items-center space-x-4">
             <div className={`${currentStatus.color} p-3 rounded-full bg-white shadow-sm`}>
@@ -171,9 +150,7 @@ const DeliveryDetails = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Order Information */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
@@ -181,7 +158,6 @@ const DeliveryDetails = () => {
                   <h3 className="text-xl font-bold text-white">Order Information</h3>
                 </div>
               </div>
-              
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-4">
@@ -193,14 +169,6 @@ const DeliveryDetails = () => {
                       <span className="text-sm font-medium text-gray-500">Customer</span>
                       <span className="font-bold text-gray-900">{delivery.order.customer?.username || 'N/A'}</span>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                      <span className="text-sm font-medium text-gray-500">Customer Email</span>
-                      <span className="font-bold text-gray-900">{delivery.order.customer?.email || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                      <span className="text-sm font-medium text-gray-500">Customer Phone</span>
-                      <span className="font-bold text-gray-900">{delivery.order.customer?.phone_number || 'N/A'}</span>
-                    </div>
                   </div>
                   <div className="flex items-center justify-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
                     <div className="text-center">
@@ -209,8 +177,6 @@ const DeliveryDetails = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Order Items */}
                 <h4 className="text-lg font-bold text-gray-900 mb-4">Order Items</h4>
                 <div className="space-y-3">
                   {delivery.order.items?.length ? (
@@ -218,7 +184,10 @@ const DeliveryDetails = () => {
                       const price = typeof item.product.price === 'string' ? parseFloat(item.product.price) : item.product.price;
                       const subtotal = isNaN(price) ? 0 : price * item.quantity;
                       return (
-                        <div key={item.product.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+                        <div
+                          key={item.product.id}
+                          className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
+                        >
                           <div className="flex-1">
                             <h5 className="font-semibold text-gray-900">{item.product.name}</h5>
                             <p className="text-sm text-gray-600">Qty: {item.quantity} × {formatPrice(item.product.price)}</p>
@@ -238,8 +207,6 @@ const DeliveryDetails = () => {
                 </div>
               </div>
             </div>
-
-            {/* Delivery Information */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
@@ -247,7 +214,6 @@ const DeliveryDetails = () => {
                   <h3 className="text-xl font-bold text-white">Delivery Information</h3>
                 </div>
               </div>
-              
               <div className="p-6 space-y-4">
                 <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-xl">
                   <MapPin className="w-5 h-5 text-gray-500 mt-1 flex-shrink-0" />
@@ -256,7 +222,6 @@ const DeliveryDetails = () => {
                     <p className="font-semibold text-gray-900">{delivery.delivery_address}</p>
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
                     <div className="flex items-center space-x-2 mb-2">
@@ -265,7 +230,6 @@ const DeliveryDetails = () => {
                     </div>
                     <p className="font-semibold text-gray-900">{formatDate(delivery.estimated_delivery_time)}</p>
                   </div>
-                  
                   <div className="p-4 bg-green-50 rounded-xl border border-green-200">
                     <div className="flex items-center space-x-2 mb-2">
                       <CheckCircle className="w-5 h-5 text-green-600" />
@@ -274,16 +238,33 @@ const DeliveryDetails = () => {
                     <p className="font-semibold text-gray-900">{formatDate(delivery.actual_delivery_time)}</p>
                   </div>
                 </div>
-
-                {/* Map placeholder */}
                 {delivery.latitude != null && delivery.longitude != null && (
                   <div className="mt-6">
-                    <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl p-8 text-center border border-blue-200">
-                      <MapPin className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                      <h4 className="text-lg font-bold text-gray-900 mb-2">Delivery Location</h4>
-                      <p className="text-gray-600 mb-4">Coordinates: {delivery.latitude.toFixed(4)}, {delivery.longitude.toFixed(4)}</p>
-                      <div className="text-sm text-gray-500 bg-white/50 rounded-lg p-3">
-                        Interactive map would be displayed here with delivery location marker
+                    <div className="bg-white rounded-xl border border-blue-200 overflow-hidden">
+                      <div className="p-4">
+                        <h4 className="text-lg font-bold text-gray-900 mb-4">Delivery Location</h4>
+                        <MapContainer
+                          center={[delivery.latitude, delivery.longitude]}
+                          zoom={15}
+                          className="h-[300px] w-full rounded-xl border-2 border-blue-200"
+                          aria-label="Delivery location map"
+                        >
+                          <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                          />
+                          <Marker
+                            position={[delivery.latitude, delivery.longitude]}
+                            icon={deliveryIcon}
+                            keyboard={true}
+                          >
+                            <Popup>
+                              <div className="text-sm font-medium text-gray-900">
+                                Delivery #{delivery.id}: {delivery.delivery_address}
+                              </div>
+                            </Popup>
+                          </Marker>
+                        </MapContainer>
                       </div>
                     </div>
                   </div>
@@ -291,15 +272,11 @@ const DeliveryDetails = () => {
               </div>
             </div>
           </div>
-
-          {/* Sidebar */}
           <div className="space-y-8">
-            {/* Status Update */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
               <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
                 <h3 className="text-xl font-bold text-white">Update Status</h3>
               </div>
-              
               <div className="p-6">
                 {updateError && (
                   <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -309,7 +286,6 @@ const DeliveryDetails = () => {
                     </div>
                   </div>
                 )}
-                
                 {updateSuccess && (
                   <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
                     <div className="flex items-center space-x-2">
@@ -318,12 +294,9 @@ const DeliveryDetails = () => {
                     </div>
                   </div>
                 )}
-                
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Select New Status
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select New Status</label>
                     <select
                       value={newStatus}
                       onChange={handleStatusChange}
@@ -331,17 +304,12 @@ const DeliveryDetails = () => {
                     >
                       <option value="">Choose status...</option>
                       {statusOptions.map((option) => (
-                        <option
-                          key={option.value}
-                          value={option.value}
-                          disabled={option.disabled}
-                        >
+                        <option key={option.value} value={option.value} disabled={option.disabled}>
                           {option.label}
                         </option>
                       ))}
                     </select>
                   </div>
-                  
                   <button
                     onClick={handleUpdateStatus}
                     disabled={isUpdating || !newStatus}
@@ -359,8 +327,6 @@ const DeliveryDetails = () => {
                 </div>
               </div>
             </div>
-
-            {/* Quick Stats */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Info</h3>
               <div className="space-y-3">
@@ -370,11 +336,11 @@ const DeliveryDetails = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Total Weight</span>
-                  <span className="font-semibold">2.1 kg</span>
+                  <span className="font-semibold">N/A</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="text-gray-600">Distance</span>
-                  <span className="font-semibold">12.5 km</span>
+                  <span className="font-semibold">N/A</span>
                 </div>
               </div>
             </div>

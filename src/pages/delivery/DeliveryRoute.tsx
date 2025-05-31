@@ -1,13 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+// src/components/DeliveryRoute.tsx
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { usePostOptimizeRouteMutation } from '../../api/apiSlice';
-
-// Define props
-interface DeliveryRouteProps {
-  deliveryIds: number[];
-  startLocation?: [number, number]; // Optional, defaults to Nairobi CBD
-}
+import { usePostOptimizeRouteMutation, useGetDeliveryTasksQuery } from '../../api/apiSlice';
+import { Delivery, OptimizeRouteRequest, OptimizeRouteResponse } from '../../types';
+import { AlertCircle, MapPin } from 'lucide-react';
 
 // Custom icons
 const startIcon = new L.Icon({
@@ -23,31 +20,70 @@ const deliveryIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocation = [-1.2833, 36.8167] }) => {
-  const [optimizeRoute, { data, isLoading, error, isUninitialized }] = usePostOptimizeRouteMutation();
+const DeliveryRoute: React.FC = () => {
+  const [startLocation, setStartLocation] = useState<[number, number]>([-1.2833, 36.8167]); // Default: Nairobi CBD
+  const [geoStatus, setGeoStatus] = useState<'pending' | 'success' | 'failed'>('pending');
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [optimizeRoute, { data, isLoading: isRouteLoading, error: routeError }] = usePostOptimizeRouteMutation();
+  const { data: deliveryData, isLoading: isDeliveriesLoading, error: deliveriesError } = useGetDeliveryTasksQuery({
+    page: 1,
+    page_size: 100,
+  });
 
-  // Memoize props to prevent unnecessary re-renders
-  const stableDeliveryIds = useMemo(() => [...deliveryIds].sort(), [deliveryIds]);
-  const stableStartLocation = useMemo(() => [...startLocation], [startLocation]);
+  // Extract delivery IDs
+  const deliveryIds = useMemo(() => {
+    const ids = deliveryData?.results
+      ?.filter((delivery: Delivery) => delivery.status === 'assigned' || delivery.status === 'in_transit')
+      .map((delivery: Delivery) => delivery.id) || [];
+    console.log('[DeliveryRoute] Delivery IDs:', ids);
+    return ids;
+  }, [deliveryData]);
 
-  // Fetch route only once or when props change
-  useEffect(() => {
-    if (stableDeliveryIds.length > 0 && isUninitialized) {
-      const timer = setTimeout(() => {
-        optimizeRoute({
-          start_location: stableStartLocation,
-          delivery_ids: stableDeliveryIds,
-        });
-      }, 500); // Debounce by 500ms
-      return () => clearTimeout(timer); // Cleanup on unmount
+  // Fetch user location
+  const fetchGeolocation = useCallback(() => {
+    console.log('[DeliveryRoute] Attempting geolocation');
+    setGeoStatus('pending');
+    setGeoError(null);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('[DeliveryRoute] Geolocation success:', position.coords);
+          setStartLocation([position.coords.latitude, position.coords.longitude]);
+          setGeoStatus('success');
+        },
+        (err) => {
+          console.warn('[DeliveryRoute] Geolocation failed:', err.message, { code: err.code });
+          setGeoStatus('failed');
+          setGeoError(err.message || 'Unable to access location.');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      console.warn('[DeliveryRoute] Geolocation not supported');
+      setGeoStatus('failed');
+      setGeoError('Geolocation is not supported by this browser.');
     }
-  }, [stableDeliveryIds, stableStartLocation, isUninitialized]);
+  }, []);
 
-  // Map center
-  const mapCenter: [number, number] = stableStartLocation;
+  // Initial geolocation attempt
+  useEffect(() => {
+    fetchGeolocation();
+  }, [fetchGeolocation]);
+
+  // Fetch route
+  useEffect(() => {
+    if (deliveryIds.length > 0 && geoStatus === 'success' && !isRouteLoading && !data && !routeError) {
+      console.log('[DeliveryRoute] Fetching route with startLocation:', startLocation, 'deliveryIds:', deliveryIds);
+      const timer = setTimeout(() => {
+        optimizeRoute({ start_location: startLocation, delivery_ids: deliveryIds } as OptimizeRouteRequest);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [deliveryIds, startLocation, geoStatus, optimizeRoute, isRouteLoading, data, routeError]);
 
   // Loading state
-  if (isLoading) {
+  if (isDeliveriesLoading || (isRouteLoading && geoStatus === 'success')) {
+    console.log('[DeliveryRoute] Rendering loading state');
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
@@ -58,9 +94,43 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocatio
     );
   }
 
-  // Error state
-  if (error) {
-    const errorMessage = (error as any).data?.error || 'Failed to load route';
+  // Geolocation failure state
+  if (geoStatus === 'failed') {
+    console.log('[DeliveryRoute] Rendering geolocation failure state:', geoError);
+    return (
+      <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-yellow-200 p-6 max-w-md w-full text-center">
+          <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Access Location</h3>
+          <p className="text-gray-600 mb-4">
+            {geoError || 'Unable to access your location. You can retry or use the default location (Nairobi CBD).'}
+          </p>
+          <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => fetchGeolocation()}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all"
+            >
+              Retry Location
+            </button>
+            <button
+              onClick={() => {
+                console.log('[DeliveryRoute] User chose default location');
+                setGeoStatus('success');
+              }}
+              className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-green-700 hover:to-teal-700 transition-all"
+            >
+              Use Default Location (Nairobi CBD)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // API error state
+  if (routeError || deliveriesError) {
+    const errorMessage = (routeError as any)?.data?.error || (deliveriesError as any)?.data?.error || 'Failed to load route';
+    console.log('[DeliveryRoute] Rendering API error state:', errorMessage);
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-red-200 p-6 max-w-md w-full text-center">
@@ -70,7 +140,7 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocatio
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Route</h3>
           <p className="text-red-600 mb-4">{errorMessage}</p>
           <button
-            onClick={() => optimizeRoute({ start_location: stableStartLocation, delivery_ids: stableDeliveryIds })}
+            onClick={() => optimizeRoute({ start_location: startLocation, delivery_ids: deliveryIds })}
             className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
           >
             Try Again
@@ -81,7 +151,8 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocatio
   }
 
   // No route data
-  if (!data?.optimized_route || data.optimized_route.length === 0) {
+  if (!data?.optimized_route || data.optimized_route.length === 0 || deliveryIds.length === 0) {
+    console.log('[DeliveryRoute] Rendering no route state:', { optimizedRoute: data?.optimized_route, deliveryIds });
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 text-center">
@@ -95,23 +166,30 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({ deliveryIds, startLocatio
   }
 
   // Route points
-  const routePoints = data.optimized_route.map(([lat, lng]) => [lat, lng] as [number, number]);
+  const routePoints = data.optimized_route.map((point) => [point.lat, point.lng] as [number, number]);
+  console.log('[DeliveryRoute] Rendering route with points:', routePoints);
 
   // Markers
   const markers = data.optimized_route.map((point, index) => ({
-    position: point as [number, number],
-    label: index === 0 ? 'Start (Warehouse)' : index === data.optimized_route.length - 1 ? 'Return to Warehouse' : `Delivery #${stableDeliveryIds[index - 1] || index}`,
+    position: [point.lat, point.lng] as [number, number],
+    label: index === 0 ? 'Start (You)' : index === data.optimized_route.length - 1 ? 'Return to Start' : `Delivery #${point.delivery_id || index}`,
     isStart: index === 0 || index === data.optimized_route.length - 1,
   }));
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-7xl mx-auto my-6">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-        <h3 className="text-xl font-bold text-white">Optimized Route</h3>
+        <h3 className="text-xl font-bold text-white">Optimized Delivery Route</h3>
       </div>
       <div className="p-4">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center space-x-2">
+          <MapPin className="w-5 h-5 text-blue-600" />
+          <p className="text-sm text-blue-800">
+            Starting from: {startLocation[0].toFixed(4)}, {startLocation[1].toFixed(4)}
+          </p>
+        </div>
         <MapContainer
-          center={mapCenter}
+          center={startLocation}
           zoom={13}
           className="h-[600px] w-full rounded-xl border-2 border-blue-200"
           aria-label="Delivery route map"

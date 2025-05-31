@@ -110,6 +110,18 @@ export interface Delivery {
   created_at: string;
   updated_at: string;
 }
+export interface OptimizeRouteRequest {
+  start_location: [number, number]; // [lat, lng]
+  delivery_ids: number[];
+}
+
+export interface OptimizeRouteResponse {
+  optimized_route: {
+    lat: number;
+    lng: number;
+    delivery_id?: number | null; // Optional, null for start/return points
+  }[];
+}
 
 // Cart Item type (for local cart state)
 export interface CartItem {
