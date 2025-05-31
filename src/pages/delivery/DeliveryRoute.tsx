@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { usePostOptimizeRouteMutation } from '../../api/apiSlice'; 
+import { usePostOptimizeRouteMutation } from '../api/apiSlice'; // Adjust path
 
 // Define props
 interface DeliveryRouteProps {
@@ -9,7 +9,7 @@ interface DeliveryRouteProps {
   startLocation?: [number, number]; // Optional, defaults to Nairobi CBD
 }
 
-// Custom icons for markers
+// Custom icons
 const startIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconSize: [25, 41],
@@ -28,16 +28,23 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
   startLocation = [-1.2833, 36.8167], // Nairobi CBD
 }) => {
   const [optimizeRoute, { data, isLoading, error }] = usePostOptimizeRouteMutation();
+  const [hasFetched, setHasFetched] = useState(false); // Track if route was fetched
 
-  // Fetch route when component mounts
+  // Fetch route only once or when props change
   useEffect(() => {
-    if (deliveryIds.length > 0) {
+    if (deliveryIds.length > 0 && !hasFetched) {
       optimizeRoute({
         start_location: startLocation,
         delivery_ids: deliveryIds,
       });
+      setHasFetched(true); // Prevent re-fetching
     }
-  }, [deliveryIds, startLocation, optimizeRoute]);
+  }, [deliveryIds, startLocation, hasFetched]); // Removed optimizeRoute from deps
+
+  // Reset hasFetched when props change
+  useEffect(() => {
+    setHasFetched(false); // Allow new fetch if deliveryIds/startLocation change
+  }, [deliveryIds, startLocation]);
 
   // Map center
   const mapCenter: [number, number] = startLocation;
@@ -66,7 +73,7 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Route</h3>
           <p className="text-red-600 mb-4">{errorMessage}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => setHasFetched(false)} // Retry fetch
             className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
           >
             Try Again
@@ -90,10 +97,10 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
     );
   }
 
-  // Route points for polyline
+  // Route points
   const routePoints = data.optimized_route.map(([lat, lng]) => [lat, lng] as [number, number]);
 
-  // Markers (start, deliveries, return)
+  // Markers
   const markers = data.optimized_route.map((point, index) => ({
     position: point as [number, number],
     label: index === 0 ? 'Start (Warehouse)' : index === data.optimized_route.length - 1 ? 'Return to Warehouse' : `Delivery #${deliveryIds[index - 1] || index}`,
@@ -108,7 +115,7 @@ const DeliveryRoute: React.FC<DeliveryRouteProps> = ({
       <div className="p-4">
         <MapContainer
           center={mapCenter}
-          zoom={13} // Nairobi city view
+          zoom={13}
           className="h-[600px] w-full rounded-xl border-2 border-blue-200"
           aria-label="Delivery route map"
         >
