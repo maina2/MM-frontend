@@ -1,10 +1,11 @@
-// src/components/DeliveryRoute.tsx
+// src/pages/delivery/DeliveryRoute.tsx
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { usePostOptimizeRouteMutation, useGetDeliveryTasksQuery } from '../../api/apiSlice';
 import { Delivery, OptimizeRouteRequest, OptimizeRouteResponse } from '../../types';
-import { AlertCircle, MapPin } from 'lucide-react';
+import { AlertCircle, MapPin, Package } from 'lucide-react';
+import 'leaflet/dist/leaflet.css'; // Ensure Leaflet CSS is imported
 
 // Custom icons
 const startIcon = new L.Icon({
@@ -20,22 +21,22 @@ const deliveryIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const DeliveryRoute: React.FC = () => {
+const DeliveryRoute: React.FC = React.memo(() => {
   const [startLocation, setStartLocation] = useState<[number, number]>([-1.2833, 36.8167]); // Default: Nairobi CBD
   const [geoStatus, setGeoStatus] = useState<'pending' | 'success' | 'failed'>('pending');
   const [geoError, setGeoError] = useState<string | null>(null);
   const [optimizeRoute, { data, isLoading: isRouteLoading, error: routeError }] = usePostOptimizeRouteMutation();
-  const { data: deliveryData, isLoading: isDeliveriesLoading, error: deliveriesError } = useGetDeliveryTasksQuery({
-    page: 1,
-    page_size: 100,
-  });
+  const { data: deliveryData, isLoading: isDeliveriesLoading, error: deliveriesError } = useGetDeliveryTasksQuery(
+    { page: 1, page_size: 100 },
+    { pollingInterval: 0 } // Disable polling
+  );
 
   // Extract delivery IDs
   const deliveryIds = useMemo(() => {
     const ids = deliveryData?.results
-      ?.filter((delivery: Delivery) => delivery.status === 'assigned' || delivery.status === 'in_transit')
+      ?.filter((delivery: Delivery) => ['assigned', 'in_transit'].includes(delivery.status))
       .map((delivery: Delivery) => delivery.id) || [];
-    console.log('[DeliveryRoute] Delivery IDs:', ids);
+    console.log('[DeliveryRoute] Delivery IDs:', ids, 'Full deliveryData:', deliveryData);
     return ids;
   }, [deliveryData]);
 
@@ -52,7 +53,7 @@ const DeliveryRoute: React.FC = () => {
           setGeoStatus('success');
         },
         (err) => {
-          console.warn('[DeliveryRoute] Geolocation failed:', err.message, { code: err.code });
+          console.warn('[DeliveryRoute] Geolocation failed:', { code: err.code, message: err.message });
           setGeoStatus('failed');
           setGeoError(err.message || 'Unable to access location.');
         },
@@ -73,7 +74,7 @@ const DeliveryRoute: React.FC = () => {
   // Fetch route
   useEffect(() => {
     if (deliveryIds.length > 0 && geoStatus === 'success' && !isRouteLoading && !data && !routeError) {
-      console.log('[DeliveryRoute] Fetching route with startLocation:', startLocation, 'deliveryIds:', deliveryIds);
+      console.log('[DeliveryRoute] Fetching route:', { startLocation, deliveryIds });
       const timer = setTimeout(() => {
         optimizeRoute({ start_location: startLocation, delivery_ids: deliveryIds } as OptimizeRouteRequest);
       }, 500);
@@ -94,30 +95,30 @@ const DeliveryRoute: React.FC = () => {
     );
   }
 
-  // Geolocation failure state
+  // Geolocation error state
   if (geoStatus === 'failed') {
-    console.log('[DeliveryRoute] Rendering geolocation failure state:', geoError);
+    console.log('[DeliveryRoute] Rendering geolocation error:', geoError);
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-yellow-200 p-6 max-w-md w-full text-center">
           <AlertCircle className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Access Location</h3>
-          <p className="text-gray-600 mb-4">
-            {geoError || 'Unable to access your location. You can retry or use the default location (Nairobi CBD).'}
+          <p className="text-sm text-gray-600 mb-6">
+            {geoError || 'Unable to access your location. You can retry or proceed with the default location (Nairobi CBD).'}
           </p>
           <div className="flex flex-col space-y-2">
             <button
               onClick={() => fetchGeolocation()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all"
             >
               Retry Location
             </button>
             <button
               onClick={() => {
-                console.log('[DeliveryRoute] User chose default location');
+                console.log('[DeliveryRoute] Using default location');
                 setGeoStatus('success');
               }}
-              className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-xl hover:from-green-700 hover:to-teal-700 transition-all"
+              className="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-3 rounded-xl hover:from-green-700 hover:to-teal-700 transition-all"
             >
               Use Default Location (Nairobi CBD)
             </button>
@@ -130,7 +131,7 @@ const DeliveryRoute: React.FC = () => {
   // API error state
   if (routeError || deliveriesError) {
     const errorMessage = (routeError as any)?.data?.error || (deliveriesError as any)?.data?.error || 'Failed to load route';
-    console.log('[DeliveryRoute] Rendering API error state:', errorMessage);
+    console.log('[DeliveryRoute] Rendering API error:', errorMessage);
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-red-200 p-6 max-w-md w-full text-center">
@@ -138,10 +139,10 @@ const DeliveryRoute: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Route</h3>
-          <p className="text-red-600 mb-4">{errorMessage}</p>
+          <p className="text-red-600 mb-6">{errorMessage}</p>
           <button
             onClick={() => optimizeRoute({ start_location: startLocation, delivery_ids: deliveryIds })}
-            className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-xl hover:from-red-700 hover:to-red-800 transition-all"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all"
           >
             Try Again
           </button>
@@ -156,10 +157,11 @@ const DeliveryRoute: React.FC = () => {
     return (
       <div className="min-h-[500px] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 text-center">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5-5m0 0l5-5m-5 5h16" />
-          </svg>
-          <p className="text-gray-600 font-medium">No route available</p>
+          <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Route Available</h3>
+          <p className="text-sm text-gray-600">
+            No assigned or in-transit deliveries found. Check back later for new tasks.
+          </p>
         </div>
       </div>
     );
@@ -167,14 +169,13 @@ const DeliveryRoute: React.FC = () => {
 
   // Route points
   const routePoints = data.optimized_route.map((point) => [point.lat, point.lng] as [number, number]);
-  console.log('[DeliveryRoute] Rendering route with points:', routePoints);
-
   // Markers
   const markers = data.optimized_route.map((point, index) => ({
     position: [point.lat, point.lng] as [number, number],
     label: index === 0 ? 'Start (You)' : index === data.optimized_route.length - 1 ? 'Return to Start' : `Delivery #${point.delivery_id || index}`,
     isStart: index === 0 || index === data.optimized_route.length - 1,
   }));
+  console.log('[DeliveryRoute] Rendering route with points:', routePoints);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-7xl mx-auto my-6">
@@ -215,6 +216,6 @@ const DeliveryRoute: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default DeliveryRoute;
