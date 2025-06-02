@@ -301,14 +301,7 @@ const OrderManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {ordersData?.results?.map((order: Order) => {
             // Debug logging
-            console.log(`[Order #${order.id}] Customer Debug:`, {
-              customerExists: !!order.customer,
-              customer: order.customer,
-              username: order.customer?.username,
-              usernameType: typeof order.customer?.username,
-              usernameValue: JSON.stringify(order.customer?.username),
-              isUsernameString: typeof order.customer?.username === 'string',
-            });
+
 
             // Robust customer name and initials
             const customerName = typeof order.customer?.username === 'string' && order.customer.username
@@ -331,7 +324,7 @@ const OrderManagement = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-1">
-                          <h3 className="font-bold text-gray-900 text-base">Customer: {customerName}</h3>
+                          <h3 className="font-bold text-gray-900 text-base"> {customerName}</h3>
                           <span className="text-xs text-gray-500">#{order.id}</span>
                         </div>
                       </div>
