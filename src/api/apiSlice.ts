@@ -478,125 +478,87 @@ export const apiSlice = createApi({
       invalidatesTags: ["Products"],
     }),
 
-    // Order Admin Endpoints
-    getAdminOrders: builder.query<
-      {
-        count: number;
-        next: string | null;
-        previous: string | null;
-        results: Order[];
-      },
-      {
-        page?: number;
-        status?: string;
-        payment_status?: string;
-        search?: string;
-        ordering?: string;
-      }
-    >({
-      query: ({ page = 1, status, payment_status, search, ordering }) => {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          page_size: "12",
-        });
-        if (status) params.append("status", status);
-        if (payment_status) params.append("payment_status", payment_status);
-        if (search) params.append("search", search);
-        if (ordering) params.append("ordering", ordering);
-        return `manage/orders/?${params.toString()}`;
-      },
-      providesTags: ["Orders"],
-      transformResponse: (response: {
-        count: number;
-        next: string | null;
-        previous: string | null;
-        results: any[];
-      }) => {
-        return {
-          ...response,
-          results: response.results.map((order) => ({
-            ...order,
-            customer: {
-              username: order.customer,
-              id: 0,
-              email: "",
-              role: "customer",
-            } as User,
-          })),
-        };
-      },
-    }),
-    getAdminOrder: builder.query<Order, number>({
-      query: (id) => `manage/orders/${id}/`,
-      providesTags: ["Orders"],
-      transformResponse: (order: any) => ({
-        ...order,
-        customer: {
-          username: order.customer,
-          id: 0,
-          email: "",
-          role: "customer",
-        } as User,
-      }),
-    }),
-    createAdminOrder: builder.mutation<
-      Order,
-      {
-        payment_phone_number?: string;
-        status?: string;
-        payment_status?: string;
-        items: { product_id: number; quantity: number }[];
-      }
-    >({
-      query: (data) => ({
-        url: "manage/orders/",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["Orders"],
-      transformResponse: (order: any) => ({
-        ...order,
-        customer: {
-          username: order.customer,
-          id: 0,
-          email: "",
-          role: "customer",
-        } as User,
-      }),
-    }),
-    updateAdminOrder: builder.mutation<
-      Order,
-      {
-        id: number;
-        status?: string;
-        payment_status?: string;
-        payment_phone_number?: string;
-        items?: { product_id: number; quantity: number }[];
-      }
-    >({
-      query: ({ id, ...data }) => ({
-        url: `manage/orders/${id}/`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: ["Orders"],
-      transformResponse: (order: any) => ({
-        ...order,
-        customer: {
-          username: order.customer,
-          id: 0,
-          email: "",
-          role: "customer",
-        } as User,
-      }),
-    }),
-    deleteAdminOrder: builder.mutation<void, number>({
-      query: (id) => ({
-        url: `manage/orders/${id}/`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Orders"],
-    }),
+// Order Admin Endpoints - FIXED VERSION
+getAdminOrders: builder.query<
+  {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Order[];
+  },
+  {
+    page?: number;
+    status?: string;
+    payment_status?: string;
+    search?: string;
+    ordering?: string;
+  }
+>({
+  query: ({ page = 1, status, payment_status, search, ordering }) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      page_size: "12",
+    });
+    if (status) params.append("status", status);
+    if (payment_status) params.append("payment_status", payment_status);
+    if (search) params.append("search", search);
+    if (ordering) params.append("ordering", ordering);
+    return `manage/orders/?${params.toString()}`;
+  },
+  providesTags: ["Orders"],
+  // REMOVED transformResponse - API already returns correct format
+}),
+
+getAdminOrder: builder.query<Order, number>({
+  query: (id) => `manage/orders/${id}/`,
+  providesTags: ["Orders"],
+  // REMOVED transformResponse - API already returns correct format
+}),
+
+createAdminOrder: builder.mutation<
+  Order,
+  {
+    payment_phone_number?: string;
+    status?: string;
+    payment_status?: string;
+    items: { product_id: number; quantity: number }[];
+  }
+>({
+  query: (data) => ({
+    url: "manage/orders/",
+    method: "POST",
+    body: data,
+  }),
+  invalidatesTags: ["Orders"],
+  // REMOVED transformResponse - API already returns correct format
+}),
+
+updateAdminOrder: builder.mutation<
+  Order,
+  {
+    id: number;
+    status?: string;
+    payment_status?: string;
+    payment_phone_number?: string;
+    items?: { product_id: number; quantity: number }[];
+  }
+>({
+  query: ({ id, ...data }) => ({
+    url: `manage/orders/${id}/`,
+    method: "PUT",
+    body: data,
+  }),
+  invalidatesTags: ["Orders"],
+  // REMOVED transformResponse - API already returns correct format
+}),
+
+deleteAdminOrder: builder.mutation<void, number>({
+  query: (id) => ({
+    url: `manage/orders/${id}/`,
+    method: "DELETE",
+  }),
+  invalidatesTags: ["Orders"],
+}),
 
     // Payment Admin Endpoints
     getAdminPayments: builder.query<

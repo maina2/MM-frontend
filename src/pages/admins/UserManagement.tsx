@@ -12,64 +12,43 @@ import {
   Phone,
   Shield,
   Truck,
-  User,
+  User as UserIcon, // Aliased to avoid conflict
   Eye,
   EyeOff,
   AlertCircle,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-
-// Mock data for demonstration
-const mockUsers = [
-  {
-    id: 1,
-    username: "john_doe",
-    email: "john@example.com",
-    role: "admin",
-    phone_number: "+1234567890",
-  },
-  {
-    id: 2,
-    username: "jane_smith",
-    email: "jane@example.com",
-    role: "delivery",
-    phone_number: "+1987654321",
-  },
-  {
-    id: 3,
-    username: "bob_customer",
-    email: "bob@example.com",
-    role: "customer",
-    phone_number: null,
-  },
-  {
-    id: 4,
-    username: "alice_admin",
-    email: "alice@example.com",
-    role: "admin",
-    phone_number: "+1122334455",
-  },
-  {
-    id: 5,
-    username: "mike_delivery",
-    email: "mike@example.com",
-    role: "delivery",
-    phone_number: "+1555666777",
-  },
-];
+import {
+  useGetAdminUsersQuery,
+  useCreateAdminUserMutation,
+  useUpdateAdminUserMutation,
+  useDeleteAdminUserMutation,
+} from "../../api/apiSlice"; // Adjust path as needed
+import type { User } from "../../types"; // User type for API data
 
 const UserManagement = () => {
-  const [users, setUsers] = useState(mockUsers);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [showPassword, setShowPassword] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-  const [formData, setFormData] = useState({
-    id: undefined,
+  const [formData, setFormData] = useState<{
+    id?: number;
+    username: string;
+    email: string;
+    password?: string;
+    role: string;
+    phone_number?: string;
+  }>({
     username: "",
     email: "",
     password: "",
@@ -77,9 +56,27 @@ const UserManagement = () => {
     phone_number: "",
   });
 
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState<
+    Partial<Record<keyof typeof formData, string>>
+  >({});
 
-  const roleConfig = {
+  // Fetch users with pagination
+  const {
+    data: usersData,
+    isLoading: isUsersLoading,
+    isError: isUsersError,
+    error: usersError,
+  } = useGetAdminUsersQuery({ page, page_size: pageSize });
+
+  // Mutations
+  const [createUser, { isLoading: isCreating }] = useCreateAdminUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateAdminUserMutation();
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteAdminUserMutation();
+
+  const roleConfig: Record<
+    string,
+    { icon: React.ElementType; color: string; bg: string; border: string; label: string }
+  > = {
     admin: {
       icon: Shield,
       color: "text-purple-700",
@@ -95,7 +92,7 @@ const UserManagement = () => {
       label: "Delivery",
     },
     customer: {
-      icon: User,
+      icon: UserIcon, // Use aliased icon
       color: "text-green-700",
       bg: "bg-green-100",
       border: "border-green-200",
@@ -103,14 +100,16 @@ const UserManagement = () => {
     },
   };
 
-  const showNotification = (message, type = "success") => {
+  const showNotification = (message: string, type: "success" | "error" = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
   const validateForm = () => {
-    const errors = {};
+    const errors: Partial<Record<keyof typeof formData, string>> = {};
     if (!formData.username.trim()) errors.username = "Username is required";
+    else if (formData.username.length < 3)
+      errors.username = "Username must be at least 3 characters";
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -118,8 +117,8 @@ const UserManagement = () => {
     }
     if (!isEditMode && !formData.password) {
       errors.password = "Password is required for new users";
-    } else if (formData.password && formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+    } else if (formData.password && formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
     }
     if (
       formData.phone_number &&
@@ -134,7 +133,6 @@ const UserManagement = () => {
   const handleOpenCreateModal = () => {
     setIsEditMode(false);
     setFormData({
-      id: undefined,
       username: "",
       email: "",
       password: "",
@@ -145,7 +143,7 @@ const UserManagement = () => {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (user) => {
+  const handleOpenEditModal = (user: User) => {
     setIsEditMode(true);
     setFormData({
       id: user.id,
@@ -162,67 +160,59 @@ const UserManagement = () => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      if (isEditMode) {
-        setUsers((prev) =>
-          prev.map((user) =>
-            user.id === formData.id
-              ? {
-                  ...user,
-                  ...formData,
-                  phone_number: formData.phone_number || null,
-                }
-              : user
-          )
-        );
-        showNotification("User updated successfully!");
-      } else {
-        const newUser = {
-          ...formData,
-          id: Math.max(...users.map((u) => u.id)) + 1,
+      if (isEditMode && formData.id) {
+        const updatePayload: Partial<User> & { id: number } = {
+          id: formData.id,
+          username: formData.username,
+          email: formData.email,
+          role: formData.role as "admin" | "delivery" | "customer",
           phone_number: formData.phone_number || null,
         };
-        setUsers((prev) => [...prev, newUser]);
+        if (formData.password) updatePayload.password = formData.password;
+        await updateUser(updatePayload).unwrap();
+        showNotification("User updated successfully!");
+      } else {
+        const createPayload = {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password!,
+          role: formData.role as "admin" | "delivery" | "customer",
+          phone_number: formData.phone_number || null,
+        };
+        await createUser(createPayload).unwrap();
         showNotification("User created successfully!");
       }
-
       setIsModalOpen(false);
-    } catch (error) {
-      showNotification("Failed to save user. Please try again.", "error");
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      const message =
+        error?.data?.detail ||
+        (isEditMode ? "Failed to update user" : "Failed to create user");
+      showNotification(message, "error");
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      setIsLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setUsers((prev) => prev.filter((user) => user.id !== id));
+        await deleteUser(id).unwrap();
         showNotification("User deleted successfully!");
-      } catch (error) {
-        showNotification("Failed to delete user.", "error");
-      } finally {
-        setIsLoading(false);
+      } catch (error: any) {
+        showNotification(error?.data?.detail || "Failed to delete user", "error");
       }
     }
   };
 
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = (usersData?.results || []).filter((user: User) => {
     const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "all" || user.role === filterRole;
+    const matchesRole = filterRole === "all" | user.role === filterRole;
     return matchesSearch && matchesRole;
   });
 
-  const RoleBadge = ({ role }) => {
-    const config = roleConfig[role];
+  const RoleBadge = ({ role }: { role: string }) => {
+    const config = roleConfig[role] || roleConfig.customer;
     const IconComponent = config.icon;
 
     return (
@@ -265,9 +255,7 @@ const UserManagement = () => {
               <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
                 <Users className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                User Management
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             </div>
             <button
               onClick={handleOpenCreateModal}
@@ -310,82 +298,136 @@ const UserManagement = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="p-4">
-                {/* Header Section: Initials, Username, ID, and Role */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-1">
-                        <h3 className="font-bold text-gray-900 text-base">
-                          {user.username}
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          #{user.id}
-                        </span>
-                      </div>
-                      <div className="mt-1">
-                        <RoleBadge role={user.role} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Details Section: Email and Phone */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm">{user.email}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm">
-                      {user.phone_number || "N/A"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end space-x-2">
-                  <button
-                    onClick={() => handleOpenEditModal(user)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Edit User"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete User"
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredUsers.length === 0 && (
+        {/* Loading State */}
+        {isUsersLoading && (
           <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading users...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {isUsersError && (
+          <div className="text-center py-12">
+            <AlertCircle className="w-16 h-16 text-red-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No users found
+              Failed to load users
             </h3>
             <p className="text-gray-500">
-              Try adjusting your search or filter criteria.
+              {(usersError as any)?.data?.detail || "An error occurred. Please try again."}
             </p>
           </div>
+        )}
+
+        {/* User List */}
+        {!isUsersLoading && !isUsersError && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredUsers.map((user: User) => (
+                <div
+                  key={user.id}
+                  className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <div className="p-4">
+                    {/* Header Section: Initials, Username, ID, and Role */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-1">
+                            <h3 className="font-bold text-gray-900 text-base">
+                              {user.username}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              #{user.id}
+                            </span>
+                          </div>
+                          <div className="mt-1">
+                            <RoleBadge role={user.role} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Details Section: Email and Phone */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm">{user.email}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm">
+                          {user.phone_number || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => handleOpenEditModal(user)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit User"
+                        disabled={isDeleting || isCreating || isUpdating}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete User"
+                        disabled={isDeleting || isCreating || isUpdating}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredUsers.length === 0 && (
+              <div className="text-center py-12">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                  No users found
+                </h3>
+                <p className="text-gray-500">
+                  Try adjusting your search or filter criteria.
+                </p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {usersData && usersData.count > 0 && (
+              <div className="flex items-center justify-between mt-8">
+                <button
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1 || isUsersLoading}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Previous</span>
+                </button>
+                <span className="text-gray-600">
+                  Page {page} of {Math.ceil(usersData.count / pageSize)}
+                </span>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={
+                    !usersData.next || isUsersLoading || filteredUsers.length < pageSize
+                  }
+                  className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -394,7 +436,7 @@ const UserManagement = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-auto"
-            style={{ marginTop: "8.6rem" }} // Kept the same to avoid overlap with navbar
+            style={{ marginTop: "8.6rem" }}
           >
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
@@ -404,6 +446,7 @@ const UserManagement = () => {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+                disabled={isCreating || isUpdating}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -419,10 +462,7 @@ const UserManagement = () => {
                   type="text"
                   value={formData.username}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      username: e.target.value,
-                    }))
+                    setFormData((prev) => ({ ...prev, username: e.target.value }))
                   }
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors ${
                     formErrors.username
@@ -430,11 +470,10 @@ const UserManagement = () => {
                       : "border-gray-300 focus:border-blue-500"
                   }`}
                   placeholder="Enter username"
+                  disabled={isCreating || isUpdating}
                 />
                 {formErrors.username && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.username}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{formErrors.username}</p>
                 )}
               </div>
 
@@ -454,11 +493,10 @@ const UserManagement = () => {
                       : "border-gray-300 focus:border-blue-500"
                   }`}
                   placeholder="Enter email address"
+                  disabled={isCreating || isUpdating}
                 />
                 {formErrors.email && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.email}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
                 )}
               </div>
 
@@ -484,11 +522,13 @@ const UserManagement = () => {
                         : "border-gray-300 focus:border-blue-500"
                     }`}
                     placeholder="Enter password"
+                    disabled={isCreating || isUpdating}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    disabled={isCreating || isUpdating}
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -498,9 +538,7 @@ const UserManagement = () => {
                   </button>
                 </div>
                 {formErrors.password && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.password}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>
                 )}
               </div>
 
@@ -514,6 +552,7 @@ const UserManagement = () => {
                     setFormData((prev) => ({ ...prev, role: e.target.value }))
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  disabled={isCreating || isUpdating}
                 >
                   <option value="customer">Customer</option>
                   <option value="admin">Admin</option>
@@ -540,6 +579,7 @@ const UserManagement = () => {
                       : "border-gray-300 focus:border-blue-500"
                   }`}
                   placeholder="+1234567890"
+                  disabled={isCreating || isUpdating}
                 />
                 {formErrors.phone_number && (
                   <p className="text-red-500 text-sm mt-1">
@@ -554,16 +594,16 @@ const UserManagement = () => {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={isLoading}
+                disabled={isCreating || isUpdating}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isCreating || isUpdating}
                 className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all"
               >
-                {isLoading ? (
+                {(isCreating || isUpdating) ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Saving...</span>
