@@ -23,7 +23,9 @@ const Navbar: React.FC = () => {
   const isAuthenticated = useSelector((state: RootState) => !!state.auth.token);
   const user = useSelector((state: RootState) => state.auth.user);
   const role = useSelector((state: RootState) => state.auth.user?.role);
-  const cartItems = useSelector((state: RootState) => state.cart?.items?.length || 0);
+  const cartItems = useSelector(
+    (state: RootState) => state.cart?.items?.length || 0
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,32 +49,51 @@ const Navbar: React.FC = () => {
                 <Link to="/" className="hover:text-primary transition-colors">
                   Home
                 </Link>
-                <Link to="/products" className="hover:text-primary transition-colors">
+                <Link
+                  to="/products"
+                  className="hover:text-primary transition-colors"
+                >
                   Products
                 </Link>
-                <Link to="/categories" className="hover:text-primary transition-colors">
+                <Link
+                  to="/categories"
+                  className="hover:text-primary transition-colors"
+                >
                   Categories
                 </Link>
-                <Link to="/offers" className="hover:text-primary transition-colors">
+                <Link
+                  to="/offers"
+                  className="hover:text-primary transition-colors"
+                >
                   Offers
                 </Link>
               </>
             )}
             {role === "admin" && (
-              <Link to="/admin" className="hover:text-primary transition-colors">
+              <Link
+                to="/admin"
+                className="hover:text-primary transition-colors"
+              >
                 Admin Dashboard
               </Link>
             )}
             {role === "delivery" && (
-              <Link to="/delivery/tasks" className="hover:text-primary transition-colors">
+              <Link
+                to="/delivery/tasks"
+                className="hover:text-primary transition-colors"
+              >
                 Delivery Tasks
               </Link>
             )}
           </div>
           <div className="flex items-center space-x-4">
-            {role === "customer" && <SearchBar />} {/* Show SearchBar only for customers */}
+            {role === "customer" && <SearchBar />}{" "}
+            {/* Show SearchBar only for customers */}
             {role === "customer" && (
-              <Link to="/cart" className="relative hover:text-primary transition-colors">
+              <Link
+                to="/cart"
+                className="relative hover:text-primary transition-colors"
+              >
                 <FaShoppingCart size={20} />
                 {cartItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
@@ -111,10 +132,16 @@ const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link to="/login" className="text-sm hover:text-primary transition-colors">
+                <Link
+                  to="/login"
+                  className="text-sm hover:text-primary transition-colors"
+                >
                   Login
                 </Link>
-                <Link to="/register" className="bg-primary text-white text-sm px-3 py-1 rounded-md hover:bg-primary/90 transition-colors">
+                <Link
+                  to="/register"
+                  className="bg-primary text-white text-sm px-3 py-1 rounded-md hover:bg-primary/90 transition-colors"
+                >
                   Register
                 </Link>
               </div>
@@ -149,7 +176,8 @@ const Navbar: React.FC = () => {
           <div className="mt-3">
             <SearchBar />
           </div>
-        )} {/* Show SearchBar only for customers */}
+        )}{" "}
+        {/* Show SearchBar only for customers */}
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -207,21 +235,22 @@ const Navbar: React.FC = () => {
             <Link
               to="/delivery/tasks"
               className={`flex flex-col items-center text-xs ${
-                location.pathname === "/delivery/tasks" ? "text-primary" : ""
-              }`}
-            >
-              <FaMapMarkerAlt size={20} />
-              <span className="mt-1 truncate">Tasks</span>
-            </Link>
-            <Link
-              to="/orders"
-              className={`flex flex-col items-center text-xs ${
                 location.pathname === "/orders" ? "text-primary" : ""
               }`}
             >
               <FiTruck size={20} />
               <span className="mt-1 truncate">Orders</span>
             </Link>
+            <Link
+              to="/delivery/route"
+              className={`flex flex-col items-center text-xs ${
+                location.pathname === "/delivery/tasks" ? "text-primary" : ""
+              }`}
+            >
+              <FaMapMarkerAlt size={20} />
+              <span className="mt-1 truncate">Tasks</span>
+            </Link>
+
             <Link
               to="/profile"
               className={`flex flex-col items-center text-xs ${

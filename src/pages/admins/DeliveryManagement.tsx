@@ -1,5 +1,4 @@
-// src/components/admin/DeliveryManagement.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   useGetAdminDeliveriesQuery,
   useCreateAdminDeliveryMutation,
@@ -7,62 +6,64 @@ import {
   useUpdateDeliveryStatusMutation,
   useDeleteAdminDeliveryMutation,
   useGetAdminUsersQuery,
-} from '../../api/apiSlice';
-import { Delivery, User } from '../../types';
-import { format } from 'date-fns';
+} from "../../api/apiSlice";
+import { Delivery, User } from "../../types";
+import { format } from "date-fns";
 import {
   Plus, // Lucide icon for Add
   Trash2, // Lucide icon for Delete
   UserPlus, // Lucide icon for PersonAdd
   RefreshCw, // Lucide icon for Sync
   X, // Lucide icon for Close
-  Save // Lucide icon for Save
-} from 'lucide-react'; // Import Lucide icons
+  Save, // Lucide icon for Save
+} from "lucide-react"; // Import Lucide icons
 
 const getStatusColorClass = (status: string) => {
   switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'in_transit':
-      return 'bg-blue-100 text-blue-800';
-    case 'delivered':
-      return 'bg-green-100 text-green-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "in_transit":
+      return "bg-blue-100 text-blue-800";
+    case "delivered":
+      return "bg-green-100 text-green-800";
+    case "cancelled":
+      return "bg-red-100 text-red-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
 const shortenAddress = (address: string): string => {
-  const words = address.trim().split(' ');
+  const words = address.trim().split(" ");
   // Take first 3 words or full address if shorter, to ensure enough context
-  const shortAddress = words.slice(0, 3).join(' ');
+  const shortAddress = words.slice(0, 3).join(" ");
   return words.length > 3 ? `${shortAddress}...` : shortAddress;
 };
 
 const DeliveryManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortModel, setSortModel] = useState<any>([]); // Simplified for Tailwind UI, as DataGrid's sortModel is specific
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortModel, setSortModel] = useState<
+    { field: string; sort: "asc" | "desc" }[]
+  >([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState<number | null>(null);
   const [showStatusModal, setShowStatusModal] = useState<number | null>(null);
 
   const [newDelivery, setNewDelivery] = useState({
-    order_id: '',
-    delivery_person_id: '',
-    delivery_address: '',
-    latitude: '',
-    longitude: '',
+    order_id: "",
+    delivery_person_id: "",
+    delivery_address: "",
+    latitude: "",
+    longitude: "",
   });
 
   // State to manage selected values for assignment/status update modals
-  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
-
+  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] =
+    useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   const {
     data: deliveriesData,
@@ -73,104 +74,170 @@ const DeliveryManagement: React.FC = () => {
     page_size: pageSize,
     status: statusFilter || undefined,
     search: searchQuery || undefined,
-    ordering: sortModel[0] ? `${sortModel[0].sort === 'desc' ? '-' : ''}${sortModel[0].field}` : undefined,
+    ordering: sortModel[0]
+      ? `${sortModel[0].sort === "desc" ? "-" : ""}${sortModel[0].field}`
+      : undefined,
   });
 
   const { data: deliveryPersonsData } = useGetAdminUsersQuery({
     page: 1,
     page_size: 100,
-    role: 'delivery'
+    role: "delivery",
   });
 
   // Corrected RTK Query hook destructuring
-  const [createDelivery, { isLoading: isCreating }] = useCreateAdminDeliveryMutation();
+  const [createDelivery, { isLoading: isCreating }] =
+    useCreateAdminDeliveryMutation();
   const [deleteDelivery] = useDeleteAdminDeliveryMutation(); // Corrected destructuring
-  const [assignDeliveryPerson, { isLoading: isAssigning }] = useAssignDeliveryPersonMutation(); // Corrected destructuring
-  const [updateDeliveryStatus, { isLoading: isStatusUpdating }] = useUpdateDeliveryStatusMutation(); // Corrected destructuring
+  const [assignDeliveryPerson, { isLoading: isAssigning }] =
+    useAssignDeliveryPersonMutation(); // Corrected destructuring
+  const [updateDeliveryStatus, { isLoading: isStatusUpdating }] =
+    useUpdateDeliveryStatusMutation(); // Corrected destructuring
 
   const availableDeliveryPersons = deliveryPersonsData?.results || [];
 
-  const handleCreateDeliveryChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewDelivery((prev) => ({ ...prev, [name]: value }));
-  }, []);
+  const handleCreateDeliveryChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >
+    ) => {
+      const { name, value } = e.target;
+      setNewDelivery((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleCreateDeliverySubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        order_id: parseInt(newDelivery.order_id),
-        delivery_person_id: newDelivery.delivery_person_id
-          ? parseInt(newDelivery.delivery_person_id)
-          : undefined,
-        delivery_address: newDelivery.delivery_address,
-        latitude: newDelivery.latitude ? parseFloat(newDelivery.latitude) : undefined,
-        longitude: newDelivery.longitude ? parseFloat(newDelivery.longitude) : undefined,
-      };
-      await createDelivery(payload).unwrap();
-      alert('Delivery created successfully!'); // Replaced toast with alert for consistency with refactored components
-      setShowCreateModal(false);
-      setNewDelivery({ order_id: '', delivery_person_id: '', delivery_address: '', latitude: '', longitude: '' });
-    } catch (error: any) {
-      alert(`Failed to create delivery: ${error?.data?.detail || 'Unknown error'}`);
-    }
-  }, [newDelivery, createDelivery]);
-
-  const handleAssignDeliveryPersonSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!showAssignModal || !selectedDeliveryPersonId) return;
-
-    try {
-      await assignDeliveryPerson({ id: showAssignModal, delivery_person_id: parseInt(selectedDeliveryPersonId) }).unwrap();
-      alert('Delivery person assigned successfully!');
-      setShowAssignModal(null);
-      setSelectedDeliveryPersonId(''); // Clear selection
-    } catch (error: any) {
-      alert(`Failed to assign delivery person: ${error?.data?.detail || 'Unknown error'}`);
-    }
-  }, [showAssignModal, selectedDeliveryPersonId, assignDeliveryPerson]);
-
-  const handleUpdateStatusSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!showStatusModal || !selectedStatus) return;
-
-    try {
-      await updateDeliveryStatus({ id: showStatusModal, status: selectedStatus }).unwrap();
-      alert('Delivery status updated successfully!');
-      setShowStatusModal(null);
-      setSelectedStatus(''); // Clear selection
-    } catch (error: any) {
-      alert(`Failed to update status: ${error?.data?.detail || 'Unknown error'}`);
-    }
-  }, [showStatusModal, selectedStatus, updateDeliveryStatus]);
-
-  const handleDeleteDelivery = useCallback(async (deliveryId: number, currentStatus: string) => {
-    if (currentStatus !== 'pending' && currentStatus !== 'cancelled') {
-      alert('Only deliveries with "pending" or "cancelled" status can be deleted.');
-      return;
-    }
-    if (window.confirm('Are you sure you want to delete this delivery? This action cannot be undone.')) {
+  const handleCreateDeliverySubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
       try {
-        await deleteDelivery(deliveryId).unwrap();
-        alert('Delivery deleted successfully!');
-      } catch (error: unknown) {
-        if (typeof error === 'object' && error !== null && 'data' in error && typeof (error as any).data === 'object') {
-          alert(`Failed to delete delivery: ${(error as { data?: { detail?: string } }).data?.detail || 'Unknown error'}`);
-        } else {
-          alert('Failed to delete delivery: Unknown error');
+        const payload = {
+          order_id: parseInt(newDelivery.order_id),
+          delivery_person_id: newDelivery.delivery_person_id
+            ? parseInt(newDelivery.delivery_person_id)
+            : undefined,
+          delivery_address: newDelivery.delivery_address,
+          latitude: newDelivery.latitude
+            ? parseFloat(newDelivery.latitude)
+            : undefined,
+          longitude: newDelivery.longitude
+            ? parseFloat(newDelivery.longitude)
+            : undefined,
+        };
+        await createDelivery(payload).unwrap();
+        alert("Delivery created successfully!"); // Replaced toast with alert for consistency with refactored components
+        setShowCreateModal(false);
+        setNewDelivery({
+          order_id: "",
+          delivery_person_id: "",
+          delivery_address: "",
+          latitude: "",
+          longitude: "",
+        });
+      } catch (error: any) {
+        alert(
+          `Failed to create delivery: ${error?.data?.detail || "Unknown error"}`
+        );
+      }
+    },
+    [newDelivery, createDelivery]
+  );
+
+  const handleAssignDeliveryPersonSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!showAssignModal || !selectedDeliveryPersonId) return;
+
+      try {
+        await assignDeliveryPerson({
+          id: showAssignModal,
+          delivery_person_id: parseInt(selectedDeliveryPersonId),
+        }).unwrap();
+        alert("Delivery person assigned successfully!");
+        setShowAssignModal(null);
+        setSelectedDeliveryPersonId(""); // Clear selection
+      } catch (error: any) {
+        alert(
+          `Failed to assign delivery person: ${
+            error?.data?.detail || "Unknown error"
+          }`
+        );
+      }
+    },
+    [showAssignModal, selectedDeliveryPersonId, assignDeliveryPerson]
+  );
+
+  const handleUpdateStatusSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!showStatusModal || !selectedStatus) return;
+
+      try {
+        await updateDeliveryStatus({
+          id: showStatusModal,
+          status: selectedStatus,
+        }).unwrap();
+        alert("Delivery status updated successfully!");
+        setShowStatusModal(null);
+        setSelectedStatus(""); // Clear selection
+      } catch (error: any) {
+        alert(
+          `Failed to update status: ${error?.data?.detail || "Unknown error"}`
+        );
+      }
+    },
+    [showStatusModal, selectedStatus, updateDeliveryStatus]
+  );
+
+  const handleDeleteDelivery = useCallback(
+    async (deliveryId: number, currentStatus: string) => {
+      if (currentStatus !== "pending" && currentStatus !== "cancelled") {
+        alert(
+          'Only deliveries with "pending" or "cancelled" status can be deleted.'
+        );
+        return;
+      }
+      if (
+        window.confirm(
+          "Are you sure you want to delete this delivery? This action cannot be undone."
+        )
+      ) {
+        try {
+          await deleteDelivery(deliveryId).unwrap();
+          alert("Delivery deleted successfully!");
+        } catch (error: unknown) {
+          if (
+            typeof error === "object" &&
+            error !== null &&
+            "data" in error &&
+            typeof (error as any).data === "object"
+          ) {
+            alert(
+              `Failed to delete delivery: ${
+                (error as { data?: { detail?: string } }).data?.detail ||
+                "Unknown error"
+              }`
+            );
+          } else {
+            alert("Failed to delete delivery: Unknown error");
+          }
         }
       }
-    }
-  }, [deleteDelivery]);
+    },
+    [deleteDelivery]
+  );
 
   const handleSortChange = useCallback((field: string) => {
     setSortModel((prevModel: any) => {
-      const isAsc = prevModel.length > 0 && prevModel[0].field === field && prevModel[0].sort === 'asc';
-      return isAsc ? [{ field, sort: 'desc' }] : [{ field, sort: 'asc' }];
+      const isAsc =
+        prevModel.length > 0 &&
+        prevModel[0].field === field &&
+        prevModel[0].sort === "asc";
+      return isAsc ? [{ field, sort: "desc" }] : [{ field, sort: "asc" }];
     });
     setPage(1); // Reset page on sort change
   }, []);
-
 
   if (isDeliveriesLoading && !deliveriesData) {
     return (
@@ -180,67 +247,17 @@ const DeliveryManagement: React.FC = () => {
     );
   }
 
-  // Define table columns based on the original DataGrid structure
-  const tableColumns = [
-    { name: 'ID', field: 'id', sortable: true },
-    { name: 'Order ID', field: 'order.id', sortable: false, render: (row: Delivery) => row.order.id },
-    { name: 'Delivery Person', field: 'delivery_person.username', sortable: false, render: (row: Delivery) => row.delivery_person ? row.delivery_person.username : 'Unassigned' },
-    { name: 'Status', field: 'status', sortable: true, render: (row: Delivery) => (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColorClass(row.status)}`}>
-        {row.status.replace(/_/g, ' ')}
-      </span>
-    )},
-    { name: 'Address', field: 'delivery_address', sortable: true, render: (row: Delivery) => (
-      <span title={row.delivery_address} className="truncate max-w-[200px] inline-block">
-        {shortenAddress(row.delivery_address)}
-      </span>
-    )},
-    { name: 'Est. Delivery', field: 'estimated_delivery_time', sortable: true, render: (row: Delivery) => (
-      <span>
-        {row.estimated_delivery_time ? format(new Date(row.estimated_delivery_time), 'PPp') : 'N/A'}
-      </span>
-    )},
-    { name: 'Actions', field: 'actions', sortable: false, render: (row: Delivery) => (
-      <div className="flex space-x-2">
-        <button
-          onClick={() => { setShowAssignModal(row.id); setSelectedDeliveryPersonId(row.delivery_person?.id?.toString() || ''); }}
-          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          title="Assign Delivery Person"
-          disabled={isAssigning}
-        >
-          <UserPlus className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => { setShowStatusModal(row.id); setSelectedStatus(row.status); }}
-          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-          title="Update Status"
-          disabled={isStatusUpdating}
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => handleDeleteDelivery(row.id, row.status)}
-          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Delete Delivery"
-          disabled={row.status !== 'pending' && row.status !== 'cancelled'}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    )},
-  ];
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
       {/* Header */}
+      {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 sm:h-16 space-y-4 sm:space-y-0">
+            <div className="flex items-center justify-center sm:justify-start space-x-3">
               <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -253,156 +270,234 @@ const DeliveryManagement: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Delivery Management</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center sm:text-left">
+                Delivery Management
+              </h1>
+            </div>
+            <div className="flex justify-center sm:justify-end">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Delivery</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Control Bar (Filters and Create Button) */}
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
-        <div className="flex-1 relative">
-          <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      {/* Filters */}
+      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          <div className="flex-1 relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by Address"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by Address"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          />
+          </div>
+          <div className="flex items-center space-x-3">
+            <svg
+              className="text-gray-500 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
+              />
+            </svg>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <svg
-            className="text-gray-500 w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
-            />
-          </svg>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="in_transit">In Transit</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-300"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Create Delivery</span>
-        </button>
       </div>
 
-      {/* Deliveries Table (using a custom table structure) */}
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      {/* Deliveries Grid (Card Design) */}
+      <div className="max-w-7xl mx-auto">
         {deliveriesError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg m-4">
-            {(deliveriesError as any).data?.detail || 'Failed to fetch deliveries'}
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {(deliveriesError as any).data?.detail ||
+              "Failed to fetch deliveries"}
           </div>
         )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {deliveriesData?.results?.length === 0 ? (
+            <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center text-gray-500">
+              No deliveries found.
+            </div>
+          ) : (
+            deliveriesData?.results.map((delivery: Delivery) => {
+              const deliveryPersonName =
+                delivery.delivery_person?.username || "Unassigned";
+              const deliveryPersonInitials = delivery.delivery_person?.username
+                ? delivery.delivery_person.username.charAt(0).toUpperCase()
+                : "?";
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-              <tr>
-                {tableColumns.map((col) => (
-                  <th
-                    key={col.field}
-                    scope="col"
-                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-indigo-700' : ''}`}
-                    onClick={() => col.sortable && handleSortChange(col.field)}
-                  >
-                    <div className="flex items-center">
-                      {col.name}
-                      {sortModel[0]?.field === col.field && (
-                        <span className="ml-2">
-                          {sortModel[0]?.sort === 'asc' ? '↑' : '↓'}
+              return (
+                <div
+                  key={delivery.id}
+                  className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          {deliveryPersonInitials}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-1">
+                            <h3 className="font-bold text-gray-900 text-base">
+                              {deliveryPersonName}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              #{delivery.id}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2 mb-4 text-gray-600">
+                      <p className="text-sm font-medium">
+                        Order ID:{" "}
+                        <span className="font-normal">{delivery.order.id}</span>
+                      </p>
+                      <p className="text-sm font-medium">
+                        Status:{" "}
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColorClass(
+                            delivery.status
+                          )}`}
+                        >
+                          {delivery.status.replace(/_/g, " ")}
                         </span>
+                      </p>
+                      <p className="text-sm font-medium">
+                        Address:{" "}
+                        <span
+                          className="font-normal"
+                          title={delivery.delivery_address}
+                        >
+                          {shortenAddress(delivery.delivery_address)}
+                        </span>
+                      </p>
+                      {delivery.estimated_delivery_time && (
+                        <p className="text-sm font-medium">
+                          Est. Delivery:{" "}
+                          <span className="font-normal">
+                            {format(
+                              new Date(delivery.estimated_delivery_time),
+                              "PPp"
+                            )}
+                          </span>
+                        </p>
+                      )}
+                      {delivery.latitude && delivery.longitude && (
+                        <p className="text-sm font-medium">
+                          Coords:{" "}
+                          <span className="font-normal">
+                            Lat: {delivery.latitude}, Lng: {delivery.longitude}
+                          </span>
+                        </p>
                       )}
                     </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isDeliveriesLoading ? (
-                <tr>
-                  <td colSpan={tableColumns.length} className="px-6 py-4 text-center">
-                    <div className="flex justify-center items-center py-8">
-                      <div className="w-8 h-8 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => {
+                          setShowAssignModal(delivery.id);
+                          setSelectedDeliveryPersonId(
+                            delivery.delivery_person?.id?.toString() || ""
+                          );
+                        }}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Assign Delivery Person"
+                        disabled={isAssigning}
+                      >
+                        <UserPlus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowStatusModal(delivery.id);
+                          setSelectedStatus(delivery.status);
+                        }}
+                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Update Status"
+                        disabled={isStatusUpdating}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDeleteDelivery(delivery.id, delivery.status)
+                        }
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete Delivery"
+                        disabled={
+                          delivery.status !== "pending" &&
+                          delivery.status !== "cancelled"
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </td>
-                </tr>
-              ) : deliveriesData?.results.length === 0 ? (
-                <tr>
-                  <td colSpan={tableColumns.length} className="px-6 py-4 text-center text-gray-500">
-                    No deliveries found.
-                  </td>
-                </tr>
-              ) : (
-                deliveriesData?.results.map((delivery: Delivery) => (
-                  <tr key={delivery.id} className="hover:bg-gray-50 transition-colors">
-                    {tableColumns.map((col) => (
-                      <td key={col.field} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {col.render ? col.render(delivery) : (delivery as any)[col.field]}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Pagination */}
-        {deliveriesData && deliveriesData.count > pageSize && (
-          <div className="flex justify-center items-center py-4 bg-gray-50 border-t border-gray-200">
+        {deliveriesData?.count > pageSize && (
+          <div className="flex justify-center mt-6">
             <button
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={page === 1}
-              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="px-3 py-1 mx-1 bg-blue-600 text-white rounded-lg text-sm">
+            <span className="px-4 py-2 mx-1 bg-blue-600 text-white rounded-lg">
               {page}
             </span>
             <button
               onClick={() => setPage((prev) => prev + 1)}
               disabled={page * pageSize >= deliveriesData.count}
-              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
         )}
       </div>
-
 
       {/* Create Delivery Modal */}
       {showCreateModal && (
@@ -412,7 +507,9 @@ const DeliveryManagement: React.FC = () => {
             style={{ marginTop: "10vh" }}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Create New Delivery</h2>
+              <h2 className="text-xl font-bold text-white">
+                Create New Delivery
+              </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
@@ -420,7 +517,10 @@ const DeliveryManagement: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateDeliverySubmit} className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            <form
+              onSubmit={handleCreateDeliverySubmit}
+              className="p-4 space-y-4 max-h-[60vh] overflow-y-auto"
+            >
               <input
                 type="number"
                 name="order_id"
@@ -506,7 +606,9 @@ const DeliveryManagement: React.FC = () => {
             style={{ marginTop: "10vh" }}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Assign Delivery Person</h2>
+              <h2 className="text-xl font-bold text-white">
+                Assign Delivery Person
+              </h2>
               <button
                 onClick={() => setShowAssignModal(null)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
@@ -514,7 +616,10 @@ const DeliveryManagement: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleAssignDeliveryPersonSubmit} className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            <form
+              onSubmit={handleAssignDeliveryPersonSubmit}
+              className="p-4 space-y-4 max-h-[60vh] overflow-y-auto"
+            >
               <select
                 name="delivery_person_id"
                 value={selectedDeliveryPersonId}
@@ -565,7 +670,9 @@ const DeliveryManagement: React.FC = () => {
             style={{ marginTop: "10vh" }}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Update Delivery Status</h2>
+              <h2 className="text-xl font-bold text-white">
+                Update Delivery Status
+              </h2>
               <button
                 onClick={() => setShowStatusModal(null)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
@@ -573,7 +680,10 @@ const DeliveryManagement: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateStatusSubmit} className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            <form
+              onSubmit={handleUpdateStatusSubmit}
+              className="p-4 space-y-4 max-h-[60vh] overflow-y-auto"
+            >
               <select
                 name="status"
                 value={selectedStatus}

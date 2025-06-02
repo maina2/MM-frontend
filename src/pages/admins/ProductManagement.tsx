@@ -193,8 +193,8 @@ const ProductManagement = () => {
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-16 py-4 sm:py-0"> {/* Changed to flex-col on mobile */}
+            <div className="flex items-center space-x-3 mb-4 sm:mb-0">
               <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
                 <svg
                   className="w-6 h-6 text-white"
@@ -212,9 +212,10 @@ const ProductManagement = () => {
               </div>
               <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             </div>
+            {/* Add Product Button */}
             <button
               onClick={handleModalOpen}
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto" // Added w-full for mobile
             >
               <Plus className="w-4 h-4" />
               <span>Add Product</span>
@@ -365,8 +366,7 @@ const ProductManagement = () => {
                 </div>
               </div>
             </div>
-          ))
-          }
+          ))}
         </div>
       </div>
 
