@@ -128,3 +128,10 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+
+export interface StatsResponse {
+  users: number;
+  products: number;
+  orders: number;
+}

@@ -25,8 +25,8 @@ import {
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
-} from "../../api/apiSlice"; // Adjust path as needed
-import type { User } from "../../types"; // User type for API data
+} from "../../api/apiSlice"; 
+import type { User } from "../../types"; 
 
 const UserManagement = () => {
   const [page, setPage] = useState(1);

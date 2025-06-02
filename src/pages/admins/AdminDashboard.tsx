@@ -1,9 +1,11 @@
 import React from "react";
 import { useAppSelector } from "../../store/hooks";
+import { useGetAdminStatsQuery } from "../../api/apiSlice";
 import { FaUsers, FaBox, FaShoppingCart } from "react-icons/fa";
 
 const AdminDashboard: React.FC = () => {
   const { user, token } = useAppSelector((state) => state.auth);
+  const { data: stats, isLoading, error } = useGetAdminStatsQuery();
 
   // Authentication and authorization check
   if (!token || !user) {
@@ -28,16 +30,28 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <p className="text-red-600 text-center">Error loading stats. Please try again.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
       <main>
         {/* Welcome Section */}
         <div className="mb-10 text-center">
-          <img
-            src="/path/to/muindi-mweusi-logo.png"
-            alt="Muindi Mweusi"
-            className="h-16 mx-auto mb-4"
-          />
+ 
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome, {user.name || "Admin"}!
           </h1>
@@ -55,7 +69,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h3 className="text-gray-500 text-sm font-medium">Total Customers</h3>
-                <p className="text-2xl font-semibold text-gray-900">1,248</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats?.users || 0}</p>
               </div>
             </div>
           </div>
@@ -66,7 +80,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h3 className="text-gray-500 text-sm font-medium">Products</h3>
-                <p className="text-2xl font-semibold text-gray-900">342</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats?.products || 0}</p>
               </div>
             </div>
           </div>
@@ -77,7 +91,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h3 className="text-gray-500 text-sm font-medium">Orders</h3>
-                <p className="text-2xl font-semibold text-gray-900">87</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats?.orders || 0}</p>
               </div>
             </div>
           </div>

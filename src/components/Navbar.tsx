@@ -35,7 +35,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Desktop Navbar - REMOVED overflow-hidden */}
+      {/* Desktop Navbar */}
       <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
@@ -70,7 +70,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            <SearchBar />
+            {role === "customer" && <SearchBar />} {/* Show SearchBar only for customers */}
             {role === "customer" && (
               <Link to="/cart" className="relative hover:text-primary transition-colors">
                 <FaShoppingCart size={20} />
@@ -87,16 +87,15 @@ const Navbar: React.FC = () => {
                   <FaUser size={20} />
                   <span className="text-sm">{user?.username || "Account"}</span>
                 </button>
-                {/* Enhanced dropdown with better positioning and higher z-index */}
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[10000] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
-                  <Link 
-                    to="/profile" 
+                  <Link
+                    to="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
                     My Profile
                   </Link>
-                  <Link 
-                    to="/orders" 
+                  <Link
+                    to="/orders"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
                     My Orders
@@ -124,7 +123,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Top Bar - REMOVED overflow-x-hidden */}
+      {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
@@ -146,12 +145,14 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className="mt-3">
-          <SearchBar />
-        </div>
+        {role === "customer" && (
+          <div className="mt-3">
+            <SearchBar />
+          </div>
+        )} {/* Show SearchBar only for customers */}
       </div>
 
-      {/* Mobile Bottom Navigation - REMOVED overflow-x-hidden */}
+      {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white text-gray-700 shadow-[0_-1px_3px_rgba(0,0,0,0.1)] z-[1200]">
         {role === "admin" ? (
           <div className="grid grid-cols-5 gap-1 py-2 px-2">

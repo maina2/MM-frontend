@@ -10,6 +10,7 @@ import {
   Payment,
   Delivery,
   Branch,
+  StatsResponse,
 } from "../types";
 import { RootState } from "../store/store";
 
@@ -223,7 +224,7 @@ export const apiSlice = createApi({
     }),
     getOrder: builder.query<Order, number>({
       query: (orderId) => `orders-details/${orderId}/`,
-      providesTags: (result, error, id) => [{ type: 'Orders', id }],
+      providesTags: (result, error, id) => [{ type: "Orders", id }],
     }),
     checkout: builder.mutation<
       {
@@ -353,6 +354,10 @@ export const apiSlice = createApi({
       invalidatesTags: ["Users"],
     }),
 
+    getAdminStats: builder.query<StatsResponse, void>({
+      query: () => "users/manage/stats/",
+    }),
+
     // Branch Endpoints
     getBranches: builder.query<Branch[], void>({
       query: () => "branches/",
@@ -478,87 +483,87 @@ export const apiSlice = createApi({
       invalidatesTags: ["Products"],
     }),
 
-// Order Admin Endpoints - FIXED VERSION
-getAdminOrders: builder.query<
-  {
-    count: number;
-    next: string | null;
-    previous: string | null;
-    results: Order[];
-  },
-  {
-    page?: number;
-    status?: string;
-    payment_status?: string;
-    search?: string;
-    ordering?: string;
-  }
->({
-  query: ({ page = 1, status, payment_status, search, ordering }) => {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      page_size: "12",
-    });
-    if (status) params.append("status", status);
-    if (payment_status) params.append("payment_status", payment_status);
-    if (search) params.append("search", search);
-    if (ordering) params.append("ordering", ordering);
-    return `manage/orders/?${params.toString()}`;
-  },
-  providesTags: ["Orders"],
-  // REMOVED transformResponse - API already returns correct format
-}),
+    // Order Admin Endpoints - FIXED VERSION
+    getAdminOrders: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Order[];
+      },
+      {
+        page?: number;
+        status?: string;
+        payment_status?: string;
+        search?: string;
+        ordering?: string;
+      }
+    >({
+      query: ({ page = 1, status, payment_status, search, ordering }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          page_size: "12",
+        });
+        if (status) params.append("status", status);
+        if (payment_status) params.append("payment_status", payment_status);
+        if (search) params.append("search", search);
+        if (ordering) params.append("ordering", ordering);
+        return `manage/orders/?${params.toString()}`;
+      },
+      providesTags: ["Orders"],
+      // REMOVED transformResponse - API already returns correct format
+    }),
 
-getAdminOrder: builder.query<Order, number>({
-  query: (id) => `manage/orders/${id}/`,
-  providesTags: ["Orders"],
-  // REMOVED transformResponse - API already returns correct format
-}),
+    getAdminOrder: builder.query<Order, number>({
+      query: (id) => `manage/orders/${id}/`,
+      providesTags: ["Orders"],
+      // REMOVED transformResponse - API already returns correct format
+    }),
 
-createAdminOrder: builder.mutation<
-  Order,
-  {
-    payment_phone_number?: string;
-    status?: string;
-    payment_status?: string;
-    items: { product_id: number; quantity: number }[];
-  }
->({
-  query: (data) => ({
-    url: "manage/orders/",
-    method: "POST",
-    body: data,
-  }),
-  invalidatesTags: ["Orders"],
-  // REMOVED transformResponse - API already returns correct format
-}),
+    createAdminOrder: builder.mutation<
+      Order,
+      {
+        payment_phone_number?: string;
+        status?: string;
+        payment_status?: string;
+        items: { product_id: number; quantity: number }[];
+      }
+    >({
+      query: (data) => ({
+        url: "manage/orders/",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Orders"],
+      // REMOVED transformResponse - API already returns correct format
+    }),
 
-updateAdminOrder: builder.mutation<
-  Order,
-  {
-    id: number;
-    status?: string;
-    payment_status?: string;
-    payment_phone_number?: string;
-    items?: { product_id: number; quantity: number }[];
-  }
->({
-  query: ({ id, ...data }) => ({
-    url: `manage/orders/${id}/`,
-    method: "PUT",
-    body: data,
-  }),
-  invalidatesTags: ["Orders"],
-  // REMOVED transformResponse - API already returns correct format
-}),
+    updateAdminOrder: builder.mutation<
+      Order,
+      {
+        id: number;
+        status?: string;
+        payment_status?: string;
+        payment_phone_number?: string;
+        items?: { product_id: number; quantity: number }[];
+      }
+    >({
+      query: ({ id, ...data }) => ({
+        url: `manage/orders/${id}/`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Orders"],
+      // REMOVED transformResponse - API already returns correct format
+    }),
 
-deleteAdminOrder: builder.mutation<void, number>({
-  query: (id) => ({
-    url: `manage/orders/${id}/`,
-    method: "DELETE",
-  }),
-  invalidatesTags: ["Orders"],
-}),
+    deleteAdminOrder: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `manage/orders/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Orders"],
+    }),
 
     // Payment Admin Endpoints
     getAdminPayments: builder.query<
@@ -704,7 +709,8 @@ deleteAdminOrder: builder.mutation<void, number>({
             order: {
               ...delivery.order,
               customer: {
-                username: delivery.order.customer?.username || delivery.order.customer,
+                username:
+                  delivery.order.customer?.username || delivery.order.customer,
                 id: delivery.order.customer?.id || 0,
                 email: delivery.order.customer?.email || "",
                 role: "customer",
@@ -722,7 +728,8 @@ deleteAdminOrder: builder.mutation<void, number>({
         order: {
           ...delivery.order,
           customer: {
-            username: delivery.order.customer?.username || delivery.order.customer,
+            username:
+              delivery.order.customer?.username || delivery.order.customer,
             id: delivery.order.customer?.id || 0,
             email: delivery.order.customer?.email || "",
             role: "customer",
@@ -817,10 +824,13 @@ deleteAdminOrder: builder.mutation<void, number>({
       }) => response,
     }),
     // Delivery Person Endpoints
-      postOptimizeRoute: builder.mutation<OptimizeRouteResponse, OptimizeRouteRequest>({
+    postOptimizeRoute: builder.mutation<
+      OptimizeRouteResponse,
+      OptimizeRouteRequest
+    >({
       query: (body) => ({
-        url: '/delivery-person/optimize-route/',
-        method: 'POST',
+        url: "/delivery-person/optimize-route/",
+        method: "POST",
         body,
       }),
     }),
@@ -834,10 +844,10 @@ deleteAdminOrder: builder.mutation<void, number>({
       { page?: number; page_size?: number }
     >({
       query: ({ page = 1, page_size = 10 } = {}) => ({
-        url: 'delivery/tasks/',
+        url: "delivery/tasks/",
         params: { page, page_size },
       }),
-      providesTags: ['Deliveries'],
+      providesTags: ["Deliveries"],
       transformResponse: (response: {
         count: number;
         next: string | null;
@@ -847,7 +857,7 @@ deleteAdminOrder: builder.mutation<void, number>({
     }),
     getDeliveryTaskDetail: builder.query<Delivery, number>({
       query: (id) => `delivery/tasks/${id}/detail/`,
-      providesTags: (result, error, id) => [{ type: 'Deliveries', id }],
+      providesTags: (result, error, id) => [{ type: "Deliveries", id }],
     }),
     updateDeliveryTask: builder.mutation<
       Delivery,
@@ -858,7 +868,7 @@ deleteAdminOrder: builder.mutation<void, number>({
     >({
       query: ({ id, ...data }) => ({
         url: `delivery/tasks/${id}/update/`,
-        method: 'PATCH',
+        method: "PATCH",
         body: data,
       }),
 
@@ -885,6 +895,7 @@ export const {
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
+  useGetAdminStatsQuery,
   useGetBranchesQuery,
   useGetAdminBranchesQuery,
   useCreateAdminBranchMutation,
@@ -907,7 +918,7 @@ export const {
   useUpdateAdminDeliveryMutation,
   useDeleteAdminDeliveryMutation,
   useAssignDeliveryPersonMutation,
-  useUpdateDeliveryStatusMutation, 
+  useUpdateDeliveryStatusMutation,
   usePostOptimizeRouteMutation,
   useGetDeliveryTasksQuery,
   useGetDeliveryTaskDetailQuery,
