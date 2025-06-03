@@ -10,6 +10,7 @@ export interface User {
   email: string;
   phone_number?: string | null;
   role: Role;
+  password?: string; 
 }
 
 // Category and Branch types (used in Product and Order)

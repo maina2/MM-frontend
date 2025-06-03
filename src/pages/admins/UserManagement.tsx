@@ -12,7 +12,7 @@ import {
   Phone,
   Shield,
   Truck,
-  User as UserIcon, // Aliased to avoid conflict
+  User as UserIcon,
   Eye,
   EyeOff,
   AlertCircle,
@@ -25,8 +25,8 @@ import {
   useCreateAdminUserMutation,
   useUpdateAdminUserMutation,
   useDeleteAdminUserMutation,
-} from "../../api/apiSlice"; 
-import type { User } from "../../types"; 
+} from "../../api/apiSlice";
+import type { User, Role } from "../../types";
 
 const UserManagement = () => {
   const [page, setPage] = useState(1);
@@ -60,7 +60,6 @@ const UserManagement = () => {
     Partial<Record<keyof typeof formData, string>>
   >({});
 
-  // Fetch users with pagination
   const {
     data: usersData,
     isLoading: isUsersLoading,
@@ -68,7 +67,6 @@ const UserManagement = () => {
     error: usersError,
   } = useGetAdminUsersQuery({ page, page_size: pageSize });
 
-  // Mutations
   const [createUser, { isLoading: isCreating }] = useCreateAdminUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateAdminUserMutation();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteAdminUserMutation();
@@ -92,7 +90,7 @@ const UserManagement = () => {
       label: "Delivery",
     },
     customer: {
-      icon: UserIcon, 
+      icon: UserIcon,
       color: "text-green-700",
       bg: "bg-green-100",
       border: "border-green-200",
@@ -162,12 +160,19 @@ const UserManagement = () => {
 
     try {
       if (isEditMode && formData.id) {
-        const updatePayload: Partial<User> & { id: number } = {
+        const updatePayload: {
+          id: number;
+          username?: string;
+          email?: string;
+          role?: Role;
+          phone_number?: string;
+          password?: string;
+        } = {
           id: formData.id,
           username: formData.username,
           email: formData.email,
-          role: formData.role as "admin" | "delivery" | "customer",
-          phone_number: formData.phone_number || null,
+          role: formData.role as Role,
+          phone_number: formData.phone_number || undefined,
         };
         if (formData.password) updatePayload.password = formData.password;
         await updateUser(updatePayload).unwrap();
@@ -177,8 +182,8 @@ const UserManagement = () => {
           username: formData.username,
           email: formData.email,
           password: formData.password!,
-          role: formData.role as "admin" | "delivery" | "customer",
-          phone_number: formData.phone_number || null,
+          role: formData.role as Role,
+          phone_number: formData.phone_number || undefined,
         };
         await createUser(createPayload).unwrap();
         showNotification("User created successfully!");
@@ -329,7 +334,6 @@ const UserManagement = () => {
                   className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="p-4">
-                    {/* Header Section: Initials, Username, ID, and Role */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3 flex-1">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
@@ -351,7 +355,6 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    {/* Details Section: Email and Phone */}
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -365,7 +368,6 @@ const UserManagement = () => {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => handleOpenEditModal(user)}
@@ -401,7 +403,6 @@ const UserManagement = () => {
               </div>
             )}
 
-            {/* Pagination */}
             {usersData && usersData.count > 0 && (
               <div className="flex items-center justify-between mt-8">
                 <button
@@ -438,7 +439,6 @@ const UserManagement = () => {
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-auto"
             style={{ marginTop: "8.6rem" }}
           >
-            {/* Modal Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 {isEditMode ? "Edit User" : "Create New User"}
@@ -452,7 +452,6 @@ const UserManagement = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 space-y-4 overflow-y-auto max-h-[50vh]">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -589,7 +588,6 @@ const UserManagement = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3">
               <button
                 onClick={() => setIsModalOpen(false)}

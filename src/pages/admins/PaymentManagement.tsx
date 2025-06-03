@@ -6,7 +6,7 @@ import {
   useDeleteAdminPaymentMutation,
 } from '../../api/apiSlice';
 import {
-  Edit3, // Lucide icon for Edit
+  Edit3,// Lucide icon for Edit
   Trash2, // Lucide icon for Delete
   Save, // Lucide icon for Save
   X // Lucide icon for Close
