@@ -37,7 +37,7 @@ export interface Product {
   description: string;
   price: string | number; 
   stock: number;
-  category: Category | number;
+  category: Category ;
   branch: Branch | number;
   image: string | null;
   created_at: string;

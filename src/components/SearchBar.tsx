@@ -15,14 +15,24 @@ import { FaSearch, FaTimes } from "react-icons/fa";
 import { useTheme } from "@mui/material/styles";
 import { useSearchProductsQuery } from "../api/apiSlice";
 import ProductCard from "./ProductCard";
-import debounce from "lodash.debounce";
+
+// Create a simple debounce function instead of importing lodash.debounce
+const useDebounce = (callback: (value: string) => void, delay: number) => {
+  return useCallback(
+    (...args: [string]) => {
+      const handler = setTimeout(() => callback(...args), delay);
+      return () => clearTimeout(handler);
+    },
+    [callback, delay]
+  );
+};
 
 const SearchBar: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams(); // Removed unused setSearchParams
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // Removed unused anchorEl state
   const [recentSearches, setRecentSearches] = useState<string[]>(() =>
     JSON.parse(localStorage.getItem("recentSearches") || "[]")
   );
@@ -35,19 +45,19 @@ const SearchBar: React.FC = () => {
     { skip: !query }
   );
 
-  const debouncedSetQuery = useCallback(
-    debounce((value: string) => {
-      setQuery(value);
-      if (value) setOpen(true);
-    }, 500),
-    []
-  );
+  // Fixed debounce implementation
+  const debouncedCallback = useCallback((value: string) => {
+    setQuery(value);
+    if (value) setOpen(true);
+  }, []);
+
+  const debouncedSetQuery = useDebounce(debouncedCallback, 500);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     debouncedSetQuery(value);
-    setAnchorEl(e.currentTarget);
+    // Removed anchorEl setting since it's not used
     if (!value) setOpen(false);
   };
 
@@ -77,9 +87,10 @@ const SearchBar: React.FC = () => {
     setOpen(false);
   };
 
+  // Fixed useEffect with proper dependencies
   useEffect(() => {
     if (query && !open) setOpen(true);
-  }, [query]);
+  }, [query, open]);
 
   const renderDropdown = () => (
     <Paper
@@ -139,8 +150,8 @@ const SearchBar: React.FC = () => {
         <TextField
           value={query}
           onChange={handleInputChange}
-          onFocus={(e) => {
-            setAnchorEl(e.currentTarget);
+          onFocus={() => {
+            // Removed anchorEl setting since it's not used
             setOpen(true);
           }}
           placeholder="Search for products..."
