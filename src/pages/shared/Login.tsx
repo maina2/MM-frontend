@@ -55,7 +55,7 @@ const Login: React.FC = () => {
       else if (user.role === "admin") navigate("/admin");
       else if (user.role === "delivery") navigate("/delivery/tasks");
       else navigate("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data?.detail || err.response.data?.error || "Invalid username or password.");
       } else {

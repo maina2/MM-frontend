@@ -1,8 +1,7 @@
-import  { useState } from "react";
+import { useState, FormEvent, ChangeEvent, MouseEvent } from "react";
 import { LogOut, Save } from "lucide-react";
 
 const ProfileComponent = () => {
-  // Mock data for demonstration purposes
   const [profile, setProfile] = useState({
     username: "johndoe",
     email: "john.doe@example.com",
@@ -17,7 +16,6 @@ const ProfileComponent = () => {
   const [formErrors, setFormErrors] = useState({ email: "", phone_number: "" });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [updateError, setUpdateError] = useState(null);
 
   const validateForm = () => {
     let valid = true;
@@ -41,18 +39,16 @@ const ProfileComponent = () => {
     return valid;
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       setIsUpdating(true);
-
-      // Simulate API call
       setTimeout(() => {
         setProfile({
           ...profile,
@@ -61,14 +57,13 @@ const ProfileComponent = () => {
         });
         setIsUpdating(false);
         setIsSuccess(true);
-
-        // Clear success message after 3 seconds
         setTimeout(() => setIsSuccess(false), 3000);
       }, 1000);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     alert("Logout clicked");
   };
 
@@ -94,7 +89,6 @@ const ProfileComponent = () => {
 
         {/* Content */}
         <div className="p-6 relative">
-          {/* Decorative elements */}
           <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-accent/5"></div>
           <div className="absolute -left-12 -bottom-12 w-32 h-32 rounded-full bg-secondary/5"></div>
 
@@ -113,24 +107,7 @@ const ProfileComponent = () => {
             </div>
           )}
 
-          {updateError && (
-            <div className="mb-6 bg-error/10 border-l-4 border-error p-4 rounded-md animate-slideUp">
-              <div className="flex">
-                <div className="flex-shrink-0 text-error">
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-error font-medium">
-                    Update failed: {updateError || "Unknown error"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-6 relative z-10">
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             {/* Username field */}
             <div className="relative transform hover:-translate-y-1 transition-transform duration-300">
               <input
@@ -181,7 +158,7 @@ const ProfileComponent = () => {
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={isUpdating}
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-secondary to-accent text-white font-medium rounded-lg text-sm px-6 py-3 w-full sm:w-auto transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 hover:scale-105"
               >
@@ -193,6 +170,7 @@ const ProfileComponent = () => {
                 Save Changes
               </button>
               <button
+                type="button"
                 onClick={handleLogout}
                 className="flex items-center justify-center gap-2 border-2 border-error text-error hover:bg-error hover:text-white font-medium rounded-lg text-sm px-6 py-3 w-full sm:w-auto transition-all duration-300 hover:shadow-md transform hover:-translate-y-1"
               >
@@ -200,7 +178,7 @@ const ProfileComponent = () => {
                 Logout
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

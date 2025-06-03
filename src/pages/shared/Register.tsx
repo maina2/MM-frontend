@@ -106,7 +106,7 @@ const Register: React.FC = () => {
                 <FiAlertTriangle className="text-red-600" size={16} />
                 <span>
                   {"data" in error
-                    ? (error as any).data?.detail || "Registration failed"
+                    ? (error as { data?: { detail?: string } }).data?.detail || "Registration failed"
                     : "Registration failed"}
                 </span>
               </motion.div>
