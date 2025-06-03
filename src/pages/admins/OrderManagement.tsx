@@ -8,29 +8,24 @@ import {
 } from '../../api/apiSlice';
 import { Edit3, Trash2, Plus, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { Order, Product, OrderItem } from '../../types';
+import { Order, Product } from '../../types';
 
 const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-const paymentStatusOptions = ['unpaid', 'paid', 'failed', 'pending'];
 const pageSize = 12;
 
 const OrderManagement = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [isCreate, setIsCreate] = useState(false);
   const [editOrder, setEditOrder] = useState<Order | null>(null);
-  const [sortModel, setSortModel] = useState<{ field: string; sort: 'asc' | 'desc' }[]>([]);
   const [formData, setFormData] = useState<{
     status: string;
-    payment_status: string;
     payment_phone_number: string;
     items: { product_id: string; quantity: string }[];
   }>({
     status: '',
-    payment_status: '',
     payment_phone_number: '',
     items: [{ product_id: '', quantity: '' }],
   });
@@ -39,9 +34,7 @@ const OrderManagement = () => {
   const { data: ordersData, isLoading, error } = useGetAdminOrdersQuery({
     page,
     status: statusFilter || undefined,
-    payment_status: paymentStatusFilter || undefined,
     search: search || undefined,
-    ordering: sortModel[0] ? `${sortModel[0].sort === 'desc' ? '-' : ''}${sortModel[0].field}` : undefined,
   });
   const { data: productsData, isLoading: areProductsLoading } = useGetAdminProductsQuery({});
   const [createOrder, { isLoading: isCreating }] = useCreateAdminOrderMutation();
@@ -53,7 +46,6 @@ const OrderManagement = () => {
     setIsCreate(false);
     setFormData({
       status: order.status,
-      payment_status: order.payment_status,
       payment_phone_number: order.payment_phone_number || '',
       items: order.items.map((item) => ({
         product_id: item.product.id.toString(),
@@ -82,7 +74,6 @@ const OrderManagement = () => {
     setEditOrder(null);
     setFormData({
       status: 'pending',
-      payment_status: 'unpaid',
       payment_phone_number: '',
       items: [{ product_id: '', quantity: '' }],
     });
@@ -123,8 +114,8 @@ const OrderManagement = () => {
       e.preventDefault();
       setFormError('');
 
-      if (!formData.status || !formData.payment_status) {
-        setFormError('Status and payment status are required');
+      if (!formData.status) {
+        setFormError('Status is required');
         return;
       }
       if (formData.payment_phone_number && !/^\+2547[0-9]{8}$/.test(formData.payment_phone_number)) {
@@ -141,24 +132,25 @@ const OrderManagement = () => {
         }
       }
 
-      const payload = {
-        status: formData.status,
-        payment_status: formData.payment_status,
-        payment_phone_number: formData.payment_phone_number || undefined,
-        items: isCreate
-          ? formData.items.map((item) => ({
-              product_id: Number(item.product_id),
-              quantity: Number(item.quantity),
-            }))
-          : undefined,
-      };
-
       try {
         if (isCreate) {
-          await createOrder(payload).unwrap();
+          const createPayload = {
+            status: formData.status,
+            payment_phone_number: formData.payment_phone_number || undefined,
+            items: formData.items.map((item) => ({
+              product_id: Number(item.product_id),
+              quantity: Number(item.quantity),
+            })),
+          };
+          await createOrder(createPayload).unwrap();
           alert('Order created successfully!');
         } else if (editOrder) {
-          await updateOrder({ id: editOrder.id, ...payload }).unwrap();
+          const updatePayload = {
+            id: editOrder.id,
+            status: formData.status,
+            payment_phone_number: formData.payment_phone_number || undefined,
+          };
+          await updateOrder(updatePayload).unwrap();
           alert('Order updated successfully!');
         }
         handleModalClose();
@@ -174,17 +166,8 @@ const OrderManagement = () => {
     setPage(1);
   }, []);
 
-  const handleFilterChange = useCallback(
-    (field: 'status' | 'payment_status') => (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (field === 'status') setStatusFilter(e.target.value || '');
-      else setPaymentStatusFilter(e.target.value || '');
-      setPage(1);
-    },
-    []
-  );
-
-  const handleSortModelChange = useCallback((model: { field: string; sort: 'asc' | 'desc' }[]) => {
-    setSortModel(model);
+  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatusFilter(e.target.value || '');
     setPage(1);
   }, []);
 
@@ -195,9 +178,6 @@ const OrderManagement = () => {
       </div>
     );
   }
-
-  // Log raw ordersData
-  console.log('[Orders Data]', JSON.stringify(ordersData, null, 2));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
@@ -265,23 +245,11 @@ const OrderManagement = () => {
             </svg>
             <select
               value={statusFilter}
-              onChange={handleFilterChange('status')}
+              onChange={handleFilterChange}
               className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">All Statuses</option>
               {statusOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                </option>
-              ))}
-            </select>
-            <select
-              value={paymentStatusFilter}
-              onChange={handleFilterChange('payment_status')}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            >
-              <option value="">All Payment Statuses</option>
-              {paymentStatusOptions.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt.charAt(0).toUpperCase() + opt.slice(1)}
                 </option>
@@ -300,16 +268,14 @@ const OrderManagement = () => {
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {ordersData?.results?.map((order: Order) => {
-            // Debug logging
-
-
-            // Robust customer name and initials
-            const customerName = typeof order.customer?.username === 'string' && order.customer.username
-              ? order.customer.username
-              : 'Unknown';
-            const initials = typeof order.customer?.username === 'string' && order.customer.username.length > 0
-              ? order.customer.username.charAt(0).toUpperCase()
-              : '?';
+            const customerName =
+              typeof order.customer?.username === 'string' && order.customer.username
+                ? order.customer.username
+                : 'Unknown';
+            const initials =
+              typeof order.customer?.username === 'string' && order.customer.username.length > 0
+                ? order.customer.username.charAt(0).toUpperCase()
+                : '?';
 
             return (
               <div
@@ -324,7 +290,7 @@ const OrderManagement = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-1">
-                          <h3 className="font-bold text-gray-900 text-base"> {customerName}</h3>
+                          <h3 className="font-bold text-gray-900 text-base">{customerName}</h3>
                           <span className="text-xs text-gray-500">#{order.id}</span>
                         </div>
                       </div>
@@ -336,9 +302,6 @@ const OrderManagement = () => {
                     </p>
                     <p className="text-sm font-medium">
                       Status: <span className="font-normal capitalize">{order.status}</span>
-                    </p>
-                    <p className="text-sm font-medium">
-                      Payment: <span className="font-normal capitalize">{order.payment_status}</span>
                     </p>
                     <p className="text-sm font-medium">
                       Date: <span className="font-normal">{format(new Date(order.created_at), 'MM/dd/yyyy')}</span>
@@ -424,119 +387,110 @@ const OrderManagement = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
-              {formError && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">{formError}</div>
-              )}
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                required
-              >
-                <option value="">Select Status</option>
-                {statusOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="payment_status"
-                value={formData.payment_status}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                required
-              >
-                <option value="">Select Payment Status</option>
-                {paymentStatusOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="payment_phone_number"
-                value={formData.payment_phone_number}
-                onChange={handleFormChange}
-                placeholder="Payment Phone Number (+2547XXXXXXXX)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-              />
-              {isCreate && (
-                <>
-                  <p className="text-lg font-medium text-gray-800 pt-2">Order Items</p>
-                  {formData.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col sm:flex-row gap-2 items-center mb-2 p-2 border border-gray-200 rounded-lg"
-                    >
-                      <select
-                        name="product_id"
-                        value={item.product_id}
-                        onChange={(e) => handleFormChange(e, index)}
-                        className="flex-1 w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                        required
-                      >
-                        <option value="">Select Product</option>
-                        {productsData?.results?.map((product: Product) => (
-                          <option key={product.id} value={product.id}>
-                            {product.name}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        placeholder="Quantity"
-                        name="quantity"
-                        value={item.quantity}
-                        onChange={(e) => handleFormChange(e, index)}
-                        className="w-full sm:w-24 px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                        min="1"
-                        required
-                      />
-                      <button
-                        onClick={() => handleRemoveItem(index)}
-                        disabled={formData.items.length === 1}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Remove Item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+            <form onSubmit={handleSubmit}>
+              <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                {formError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">{formError}</div>
+                )}
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                  required
+                >
+                  <option value="">Select Status</option>
+                  {statusOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                    </option>
                   ))}
-                  <button
-                    onClick={handleAddItem}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Item</span>
-                  </button>
-                </>
-              )}
-            </div>
-            <div className="bg-gray-50 px-4 py-3 flex items-center justify-end space-x-3">
-              <button
-                onClick={handleModalClose}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isCreating || isUpdating}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 transition-all"
-              >
-                {isCreating || isUpdating ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
+                </select>
+                <input
+                  type="text"
+                  name="payment_phone_number"
+                  value={formData.payment_phone_number}
+                  onChange={handleFormChange}
+                  placeholder="Phone Number (+2547XXXXXXXX)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                />
+                {isCreate && (
                   <>
-                    <Save className="w-4 h-4" />
-                    <span>{isCreate ? 'Create' : 'Update'}</span>
+                    <p className="text-lg font-medium text-gray-800 pt-2">Order Items</p>
+                    {formData.items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col sm:flex-row gap-2 items-center mb-2 p-2 border border-gray-200 rounded-lg"
+                      >
+                        <select
+                          name="product_id"
+                          value={item.product_id}
+                          onChange={(e) => handleFormChange(e, index)}
+                          className="flex-1 w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                          required
+                        >
+                          <option value="">Select Product</option>
+                          {productsData?.results?.map((product: Product) => (
+                            <option key={product.id} value={product.id}>
+                              {product.name}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          placeholder="Quantity"
+                          name="quantity"
+                          value={item.quantity}
+                          onChange={(e) => handleFormChange(e, index)}
+                          className="w-full sm:w-24 px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                          min="1"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(index)}
+                          disabled={formData.items.length === 1}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Remove Item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="flex items-center justify-end space-x-2 px-2 py-2 text-gray-600 rounded-lg transition-colors"
+                    >
+                      <Plus className="w-4 h-2" />
+                    </button>
                   </>
                 )}
-              </button>
-            </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className="px-2 py-2 text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating || isUpdating}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-40"
+                >
+                  {isCreating || isUpdating ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>{isCreate ? 'Create' : 'Update'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

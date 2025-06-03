@@ -1,4 +1,3 @@
-// src/components/admin/PaymentManagement.tsx
 import { useState, useCallback } from 'react';
 import {
   useGetAdminPaymentsQuery,
@@ -6,11 +5,11 @@ import {
   useDeleteAdminPaymentMutation,
 } from '../../api/apiSlice';
 import {
-  Edit3,// Lucide icon for Edit
-  Trash2, // Lucide icon for Delete
-  Save, // Lucide icon for Save
-  X // Lucide icon for Close
-} from 'lucide-react'; // Import Lucide icons
+  Edit3,
+  Trash2,
+  Save,
+  X,
+} from 'lucide-react';
 import { Payment } from '../../types';
 import { format } from 'date-fns';
 
@@ -22,7 +21,6 @@ const PaymentManagement = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [editPayment, setEditPayment] = useState<Payment | null>(null);
-  const [sortModel, setSortModel] = useState<any>([]); // Simplified sort model type
   const [formData, setFormData] = useState({
     status: '',
     phone_number: '',
@@ -33,7 +31,6 @@ const PaymentManagement = () => {
     page,
     status: statusFilter || undefined,
     search: search || undefined,
-    ordering: sortModel[0] ? `${sortModel[0].sort === 'desc' ? '-' : ''}${sortModel[0].field}` : undefined,
   });
   const [updatePayment, { isLoading: isUpdating }] = useUpdateAdminPaymentMutation();
   const [deletePayment] = useDeleteAdminPaymentMutation();
@@ -65,7 +62,7 @@ const PaymentManagement = () => {
 
   const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name as string]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
   const handleSubmit = useCallback(
@@ -107,12 +104,6 @@ const PaymentManagement = () => {
 
   const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value || '');
-    setPage(1);
-  }, []);
-
-  // Simplified sorting for demonstration; a full DataGrid replacement would be complex
-  const handleSortModelChange = useCallback((model: any) => {
-    setSortModel(model);
     setPage(1);
   }, []);
 
@@ -222,7 +213,6 @@ const PaymentManagement = () => {
             >
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  {/* Removed the circular amount display */}
                   <div className="flex-1">
                     <h3 className="font-bold text-gray-900 text-lg">
                       Payment for Order ID: {payment.order.id}

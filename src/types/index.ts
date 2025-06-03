@@ -79,10 +79,10 @@ export interface Order {
   created_at: string;
   updated_at: string;
   items: OrderItem[];
-  branch: Branch | number;
+branch: Branch | number | string;
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'processing' | 'failed' | 'completed';
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 
 // Payment type
