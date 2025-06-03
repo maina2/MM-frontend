@@ -98,7 +98,7 @@ const CategoryDetail: React.FC = () => {
                 ? "bg-primary text-white rounded-lg"
                 : "text-gray-700"
             }`}
-            onClick={() => setViewMode("grid")}
+            onClick={toggleViewMode}
           >
             <Grid3X3 size={16} />
           </button>
@@ -108,7 +108,7 @@ const CategoryDetail: React.FC = () => {
                 ? "bg-primary text-white rounded-lg"
                 : "text-gray-700"
             }`}
-            onClick={() => setViewMode("compact")}
+            onClick={toggleViewMode}
           >
             <List size={16} />
           </button>

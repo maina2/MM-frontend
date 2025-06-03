@@ -58,13 +58,8 @@ const Products: React.FC = () => {
     // Implement wishlist functionality
   };
 
-  // Toggle view mode
-  const toggleViewMode = () => {
-    setViewMode(viewMode === "grid" ? "compact" : "grid");
-  };
-
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     const newParams = new URLSearchParams(searchParams);
@@ -168,7 +163,11 @@ const Products: React.FC = () => {
                     )}
 
                     {/* Gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div 
+                      className={`absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-300 ${
+                        hoveredProduct === product.id ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
 
                     {/* Category tag */}
                     <div className="absolute top-2 left-2">
@@ -193,6 +192,20 @@ const Products: React.FC = () => {
                         )}
                       </div>
                     )}
+
+                    {/* Wishlist button - only shown on hover */}
+                    <div 
+                      className={`absolute top-2 right-2 transition-opacity duration-300 ${
+                        hoveredProduct === product.id ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <button
+                        onClick={(e) => handleWishlist(e)}
+                        className="flex items-center justify-center rounded-full w-8 h-8 bg-white/90 text-gray-600 hover:bg-white hover:text-red-500 shadow-sm"
+                      >
+                        <Heart size={14} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Product Details */}
@@ -242,6 +255,8 @@ const Products: React.FC = () => {
               initial="hidden"
               animate="visible"
               whileHover="hover"
+              onMouseEnter={() => setHoveredProduct(product.id)}
+              onMouseLeave={() => setHoveredProduct(null)}
             >
               <Link to={`/products/${product.id}`} className="block h-full">
                 <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex w-full">
@@ -266,6 +281,20 @@ const Products: React.FC = () => {
                       <span className="text-xs font-medium bg-white/90 text-primary px-1.5 py-0.5 rounded-full shadow-sm truncate max-w-16 sm:max-w-20">
                         {product.category.name}
                       </span>
+                    </div>
+
+                    {/* Wishlist button for compact view */}
+                    <div 
+                      className={`absolute top-1 right-1 transition-opacity duration-300 ${
+                        hoveredProduct === product.id ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <button
+                        onClick={(e) => handleWishlist(e)}
+                        className="flex items-center justify-center rounded-full w-6 h-6 bg-white/90 text-gray-600 hover:bg-white hover:text-red-500 shadow-sm"
+                      >
+                        <Heart size={12} />
+                      </button>
                     </div>
                   </div>
 
@@ -304,25 +333,17 @@ const Products: React.FC = () => {
                         KSh {Number(product.price).toLocaleString()}
                       </p>
 
-                      <div className="flex gap-1 sm:gap-2">
-                        <button
-                          onClick={(e) => handleWishlist(e)}
-                          className="flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        >
-                          <Heart size={12} />
-                        </button>
-                        <button
-                          onClick={(e) => handleAddToCart(product, e)}
-                          disabled={product.stock === 0}
-                          className={`flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 transition-all duration-300 ${
-                            product.stock === 0
-                              ? "bg-gray-200 cursor-not-allowed"
-                              : "bg-primary text-white hover:bg-primary/90"
-                          }`}
-                        >
-                          <ShoppingCart size={12} />
-                        </button>
-                      </div>
+                      <button
+                        onClick={(e) => handleAddToCart(product, e)}
+                        disabled={product.stock === 0}
+                        className={`flex items-center justify-center rounded-full w-7 h-7 sm:w-8 sm:h-8 transition-all duration-300 ${
+                          product.stock === 0
+                            ? "bg-gray-200 cursor-not-allowed"
+                            : "bg-primary text-white hover:bg-primary/90"
+                        }`}
+                      >
+                        <ShoppingCart size={12} />
+                      </button>
                     </div>
                   </div>
                 </div>

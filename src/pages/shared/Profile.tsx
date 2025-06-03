@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { LogOut, Save } from "lucide-react";
 
 const ProfileComponent = () => {

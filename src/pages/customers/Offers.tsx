@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Typography,
-  Grid,
   Pagination,
   Select,
   MenuItem,
@@ -22,6 +21,7 @@ import { addItem } from "../../store/cartSlice";
 import ProductCard from "../../components/ProductCard";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { Product } from "../../types";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -95,7 +95,7 @@ const Offers: React.FC = () => {
   };
 
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     const newParams = new URLSearchParams(searchParams);
@@ -241,14 +241,33 @@ const Offers: React.FC = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={3}>
+      {/* Main Layout */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 3,
+          width: "100%",
+        }}
+      >
         {/* Desktop Filters */}
-        <Grid item xs={12} md={3} sx={{ display: { xs: "none", md: "block" } }}>
+        <Box
+          sx={{
+            flex: { xs: "1 1 100%", md: "1 1 25%" }, // 3/12 = 25%
+            width: { xs: "100%", md: "25%" },
+            display: { xs: "none", md: "block" },
+          }}
+        >
           {renderFilters()}
-        </Grid>
+        </Box>
 
         {/* Products */}
-        <Grid item xs={12} md={9}>
+        <Box
+          sx={{
+            flex: { xs: "1 1 100%", md: "1 1 75%" }, // 9/12 = 75%
+            width: { xs: "100%", md: "75%" },
+          }}
+        >
           <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sort By</InputLabel>
@@ -272,9 +291,27 @@ const Offers: React.FC = () => {
           </Box>
 
           {viewMode === "grid" && (
-            <Grid container spacing={2}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               {data.results.map((product) => (
-                <Grid item xs={12} sm={6} md={4} key={product.id}>
+                <Box
+                  key={product.id}
+                  sx={{
+                    flex: {
+                      xs: "1 1 100%", // xs={12}
+                      sm: "1 1 50%", // sm={6}
+                      md: "1 1 33.333%", // md={4}
+                    },
+                    width: { xs: "100%", sm: "50%", md: "33.333%" },
+                    minWidth: 0, // Prevent overflow
+                  }}
+                >
                   <motion.div
                     variants={cardVariants}
                     initial="hidden"
@@ -287,9 +324,9 @@ const Offers: React.FC = () => {
                       showDiscount
                     />
                   </motion.div>
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           )}
 
           {viewMode === "compact" && (
@@ -321,8 +358,8 @@ const Offers: React.FC = () => {
               sx={{ mt: 4, display: "flex", justifyContent: "center" }}
             />
           )}
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       <Drawer
         anchor="left"

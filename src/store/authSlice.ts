@@ -42,13 +42,17 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ user: User; token: string; refreshToken: string }>
+      action: PayloadAction<{ user: User; token: string; refreshToken?: string }>
     ) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
-      state.refreshToken = action.payload.refreshToken;
+      state.refreshToken = action.payload.refreshToken ?? null;
       localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('refreshToken', action.payload.refreshToken);
+      if (action.payload.refreshToken) {
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
+      } else {
+        localStorage.removeItem('refreshToken');
+      }
       localStorage.setItem('user', JSON.stringify(action.payload.user));
       console.log('setCredentials: Stored user in Redux and localStorage', JSON.stringify(action.payload.user, null, 2));
     },
@@ -66,3 +70,13 @@ const authSlice = createSlice({
 
 export const { setCredentials, logout } = authSlice.actions;
 export default authSlice.reducer;
+export type Role = 'customer' | 'admin' | 'delivery';
+
+// User type for authentication
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  phone_number?: string | null;
+  role: Role;
+}

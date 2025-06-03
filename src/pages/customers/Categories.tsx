@@ -111,6 +111,10 @@ const Categories: React.FC = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
   return (
     <motion.div
       className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
@@ -118,7 +122,49 @@ const Categories: React.FC = () => {
       animate="visible"
       variants={containerVariants}
     >
-      {/* ... Header and Search Bar ... */}
+      {/* Header */}
+      <motion.div
+        className="text-center mb-12"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          Browse Categories
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Discover our wide range of product categories and find exactly what you're looking for.
+        </p>
+      </motion.div>
+
+      {/* Search Bar */}
+      <motion.div
+        className="max-w-md mx-auto mb-10"
+        variants={searchBarVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-2xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+          />
+          {searchTerm && (
+            <button
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              <X className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+            </button>
+          )}
+        </div>
+      </motion.div>
 
       {/* Categories Grid */}
       <AnimatePresence>
@@ -181,7 +227,7 @@ const Categories: React.FC = () => {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <motion.div
-                      className="absolute top-4 right-4 bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md"
+                      className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md"
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3, duration: 0.4 }}
@@ -192,14 +238,14 @@ const Categories: React.FC = () => {
 
                   {/* Content Section */}
                   <div className="p-3 sm:p-5">
-                    <h2 className="text-lg sm:text-xl font-semibold text-dark mb-2 group-hover:text-primary transition-colors duration-300">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                       {category.name}
                     </h2>
                     <p className="text-gray-600 text-xs sm:text-sm line-clamp-2 mb-3">
                       {category.description}
                     </p>
                     <motion.p
-                      className="text-primary font-medium flex items-center gap-1"
+                      className="text-blue-600 font-medium flex items-center gap-1"
                       whileHover={{ x: 5 }}
                       transition={{ duration: 0.3 }}
                     >

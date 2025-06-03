@@ -9,9 +9,7 @@ import {
   X,
   Plus,
   Minus,
-  ShoppingBag,
-  ChevronDown,
-  ChevronUp,
+  ShoppingBag
 } from "lucide-react";
 
 // Animation variants for cart items

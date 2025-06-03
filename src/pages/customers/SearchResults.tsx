@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Typography,
-  Grid,
   Pagination,
   Select,
   MenuItem,
@@ -12,6 +11,7 @@ import {
   Button,
   Box,
   CircularProgress,
+  SelectChangeEvent,
 } from "@mui/material";
 import {
   useSearchProductsQuery,
@@ -34,8 +34,8 @@ const SearchResults: React.FC = () => {
   const sort_by = searchParams.get("sort_by") || "name";
   const page = searchParams.get("page") ? Number(searchParams.get("page")) : 1;
 
-  const [filterMinPrice, setFilterMinPrice] = useState(min_price || "");
-  const [filterMaxPrice, setFilterMaxPrice] = useState(max_price || "");
+  const [filterMinPrice, setFilterMinPrice] = useState(min_price?.toString() || "");
+  const [filterMaxPrice, setFilterMaxPrice] = useState(max_price?.toString() || "");
 
   const { data, isLoading, isError } = useSearchProductsQuery({
     q,
@@ -51,23 +51,23 @@ const SearchResults: React.FC = () => {
 
   const handleFilterChange = () => {
     const newParams = new URLSearchParams(searchParams);
-    if (filterMinPrice) newParams.set("min_price", filterMinPrice.toString());
+    if (filterMinPrice) newParams.set("min_price", filterMinPrice);
     else newParams.delete("min_price");
-    if (filterMaxPrice) newParams.set("max_price", filterMaxPrice.toString());
+    if (filterMaxPrice) newParams.set("max_price", filterMaxPrice);
     else newParams.delete("max_price");
     newParams.set("page", "1");
     setSearchParams(newParams);
   };
 
-  const handleCategoryChange = (e: any) => {
+  const handleCategoryChange = (e: SelectChangeEvent<string>) => {
     const newParams = new URLSearchParams(searchParams);
-    if (e.target.value) newParams.set("category", e.target.value.toString());
+    if (e.target.value) newParams.set("category", e.target.value);
     else newParams.delete("category");
     newParams.set("page", "1");
     setSearchParams(newParams);
   };
 
-  const handleSortChange = (e: any) => {
+  const handleSortChange = (e: SelectChangeEvent<string>) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("sort_by", e.target.value);
     newParams.set("page", "1");
@@ -75,7 +75,7 @@ const SearchResults: React.FC = () => {
   };
 
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     const newParams = new URLSearchParams(searchParams);
@@ -83,54 +83,88 @@ const SearchResults: React.FC = () => {
     setSearchParams(newParams);
   };
 
+  const totalPages = data?.count ? Math.ceil(data.count / 12) : 0;
+
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
       <Typography variant="h5" gutterBottom>
         {q ? `Results for "${q}" (${data?.count || 0} found)` : "All Products"}
       </Typography>
-      {/* Note: Using Grid v1 props (item, xs, sm, md) as per MUI v5. Will migrate to Grid2 in MUI v6. */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
+
+      {/* Main layout using CSS Grid */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "300px 1fr" },
+          gap: 3,
+          mt: 3,
+        }}
+      >
+        {/* Filters Sidebar */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            height: "fit-content",
+            p: { xs: 2, md: 0 },
+            border: { xs: "1px solid", md: "none" },
+            borderColor: { xs: "grey.300", md: "transparent" },
+            borderRadius: { xs: 2, md: 0 },
+          }}
+        >
           <Typography variant="h6" gutterBottom>
             Filters
           </Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          
+          <FormControl fullWidth>
             <InputLabel>Category</InputLabel>
             <Select
-              value={category || ""}
+              value={category?.toString() || ""}
               onChange={handleCategoryChange}
               label="Category"
             >
               <MenuItem value="">All Categories</MenuItem>
               {categories?.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
+                <MenuItem key={cat.id} value={cat.id.toString()}>
                   {cat.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+
           <TextField
             label="Min Price"
             type="number"
             value={filterMinPrice}
             onChange={(e) => setFilterMinPrice(e.target.value)}
             fullWidth
-            sx={{ mb: 2 }}
+            inputProps={{ min: 0, step: 0.01 }}
           />
+
           <TextField
             label="Max Price"
             type="number"
             value={filterMaxPrice}
             onChange={(e) => setFilterMaxPrice(e.target.value)}
             fullWidth
-            sx={{ mb: 2 }}
+            inputProps={{ min: 0, step: 0.01 }}
           />
-          <Button variant="contained" onClick={handleFilterChange} fullWidth>
+
+          <Button 
+            variant="contained" 
+            onClick={handleFilterChange} 
+            fullWidth
+            sx={{ mt: 1 }}
+          >
             Apply Filters
           </Button>
-        </Grid>
-        <Grid item xs={12} md={9}>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        </Box>
+
+        {/* Products Section */}
+        <Box>
+          {/* Sort Controls */}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sort By</InputLabel>
               <Select
@@ -145,32 +179,75 @@ const SearchResults: React.FC = () => {
               </Select>
             </FormControl>
           </Box>
+
+          {/* Loading State */}
           {isLoading && (
-            <CircularProgress sx={{ display: "block", mx: "auto", my: 4 }} />
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress size={60} />
+            </Box>
           )}
+
+          {/* Error State */}
           {isError && (
-            <Typography color="error">Failed to load results</Typography>
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <Typography color="error" variant="h6">
+                Failed to load results
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                Please try again later
+              </Typography>
+            </Box>
           )}
-          {data?.results?.length === 0 && (
-            <Typography>No products found. Try another search term.</Typography>
+
+          {/* No Results State */}
+          {data?.results?.length === 0 && !isLoading && (
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <Typography variant="h6" color="text.secondary">
+                No products found
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                Try adjusting your search terms or filters
+              </Typography>
+            </Box>
           )}
-          <Grid container spacing={2}>
-            {data?.results?.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
-                <ProductCard product={product} />
-              </Grid>
-            ))}
-          </Grid>
-          {data?.count > 12 && (
-            <Pagination
-              count={Math.ceil((data?.count || 0) / 12)}
-              page={page}
-              onChange={handlePageChange}
-              sx={{ mt: 4, display: "flex", justifyContent: "center" }}
-            />
+
+          {/* Products Grid */}
+          {data?.results && data.results.length > 0 && (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(2, 1fr)",
+                  lg: "repeat(3, 1fr)",
+                },
+                gap: 3,
+                mb: 4,
+              }}
+            >
+              {data.results.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </Box>
           )}
-        </Grid>
-      </Grid>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+                showFirstButton
+                showLastButton
+              />
+            </Box>
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 };

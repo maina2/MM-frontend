@@ -54,16 +54,12 @@ const GoogleCallback = () => {
           }
         );
 
-        const { user, access, refresh } = response.data;
+        const { user, access } = response.data;
         dispatch(setCredentials({ user, token: access }));
         sessionStorage.removeItem('oauth_state');
         navigate('/');
-      } catch (error: any) {
-        console.error('Google login failed:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+      } catch (error: unknown) {
+        console.error('Google login failed:', error);
         sessionStorage.removeItem('oauth_state');
         navigate('/login', { state: { error: 'Failed to authenticate with the server' } });
       }

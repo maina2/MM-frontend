@@ -41,6 +41,12 @@ const Orders: React.FC = () => {
     }));
   };
 
+  // Helper function to safely convert price to number and format
+  const formatPrice = (price: string | number): string => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return numPrice.toFixed(2);
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -66,7 +72,8 @@ const Orders: React.FC = () => {
     );
   }
 
-  const ordersArray = Array.isArray(data?.results) ? data.results : [];
+  // Fix: data is already Order[], not an object with results property
+  const ordersArray = Array.isArray(data) ? data : [];
 
   if (ordersArray.length === 0) {
     return (
@@ -170,8 +177,7 @@ const Orders: React.FC = () => {
                   </h4>
                   <button
                     onClick={() => toggleCollapse(order.id)}
-                    className="flex items-center text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 E
-                    rounded-md"
+                    className="flex items-center text-sm text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md"
                     aria-expanded={!collapsedOrders[order.id]}
                     aria-controls={`items-${order.id}`}
                   >
@@ -222,15 +228,13 @@ const Orders: React.FC = () => {
                                 </p>
                                 <p className="text-sm text-gray-500">
                                   {item.quantity} × KSh{" "}
-                                  {parseFloat(item.price).toFixed(2)}
+                                  {formatPrice(item.price)}
                                 </p>
                               </div>
                             </div>
                             <p className="font-semibold text-gray-900">
                               KSh{" "}
-                              {(parseFloat(item.price) * item.quantity).toFixed(
-                                2
-                              )}
+                              {(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
                         ))}
@@ -274,7 +278,7 @@ const Orders: React.FC = () => {
                       Order Total
                     </h4>
                     <p className="text-xl font-bold text-gray-900">
-                      KSh {parseFloat(order.total_amount).toFixed(2)}
+                      KSh {formatPrice(order.total_amount)}
                     </p>
                   </div>
                 </div>

@@ -1,33 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Slider from "react-slick";
 import { useGetCategoriesQuery } from "../../api/apiSlice";
 import { Category } from "../../types";
 import { ShoppingBag, TrendingUp, Gift, ArrowRight } from "lucide-react";
-
-// Import the updated Products component
 import Products from "../customers/Products";
-
-// Ensure react-slick CSS is imported
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-
-// Mobile-optimized carousel settings
-const carouselSettings = {
-  dots: true,
-  infinite: true,
-  speed: 700,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  autoplay: true,
-  autoplaySpeed: 5000,
-  arrows: false,
-  pauseOnHover: true,
-  fade: true,
-  cssEase: "cubic-bezier(0.7, 0, 0.3, 1)",
-  dotsClass: "slick-dots custom-dots",
-  customPaging: () => <div className="custom-dot"></div>,
-};
 
 const Home: React.FC = () => {
   const {
@@ -36,60 +12,40 @@ const Home: React.FC = () => {
     isLoading: categoriesLoading,
   } = useGetCategoriesQuery();
 
-  const heroSlides = [
-    {
-      title: "Muindi Mweusi Supermarket",
-      subtitle: "Quality products, unbeatable prices",
-      cta: "Shop Now",
-      bgClass: "from-primary to-secondary",
-    },
-    {
-      title: "Fresh Arrivals Weekly",
-      subtitle: "Discover our latest products",
-      cta: "New Arrivals",
-      bgClass: "from-indigo-600 to-purple-600",
-    },
-    {
-      title: "Free Delivery Over KSh 1,000",
-      subtitle: "Shop from home with ease",
-      cta: "Learn More",
-      bgClass: "from-amber-500 to-orange-600",
-    },
-  ];
+  const heroSlide = {
+    title: "Muindi Mweusi Supermarket",
+    subtitle: "Quality products, unbeatable prices",
+    cta: "Shop Now",
+    bgClass: "from-primary to-secondary",
+  };
 
   return (
     <div className="space-y-8 md:space-y-16 w-full overflow-x-hidden">
-      {/* Hero Section with Carousel */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden rounded-b-xl md:rounded-b-3xl shadow-md">
-        <Slider {...carouselSettings}>
-          {heroSlides.map((slide, index) => (
-            <div key={index}>
-              <div
-                className={`relative bg-gradient-to-r ${slide.bgClass} text-white py-10 md:py-20 px-4 md:px-6 w-full`}
-              >
-                <div className="absolute inset-0 bg-pattern opacity-10"></div>
-                <div className="relative z-10 text-center max-w-4xl mx-auto">
-                  <h1 className="text-2xl md:text-6xl font-extrabold mb-2 md:mb-4 tracking-tight leading-tight">
-                    {slide.title}
-                  </h1>
-                  <p className="text-sm md:text-xl mb-4 md:mb-8 opacity-90 font-light">
-                    {slide.subtitle}
-                  </p>
-                  <Link
-                    to="/products"
-                    className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-5 py-2 md:px-8 md:py-3 rounded-full hover:bg-opacity-90 transition-all shadow-lg group text-sm md:text-base"
-                  >
-                    {slide.cta}
-                    <ArrowRight
-                      size={16}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Slider>
+        <div
+          className={`relative bg-gradient-to-r ${heroSlide.bgClass} text-white py-10 md:py-20 px-4 md:px-6 w-full`}
+        >
+          <div className="absolute inset-0 bg-pattern opacity-10"></div>
+          <div className="relative z-10 text-center max-w-4xl mx-auto">
+            <h1 className="text-2xl md:text-6xl font-extrabold mb-2 md:mb-4 tracking-tight leading-tight">
+              {heroSlide.title}
+            </h1>
+            <p className="text-sm md:text-xl mb-4 md:mb-8 opacity-90 font-light">
+              {heroSlide.subtitle}
+            </p>
+            <Link
+              to="/products"
+              className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-5 py-2 md:px-8 md:py-3 rounded-full hover:bg-opacity-90 transition-all shadow-lg group text-sm md:text-base"
+            >
+              {heroSlide.cta}
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Featured Products Section */}
