@@ -15,7 +15,11 @@ import {
   OptimizeRouteResponse,
 } from "../types";
 import { RootState } from "../store/store";
-import { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
 
 const BASE_URL = "http://localhost:8000/api/";
 
@@ -61,7 +65,7 @@ const baseQueryWithReauth: BaseQueryFn<
         const refreshData = refreshResult.data as RefreshResponse;
         const newAccessToken = refreshData.access;
         const newRefreshToken = refreshData.refresh || refreshToken;
-        
+
         api.dispatch(
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
@@ -142,9 +146,10 @@ export const apiSlice = createApi({
             JSON.stringify(userWithDefaults, null, 2)
           );
         } catch (error) {
-          const errorMessage = error && typeof error === 'object' && 'data' in error 
-            ? (error.data as any)?.detail || "Unknown error"
-            : "Unknown error";
+          const errorMessage =
+            error && typeof error === "object" && "data" in error
+              ? (error.data as any)?.detail || "Unknown error"
+              : "Unknown error";
           console.error("Login failed:", errorMessage);
         }
       },
@@ -312,11 +317,11 @@ export const apiSlice = createApi({
         previous: string | null;
         results: User[];
       },
-      { page?: number; page_size?: number }
+      { page?: number; page_size?: number; role?: string }
     >({
-      query: ({ page = 1, page_size = 10 } = {}) => ({
+      query: ({ page = 1, page_size = 10, role } = {}) => ({
         url: "users/manage/users/",
-        params: { page, page_size },
+        params: { page, page_size, role }, 
       }),
       providesTags: ["Users"],
     }),

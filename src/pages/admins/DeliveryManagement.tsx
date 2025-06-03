@@ -10,13 +10,13 @@ import {
 import { Delivery, User } from "../../types";
 import { format } from "date-fns";
 import {
-  Plus, // Lucide icon for Add
-  Trash2, // Lucide icon for Delete
-  UserPlus, // Lucide icon for PersonAdd
-  RefreshCw, // Lucide icon for Sync
-  X, // Lucide icon for Close
-  Save, // Lucide icon for Save
-} from "lucide-react"; // Import Lucide icons
+  Plus,
+  Trash2,
+  UserPlus,
+  RefreshCw,
+  X,
+  ArrowUpDown,
+} from "lucide-react";
 
 const getStatusColorClass = (status: string) => {
   switch (status) {
@@ -35,7 +35,6 @@ const getStatusColorClass = (status: string) => {
 
 const shortenAddress = (address: string): string => {
   const words = address.trim().split(" ");
-  // Take first 3 words or full address if shorter, to ensure enough context
   const shortAddress = words.slice(0, 3).join(" ");
   return words.length > 3 ? `${shortAddress}...` : shortAddress;
 };
@@ -60,9 +59,7 @@ const DeliveryManagement: React.FC = () => {
     longitude: "",
   });
 
-  // State to manage selected values for assignment/status update modals
-  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] =
-    useState<string>("");
+  const [selectedDeliveryPersonId, setSelectedDeliveryPersonId] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   const {
@@ -85,14 +82,10 @@ const DeliveryManagement: React.FC = () => {
     role: "delivery",
   });
 
-  // Corrected RTK Query hook destructuring
-  const [createDelivery, { isLoading: isCreating }] =
-    useCreateAdminDeliveryMutation();
-  const [deleteDelivery] = useDeleteAdminDeliveryMutation(); // Corrected destructuring
-  const [assignDeliveryPerson, { isLoading: isAssigning }] =
-    useAssignDeliveryPersonMutation(); // Corrected destructuring
-  const [updateDeliveryStatus, { isLoading: isStatusUpdating }] =
-    useUpdateDeliveryStatusMutation(); // Corrected destructuring
+  const [createDelivery, { isLoading: isCreating }] = useCreateAdminDeliveryMutation();
+  const [deleteDelivery] = useDeleteAdminDeliveryMutation();
+  const [assignDeliveryPerson, { isLoading: isAssigning }] = useAssignDeliveryPersonMutation();
+  const [updateDeliveryStatus, { isLoading: isStatusUpdating }] = useUpdateDeliveryStatusMutation();
 
   const availableDeliveryPersons = deliveryPersonsData?.results || [];
 
@@ -118,15 +111,11 @@ const DeliveryManagement: React.FC = () => {
             ? parseInt(newDelivery.delivery_person_id)
             : undefined,
           delivery_address: newDelivery.delivery_address,
-          latitude: newDelivery.latitude
-            ? parseFloat(newDelivery.latitude)
-            : undefined,
-          longitude: newDelivery.longitude
-            ? parseFloat(newDelivery.longitude)
-            : undefined,
+          latitude: newDelivery.latitude ? parseFloat(newDelivery.latitude) : undefined,
+          longitude: newDelivery.longitude ? parseFloat(newDelivery.longitude) : undefined,
         };
         await createDelivery(payload).unwrap();
-        alert("Delivery created successfully!"); // Replaced toast with alert for consistency with refactored components
+        alert("Delivery created successfully!");
         setShowCreateModal(false);
         setNewDelivery({
           order_id: "",
@@ -136,9 +125,7 @@ const DeliveryManagement: React.FC = () => {
           longitude: "",
         });
       } catch (error: any) {
-        alert(
-          `Failed to create delivery: ${error?.data?.detail || "Unknown error"}`
-        );
+        alert(`Failed to create delivery: ${error?.data?.detail || "Unknown error"}`);
       }
     },
     [newDelivery, createDelivery]
@@ -156,13 +143,9 @@ const DeliveryManagement: React.FC = () => {
         }).unwrap();
         alert("Delivery person assigned successfully!");
         setShowAssignModal(null);
-        setSelectedDeliveryPersonId(""); // Clear selection
+        setSelectedDeliveryPersonId("");
       } catch (error: any) {
-        alert(
-          `Failed to assign delivery person: ${
-            error?.data?.detail || "Unknown error"
-          }`
-        );
+        alert(`Failed to assign delivery person: ${error?.data?.detail || "Unknown error"}`);
       }
     },
     [showAssignModal, selectedDeliveryPersonId, assignDeliveryPerson]
@@ -180,11 +163,9 @@ const DeliveryManagement: React.FC = () => {
         }).unwrap();
         alert("Delivery status updated successfully!");
         setShowStatusModal(null);
-        setSelectedStatus(""); // Clear selection
+        setSelectedStatus("");
       } catch (error: any) {
-        alert(
-          `Failed to update status: ${error?.data?.detail || "Unknown error"}`
-        );
+        alert(`Failed to update status: ${error?.data?.detail || "Unknown error"}`);
       }
     },
     [showStatusModal, selectedStatus, updateDeliveryStatus]
@@ -193,31 +174,17 @@ const DeliveryManagement: React.FC = () => {
   const handleDeleteDelivery = useCallback(
     async (deliveryId: number, currentStatus: string) => {
       if (currentStatus !== "pending" && currentStatus !== "cancelled") {
-        alert(
-          'Only deliveries with "pending" or "cancelled" status can be deleted.'
-        );
+        alert('Only deliveries with "pending" or "cancelled" status can be deleted.');
         return;
       }
-      if (
-        window.confirm(
-          "Are you sure you want to delete this delivery? This action cannot be undone."
-        )
-      ) {
+      if (window.confirm("Are you sure you want to delete this delivery? This action cannot be undone.")) {
         try {
           await deleteDelivery(deliveryId).unwrap();
           alert("Delivery deleted successfully!");
         } catch (error: unknown) {
-          if (
-            typeof error === "object" &&
-            error !== null &&
-            "data" in error &&
-            typeof (error as any).data === "object"
-          ) {
+          if (typeof error === "object" && error !== null && "data" in error) {
             alert(
-              `Failed to delete delivery: ${
-                (error as { data?: { detail?: string } }).data?.detail ||
-                "Unknown error"
-              }`
+              `Failed to delete delivery: ${(error as any).data?.detail || "Unknown error"}`
             );
           } else {
             alert("Failed to delete delivery: Unknown error");
@@ -228,16 +195,19 @@ const DeliveryManagement: React.FC = () => {
     [deleteDelivery]
   );
 
-  const handleSortChange = useCallback((field: string) => {
-    setSortModel((prevModel: any) => {
-      const isAsc =
-        prevModel.length > 0 &&
-        prevModel[0].field === field &&
-        prevModel[0].sort === "asc";
-      return isAsc ? [{ field, sort: "desc" }] : [{ field, sort: "asc" }];
-    });
-    setPage(1); // Reset page on sort change
-  }, []);
+  const handleSortChange = useCallback(
+    (field: string) => {
+      setSortModel((prevModel) => {
+        const isAsc =
+          prevModel.length > 0 &&
+          prevModel[0].field === field &&
+          prevModel[0].sort === "asc";
+        return [{ field, sort: isAsc ? "desc" : "asc" }];
+      });
+      setPage(1);
+    },
+    []
+  );
 
   if (isDeliveriesLoading && !deliveriesData) {
     return (
@@ -249,7 +219,6 @@ const DeliveryManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8">
-      {/* Header */}
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
         <div className="max-w-7xl mx-auto px-4">
@@ -287,7 +256,7 @@ const DeliveryManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters and Sort */}
       <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-4 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
           <div className="flex-1 relative">
@@ -338,15 +307,50 @@ const DeliveryManagement: React.FC = () => {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium text-gray-600">Sort By:</span>
+            <button
+              onClick={() => handleSortChange("id")}
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <span>ID</span>
+              {sortModel[0]?.field === "id" && (
+                <ArrowUpDown
+                  className={`w-4 h-4 ${sortModel[0].sort === "asc" ? "rotate-180" : ""}`}
+                />
+              )}
+            </button>
+            <button
+              onClick={() => handleSortChange("status")}
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <span>Status</span>
+              {sortModel[0]?.field === "status" && (
+                <ArrowUpDown
+                  className={`w-4 h-4 ${sortModel[0].sort === "asc" ? "rotate-180" : ""}`}
+                />
+              )}
+            </button>
+            <button
+              onClick={() => handleSortChange("delivery_address")}
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <span>Address</span>
+              {sortModel[0]?.field === "delivery_address" && (
+                <ArrowUpDown
+                  className={`w-4 h-4 ${sortModel[0].sort === "asc" ? "rotate-180" : ""}`}
+                />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Deliveries Grid (Card Design) */}
+      {/* Deliveries Grid */}
       <div className="max-w-7xl mx-auto">
         {deliveriesError && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {(deliveriesError as any).data?.detail ||
-              "Failed to fetch deliveries"}
+            {(deliveriesError as any).data?.detail || "Failed to fetch deliveries"}
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -356,8 +360,7 @@ const DeliveryManagement: React.FC = () => {
             </div>
           ) : (
             deliveriesData?.results.map((delivery: Delivery) => {
-              const deliveryPersonName =
-                delivery.delivery_person?.username || "Unassigned";
+              const deliveryPersonName = delivery.delivery_person?.username || "Unassigned";
               const deliveryPersonInitials = delivery.delivery_person?.username
                 ? delivery.delivery_person.username.charAt(0).toUpperCase()
                 : "?";
@@ -378,17 +381,14 @@ const DeliveryManagement: React.FC = () => {
                             <h3 className="font-bold text-gray-900 text-base">
                               {deliveryPersonName}
                             </h3>
-                            <span className="text-xs text-gray-500">
-                              #{delivery.id}
-                            </span>
+                            <span className="text-xs text-gray-500">#{delivery.id}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2 mb-4 text-gray-600">
                       <p className="text-sm font-medium">
-                        Order ID:{" "}
-                        <span className="font-normal">{delivery.order.id}</span>
+                        Order ID: <span className="font-normal">{delivery.order.id}</span>
                       </p>
                       <p className="text-sm font-medium">
                         Status:{" "}
@@ -402,10 +402,7 @@ const DeliveryManagement: React.FC = () => {
                       </p>
                       <p className="text-sm font-medium">
                         Address:{" "}
-                        <span
-                          className="font-normal"
-                          title={delivery.delivery_address}
-                        >
+                        <span className="font-normal" title={delivery.delivery_address}>
                           {shortenAddress(delivery.delivery_address)}
                         </span>
                       </p>
@@ -413,10 +410,7 @@ const DeliveryManagement: React.FC = () => {
                         <p className="text-sm font-medium">
                           Est. Delivery:{" "}
                           <span className="font-normal">
-                            {format(
-                              new Date(delivery.estimated_delivery_time),
-                              "PPp"
-                            )}
+                            {format(new Date(delivery.estimated_delivery_time), "PPp")}
                           </span>
                         </p>
                       )}
@@ -455,15 +449,10 @@ const DeliveryManagement: React.FC = () => {
                         <RefreshCw className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() =>
-                          handleDeleteDelivery(delivery.id, delivery.status)
-                        }
+                        onClick={() => handleDeleteDelivery(delivery.id, delivery.status)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete Delivery"
-                        disabled={
-                          delivery.status !== "pending" &&
-                          delivery.status !== "cancelled"
-                        }
+                        disabled={delivery.status !== "pending" && delivery.status !== "cancelled"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -476,18 +465,16 @@ const DeliveryManagement: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {deliveriesData?.count > pageSize && (
+        {deliveriesData?.count !== undefined && deliveriesData.count > pageSize && (
           <div className="flex justify-center mt-6">
             <button
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={page === 1}
-              className="px-4 py-2 mx-1 bg-white rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 mx-1 bg-white rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="px-4 py-2 mx-1 bg-blue-600 text-white rounded-lg">
-              {page}
-            </span>
+            <span className="px-4 py-2 mx-1 bg-blue-600 text-white rounded-lg">{page}</span>
             <button
               onClick={() => setPage((prev) => prev + 1)}
               disabled={page * pageSize >= deliveriesData.count}
@@ -507,9 +494,7 @@ const DeliveryManagement: React.FC = () => {
             style={{ marginTop: "10vh" }}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
-                Create New Delivery
-              </h2>
+              <h2 className="text-xl font-bold text-white">Create New Delivery</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
@@ -559,7 +544,7 @@ const DeliveryManagement: React.FC = () => {
                 placeholder="Latitude (Optional)"
                 value={newDelivery.latitude}
                 onChange={handleCreateDeliveryChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
               />
               <input
                 type="number"
@@ -568,26 +553,44 @@ const DeliveryManagement: React.FC = () => {
                 placeholder="Longitude (Optional)"
                 value={newDelivery.longitude}
                 onChange={handleCreateDeliveryChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
               />
               <div className="flex justify-end space-x-3 bg-white p-4">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
                 >
                   {isCreating ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <svg
+                      className="w-4 h-4 animate-spin text-white"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
                   ) : (
                     <>
-                      <Save className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
                       <span>Create</span>
                     </>
                   )}
@@ -598,63 +601,47 @@ const DeliveryManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Assign Delivery Person Dialog */}
-      {!!showAssignModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden"
-            style={{ marginTop: "10vh" }}
-          >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
-                Assign Delivery Person
-              </h2>
+      {/* Assign Delivery Person Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Assign Delivery Person</h3>
               <button
                 onClick={() => setShowAssignModal(null)}
-                className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form
-              onSubmit={handleAssignDeliveryPersonSubmit}
-              className="p-4 space-y-4 max-h-[60vh] overflow-y-auto"
-            >
+            <form onSubmit={handleAssignDeliveryPersonSubmit}>
               <select
-                name="delivery_person_id"
                 value={selectedDeliveryPersonId}
                 onChange={(e) => setSelectedDeliveryPersonId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full p-2 border rounded-md mb-4"
                 required
               >
                 <option value="">Select Delivery Person</option>
-                {availableDeliveryPersons.map((user: User) => (
-                  <option key={user.id} value={user.id}>
-                    {user.username}
+                {deliveryPersonsData?.results.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.username}
                   </option>
                 ))}
               </select>
-              <div className="flex justify-end space-x-3 bg-white p-4">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAssignModal(null)}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isAssigning}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-500"
                 >
-                  {isAssigning ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      <span>Assign</span>
-                    </>
-                  )}
+                  {isAssigning ? "Assigning..." : "Assign"}
                 </button>
               </div>
             </form>
@@ -662,61 +649,45 @@ const DeliveryManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Update Status Dialog */}
-      {!!showStatusModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden"
-            style={{ marginTop: "10vh" }}
-          >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">
-                Update Delivery Status
-              </h2>
+      {/* Update Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Update Status</h3>
               <button
                 onClick={() => setShowStatusModal(null)}
-                className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form
-              onSubmit={handleUpdateStatusSubmit}
-              className="p-4 space-y-4 max-h-[60vh] overflow-y-auto"
-            >
+            <form onSubmit={handleUpdateStatusSubmit}>
               <select
-                name="status"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full p-2 border rounded-md mb-4"
                 required
               >
                 <option value="pending">Pending</option>
-                <option value="in_transit">In Transit</option>
+                <option value="in-transit">In Transit</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <div className="flex justify-end space-x-3 bg-white p-4">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowStatusModal(null)}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isStatusUpdating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-500"
                 >
-                  {isStatusUpdating ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      <span>Update</span>
-                    </>
-                  )}
+                  {isStatusUpdating ? "Updating..." : "Update"}
                 </button>
               </div>
             </form>
