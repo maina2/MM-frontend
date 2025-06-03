@@ -17,6 +17,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -38,6 +39,17 @@ L.Icon.Default.mergeOptions({
 interface CartItem {
   product: { id: number; name: string; price: number; branch?: Branch | number };
   quantity: number;
+}
+
+// Type guard to check if error has data property
+interface ApiError {
+  data?: {
+    error?: string;
+  };
+}
+
+function isApiError(error: unknown): error is ApiError {
+  return typeof error === 'object' && error !== null && 'data' in error;
 }
 
 const Checkout: React.FC = () => {
@@ -117,7 +129,7 @@ const Checkout: React.FC = () => {
   );
 
   // Handle branch selection
-  const handleBranchChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleBranchChange = (event: SelectChangeEvent<number | "">) => {
     setSelectedBranch(event.target.value as number);
     setError(null);
   };
@@ -207,10 +219,11 @@ const Checkout: React.FC = () => {
         response.order.id
       );
       navigate(`/order-confirmation/${response.order.id}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Checkout error details:", JSON.stringify(err, null, 2));
-      const errorMessage =
-        err.data?.error || "Checkout failed. Please try again.";
+      const errorMessage = isApiError(err) && err.data?.error 
+        ? err.data.error 
+        : "Checkout failed. Please try again.";
       setError(errorMessage);
     }
   };
@@ -294,7 +307,7 @@ const Checkout: React.FC = () => {
           labelId="branch-select-label"
           value={selectedBranch}
           label="Select Branch"
-          onChange={(e) => setSelectedBranch(e.target.value as number)}
+          onChange={handleBranchChange}
         >
           <MenuItem value="">
             <em>Select a branch</em>

@@ -67,19 +67,22 @@ export interface OrderItem {
   price: number;
 }
 
-// Order type
+// src/types.ts
 export interface Order {
   id: number;
   customer: User;
   total_amount: string | number;
-  status: string;
-  payment_status: string;
+  status: OrderStatus;
+  payment_status: OrderStatus;
   payment_phone_number?: string | null;
   created_at: string;
   updated_at: string;
   items: OrderItem[];
   branch: Branch | number;
 }
+
+export type OrderStatus = 'pending' | 'paid' | 'processing' | 'failed' | 'completed';
+
 
 // Payment type
 export interface Payment {

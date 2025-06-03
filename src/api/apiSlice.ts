@@ -11,10 +11,19 @@ import {
   Delivery,
   Branch,
   StatsResponse,
+  OptimizeRouteRequest,
+  OptimizeRouteResponse,
 } from "../types";
 import { RootState } from "../store/store";
+import { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 const BASE_URL = "http://localhost:8000/api/";
+
+// Define proper types for baseQuery arguments
+interface RefreshResponse {
+  access: string;
+  refresh?: string;
+}
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -28,7 +37,11 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
@@ -45,14 +58,15 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
       );
 
       if (refreshResult.data) {
-        const newAccessToken = (refreshResult.data as any).access;
-        const newRefreshToken =
-          (refreshResult.data as any).refresh || refreshToken;
+        const refreshData = refreshResult.data as RefreshResponse;
+        const newAccessToken = refreshData.access;
+        const newRefreshToken = refreshData.refresh || refreshToken;
+        
         api.dispatch(
           setCredentials({
             user: (api.getState() as RootState).auth.user!,
             token: newAccessToken,
-            refreshToken: newRefreshToken, // Changed from 'personally' to newRefreshToken
+            refreshToken: newRefreshToken,
           })
         );
         result = await baseQuery(args, api, extraOptions);
@@ -127,11 +141,11 @@ export const apiSlice = createApi({
             "Dispatched setCredentials with user:",
             JSON.stringify(userWithDefaults, null, 2)
           );
-        } catch (error: any) {
-          console.error(
-            "Login failed:",
-            error?.data?.detail || "Unknown error"
-          );
+        } catch (error) {
+          const errorMessage = error && typeof error === 'object' && 'data' in error 
+            ? (error.data as any)?.detail || "Unknown error"
+            : "Unknown error";
+          console.error("Login failed:", errorMessage);
         }
       },
     }),
@@ -202,13 +216,13 @@ export const apiSlice = createApi({
     }),
     getProductById: builder.query<ProductDetail, number>({
       query: (id) => `products/${id}/`,
-      providesTags: (result, error, id) => [{ type: "ProductDetail", id }],
+      providesTags: (_result, _error, id) => [{ type: "ProductDetail", id }],
     }),
     getCategories: builder.query<Category[], void>({
       query: () => "categories/",
       providesTags: ["Categories"],
-      transformResponse: (response: any) => {
-        return response.results ? response.results : response;
+      transformResponse: (response: { results?: Category[] } | Category[]) => {
+        return Array.isArray(response) ? response : response.results || [];
       },
     }),
     getCategoryDetail: builder.query<
@@ -216,7 +230,7 @@ export const apiSlice = createApi({
       number
     >({
       query: (id) => `categories/${id}/`,
-      providesTags: (result, error, id) => [{ type: "Categories", id }],
+      providesTags: (_result, _error, id) => [{ type: "Categories", id }],
     }),
     getOrders: builder.query<Order[], void>({
       query: () => "orders-list/",
@@ -224,7 +238,7 @@ export const apiSlice = createApi({
     }),
     getOrder: builder.query<Order, number>({
       query: (orderId) => `orders-details/${orderId}/`,
-      providesTags: (result, error, id) => [{ type: "Orders", id }],
+      providesTags: (_result, _error, id) => [{ type: "Orders", id }],
     }),
     checkout: builder.mutation<
       {
@@ -305,12 +319,6 @@ export const apiSlice = createApi({
         params: { page, page_size },
       }),
       providesTags: ["Users"],
-      transformResponse: (response: {
-        count: number;
-        next: string | null;
-        previous: string | null;
-        results: User[];
-      }) => response,
     }),
     createAdminUser: builder.mutation<
       User,
@@ -359,7 +367,15 @@ export const apiSlice = createApi({
     }),
 
     // Branch Endpoints
-    getBranches: builder.query<Branch[], void>({
+    getBranches: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Branch[];
+      },
+      void
+    >({
       query: () => "branches/",
       providesTags: ["Branches"],
     }),
@@ -483,7 +499,7 @@ export const apiSlice = createApi({
       invalidatesTags: ["Products"],
     }),
 
-    // Order Admin Endpoints - FIXED VERSION
+    // Order Admin Endpoints
     getAdminOrders: builder.query<
       {
         count: number;
@@ -511,13 +527,11 @@ export const apiSlice = createApi({
         return `manage/orders/?${params.toString()}`;
       },
       providesTags: ["Orders"],
-      // REMOVED transformResponse - API already returns correct format
     }),
 
     getAdminOrder: builder.query<Order, number>({
       query: (id) => `manage/orders/${id}/`,
       providesTags: ["Orders"],
-      // REMOVED transformResponse - API already returns correct format
     }),
 
     createAdminOrder: builder.mutation<
@@ -535,7 +549,6 @@ export const apiSlice = createApi({
         body: data,
       }),
       invalidatesTags: ["Orders"],
-      // REMOVED transformResponse - API already returns correct format
     }),
 
     updateAdminOrder: builder.mutation<
@@ -554,7 +567,6 @@ export const apiSlice = createApi({
         body: data,
       }),
       invalidatesTags: ["Orders"],
-      // REMOVED transformResponse - API already returns correct format
     }),
 
     deleteAdminOrder: builder.mutation<void, number>({
@@ -602,7 +614,7 @@ export const apiSlice = createApi({
                 username: payment.order.customer,
                 id: 0,
                 email: "",
-                role: "customer",
+                role: "customer" as const,
               } as User,
             },
           })),
@@ -620,7 +632,7 @@ export const apiSlice = createApi({
             username: payment.order.customer,
             id: 0,
             email: "",
-            role: "customer",
+            role: "customer" as const,
           } as User,
         },
       }),
@@ -643,7 +655,7 @@ export const apiSlice = createApi({
             username: payment.order.customer,
             id: 0,
             email: "",
-            role: "customer",
+            role: "customer" as const,
           } as User,
         },
       }),
@@ -713,7 +725,7 @@ export const apiSlice = createApi({
                   delivery.order.customer?.username || delivery.order.customer,
                 id: delivery.order.customer?.id || 0,
                 email: delivery.order.customer?.email || "",
-                role: "customer",
+                role: "customer" as const,
               } as User,
             },
           })),
@@ -722,7 +734,7 @@ export const apiSlice = createApi({
     }),
     getAdminDelivery: builder.query<Delivery, number>({
       query: (id) => `manage/deliveries/${id}/`,
-      providesTags: (result, error, id) => [{ type: "Deliveries", id }],
+      providesTags: (_result, _error, id) => [{ type: "Deliveries", id }],
       transformResponse: (delivery: any) => ({
         ...delivery,
         order: {
@@ -732,7 +744,7 @@ export const apiSlice = createApi({
               delivery.order.customer?.username || delivery.order.customer,
             id: delivery.order.customer?.id || 0,
             email: delivery.order.customer?.email || "",
-            role: "customer",
+            role: "customer" as const,
           } as User,
         },
       }),
@@ -816,12 +828,6 @@ export const apiSlice = createApi({
         params: { page, page_size, role: "delivery" },
       }),
       providesTags: ["Users"],
-      transformResponse: (response: {
-        count: number;
-        next: string | null;
-        previous: string | null;
-        results: User[];
-      }) => response,
     }),
     // Delivery Person Endpoints
     postOptimizeRoute: builder.mutation<
@@ -848,16 +854,10 @@ export const apiSlice = createApi({
         params: { page, page_size },
       }),
       providesTags: ["Deliveries"],
-      transformResponse: (response: {
-        count: number;
-        next: string | null;
-        previous: string | null;
-        results: Delivery[];
-      }) => response,
     }),
     getDeliveryTaskDetail: builder.query<Delivery, number>({
       query: (id) => `delivery/tasks/${id}/detail/`,
-      providesTags: (result, error, id) => [{ type: "Deliveries", id }],
+      providesTags: (_result, _error, id) => [{ type: "Deliveries", id }],
     }),
     updateDeliveryTask: builder.mutation<
       Delivery,
@@ -871,7 +871,6 @@ export const apiSlice = createApi({
         method: "PATCH",
         body: data,
       }),
-
       invalidatesTags: ["Deliveries", "Orders"],
     }),
   }),
@@ -923,4 +922,5 @@ export const {
   useGetDeliveryTasksQuery,
   useGetDeliveryTaskDetailQuery,
   useUpdateDeliveryTaskMutation,
+  useGetDeliveryPersonsQuery,
 } = apiSlice;

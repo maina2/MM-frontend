@@ -6,18 +6,7 @@ import {
   useDeleteAdminProductMutation,
   useGetCategoriesQuery,
 } from "../../api/apiSlice";
-import {
-  Edit3,
-  Trash2,
-  Plus,
-  Mail,
-  Phone,
-  Shield,
-  Truck,
-  User,
-  X,
-  Save,
-} from "lucide-react";
+import { Edit3, Trash2, Plus, X, Save } from "lucide-react";
 import { Product } from "../../types";
 
 const ProductManagement = () => {
@@ -46,7 +35,6 @@ const ProductManagement = () => {
     page_size: 12,
     search: search || undefined,
     category: categoryFilter || undefined,
-    ordering: undefined, // Simplified for now; adjust as needed
   });
   const { data: categories, isLoading: isCategoriesLoading } =
     useGetCategoriesQuery();
@@ -107,7 +95,11 @@ const ProductManagement = () => {
   }, []);
 
   const handleFormChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
       setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     },
     []
@@ -125,7 +117,12 @@ const ProductManagement = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setFormError("");
-      if (!formData.name || !formData.price || !formData.stock || !formData.category) {
+      if (
+        !formData.name ||
+        !formData.price ||
+        !formData.stock ||
+        !formData.category
+      ) {
         setFormError("Required fields missing");
         return;
       }
@@ -149,7 +146,7 @@ const ProductManagement = () => {
         stock: stockNum,
         category: Number(formData.category),
         discount_percentage: discountNum,
-        image: formData.image,
+        image: formData.image || undefined, // Convert null to undefined
       };
       try {
         if (editProduct) {
@@ -160,8 +157,10 @@ const ProductManagement = () => {
           alert("Product created successfully!");
         }
         handleModalClose();
-      } catch (err: any) {
-        setFormError(err.data?.detail || "Failed to save product");
+      } catch (err: unknown) {
+        setFormError(
+          err.data && "detail" in err.data ? err.data.detail : "Failed to save product"
+        );
       }
     },
     [formData, editProduct, createProduct, updateProduct, handleModalClose]
@@ -175,10 +174,13 @@ const ProductManagement = () => {
     []
   );
 
-  const handleCategoryFilterChange = useCallback((e: any) => {
-    setCategoryFilter(e.target.value || "");
-    setPage(1);
-  }, []);
+  const handleCategoryFilterChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setCategoryFilter(e.target.value ? Number(e.target.value) : "");
+      setPage(1);
+    },
+    []
+  );
 
   if (isLoading || isCategoriesLoading || !productsData || !categories) {
     return (
@@ -193,7 +195,7 @@ const ProductManagement = () => {
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 mb-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-16 py-4 sm:py-0"> {/* Changed to flex-col on mobile */}
+          <div className="flex flex-col sm:flex-row items-center justify-between h-auto sm:h-16 py-4 sm:py-0">
             <div className="flex items-center space-x-3 mb-4 sm:mb-0">
               <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
                 <svg
@@ -212,10 +214,9 @@ const ProductManagement = () => {
               </div>
               <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             </div>
-            {/* Add Product Button */}
             <button
               onClick={handleModalOpen}
-              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto" // Added w-full for mobile
+              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               <span>Add Product</span>
@@ -283,7 +284,9 @@ const ProductManagement = () => {
       <div className="max-w-7xl mx-auto">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error.data?.detail || "Failed to fetch products"}
+            {"data" in error && error.data && "detail" in error.data
+              ? error.data.detail
+              : "Failed to fetch products"}
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -375,7 +378,7 @@ const ProductManagement = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden"
-            style={{ marginTop: "10vh" }} // Added margin to lower the modal
+            style={{ marginTop: "10vh" }}
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">

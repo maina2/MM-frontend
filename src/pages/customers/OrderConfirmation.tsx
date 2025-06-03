@@ -1,3 +1,4 @@
+// src/pages/customers/OrderConfirmation.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -5,7 +6,6 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   Divider,
   CircularProgress,
   Alert,
@@ -26,15 +26,17 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { RootState } from "../../store/store";
 import { useGetOrderQuery } from "../../api/apiSlice";
+import { OrderStatus } from "../../types";
 
-// Status chip component with simplified coloring logic
-const StatusChip = ({ status }) => {
-  const colorMap = {
+interface StatusChipProps {
+  status: OrderStatus;
+}
+const StatusChip = ({ status }: StatusChipProps) => {
+  const colorMap: Record<OrderStatus, string> = {
     pending: "warning",
     paid: "success",
     processing: "info",
@@ -45,7 +47,7 @@ const StatusChip = ({ status }) => {
   return (
     <Chip
       label={status}
-      color={colorMap[status.toLowerCase()] || "default"}
+      color={colorMap[status] || "default"}
       size="small"
       sx={{ fontWeight: "medium", borderRadius: "16px" }}
     />
@@ -53,19 +55,38 @@ const StatusChip = ({ status }) => {
 };
 
 const OrderConfirmation = () => {
-  const { orderId } = useParams();
+  const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const user = useSelector((state: RootState) => state.auth.user);
-  const { data: order, isLoading, error } = useGetOrderQuery(orderId);
-  const [paymentStatus, setPaymentStatus] = useState(null);
 
-  // Get step index based on payment status
+  // Parse orderId to number
+  const parsedOrderId = orderId ? parseInt(orderId, 10) : undefined;
+
+  // Redirect if orderId is invalid
+  useEffect(() => {
+    if (!orderId || parsedOrderId === undefined || isNaN(parsedOrderId)) {
+      navigate("/orders", { replace: true });
+    }
+  }, [orderId, parsedOrderId, navigate]);
+
+  const { data: order, isLoading, error } = useGetOrderQuery(
+    parsedOrderId!,
+    { skip: !parsedOrderId }
+  );
+  const [paymentStatus, setPaymentStatus] = useState<OrderStatus | null>(null);
+
   const getActiveStep = () => {
     if (!paymentStatus) return 0;
-    const statusSteps = { paid: 1, processing: 2, completed: 3 };
-    return statusSteps[paymentStatus.toLowerCase()] || 0;
+    const statusSteps: Record<OrderStatus, number> = {
+      paid: 1,
+      processing: 2,
+      completed: 3,
+      pending: 0,
+      failed: 0,
+    };
+    return statusSteps[paymentStatus] || 0;
   };
 
   useEffect(() => {
@@ -74,7 +95,6 @@ const OrderConfirmation = () => {
     if (order) {
       setPaymentStatus(order.payment_status);
 
-      // Only poll if status is pending
       if (order.payment_status === "pending") {
         const interval = setInterval(() => {
           if (["paid", "failed"].includes(order.payment_status)) {
@@ -87,7 +107,7 @@ const OrderConfirmation = () => {
   }, [user, navigate, order]);
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || !parsedOrderId) {
     return (
       <Box
         sx={{
@@ -142,10 +162,8 @@ const OrderConfirmation = () => {
     "Completed",
   ];
 
-  // Calculate order summary
-  const subtotal = order.total_amount;
-  const shipping = order.shipping_fee || 0;
-  const total = subtotal + shipping;
+  // Use total_amount directly
+  const total = order.total_amount;
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
@@ -161,7 +179,7 @@ const OrderConfirmation = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "center", sm: "center" },
+            alignItems: { xs: "center", sm: "left" },
             gap: 1,
           }}
         >
@@ -232,10 +250,17 @@ const OrderConfirmation = () => {
         </CardContent>
       </Card>
 
-      {/* Order Details */}
-      <Grid container spacing={3}>
-        {/* Order Items - with accordion for mobile */}
-        <Grid item xs={12} md={8}>
+      {/* Order Details - Modern Flexbox Layout */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 3,
+          alignItems: { xs: "stretch", md: "flex-start" },
+        }}
+      >
+        {/* Order Items - Takes up more space on desktop */}
+        <Box sx={{ flex: { xs: 1, md: 2 } }}>
           <Card elevation={2} sx={{ borderRadius: 2 }}>
             <CardContent sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
               <Box
@@ -248,7 +273,6 @@ const OrderConfirmation = () => {
               </Box>
 
               {isMobile ? (
-                // Mobile view with collapsible accordion
                 <Accordion
                   defaultExpanded={order.items.length < 5}
                   disableGutters
@@ -277,7 +301,7 @@ const OrderConfirmation = () => {
                         View Items
                       </Typography>
                       <Typography fontWeight="medium">
-                        KSh {subtotal.toLocaleString()}
+                        KSh {total.toLocaleString()}
                       </Typography>
                     </Box>
                   </AccordionSummary>
@@ -311,7 +335,6 @@ const OrderConfirmation = () => {
                   </AccordionDetails>
                 </Accordion>
               ) : (
-                // Desktop view - normal list
                 <Box>
                   {order.items.map((item, index) => (
                     <React.Fragment key={item.id}>
@@ -348,23 +371,6 @@ const OrderConfirmation = () => {
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", py: 1 }}
               >
-                <Typography variant="body1">Subtotal</Typography>
-                <Typography variant="body1">
-                  KSh {subtotal.toLocaleString()}
-                </Typography>
-              </Box>
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", py: 1 }}
-              >
-                <Typography variant="body1">Shipping</Typography>
-                <Typography variant="body1">
-                  KSh {shipping.toLocaleString()}
-                </Typography>
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", py: 1 }}
-              >
                 <Typography variant="h6" fontWeight="bold">
                   Total
                 </Typography>
@@ -374,86 +380,50 @@ const OrderConfirmation = () => {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
-        {/* Payment & Shipping Info */}
-        <Grid item xs={12} md={4}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Payment Information */}
-            <Card elevation={2} sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
-                >
-                  <ReceiptLongIcon color="primary" />
-                  <Typography variant="h6" fontWeight="medium">
-                    Payment Details
+        {/* Payment Info Sidebar */}
+        <Box sx={{ flex: { xs: 1, md: 1 }, display: "flex", flexDirection: "column", gap: 3 }}>
+          {/* Payment Information */}
+          <Card elevation={2} sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
+              >
+                <ReceiptLongIcon color="primary" />
+                <Typography variant="h6" fontWeight="medium">
+                  Payment Status
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Status
                   </Typography>
+                  <StatusChip status={paymentStatus || "pending"} />
                 </Box>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Method
-                    </Typography>
-                    <Typography variant="body1">
-                      {order.payment_method || "M-Pesa"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Status
-                    </Typography>
-                    <StatusChip status={paymentStatus || "unknown"} />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+              </Box>
+            </CardContent>
+          </Card>
 
-            {/* Shipping Information */}
-            <Card elevation={2} sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
-                >
-                  <LocalShippingIcon color="primary" />
-                  <Typography variant="h6" fontWeight="medium">
-                    Shipping Info
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Delivery Address
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {order.shipping_address || "Default Address"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Estimated Delivery
-                </Typography>
-                <Typography variant="body1">
-                  {order.estimated_delivery || "3-5 business days"}
-                </Typography>
-              </CardContent>
-            </Card>
-
-            {/* Action Button */}
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              size="large"
-              onClick={() => navigate("/orders")}
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: "medium",
-                textTransform: "none",
-              }}
-            >
-              View All Orders
-            </Button>
-          </Box>
-        </Grid>
-      </Grid>
+          {/* Action Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            onClick={() => navigate("/orders")}
+            sx={{
+              py: 1.5,
+              borderRadius: 2,
+              fontWeight: "medium",
+              textTransform: "none",
+            }}
+          >
+            View All Orders
+          </Button>
+        </Box>
+      </Box>
     </Container>
   );
 };
