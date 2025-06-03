@@ -76,7 +76,11 @@ const DeliveryManagement: React.FC = () => {
       : undefined,
   });
 
-  const { data: deliveryPersonsData } = useGetAdminUsersQuery({
+  const {
+    data: deliveryPersonsData,
+    isLoading: isDeliveryPersonsLoading,
+    error: deliveryPersonsError,
+  } = useGetAdminUsersQuery({
     page: 1,
     page_size: 100,
     role: "delivery",
@@ -87,7 +91,7 @@ const DeliveryManagement: React.FC = () => {
   const [assignDeliveryPerson, { isLoading: isAssigning }] = useAssignDeliveryPersonMutation();
   const [updateDeliveryStatus, { isLoading: isStatusUpdating }] = useUpdateDeliveryStatusMutation();
 
-  const availableDeliveryPersons = deliveryPersonsData?.results || [];
+  const availableDeliveryPersons = deliveryPersonsData?.results.filter(user => user.role === "delivery") || [];
 
   const handleCreateDeliveryChange = useCallback(
     (
@@ -134,7 +138,10 @@ const DeliveryManagement: React.FC = () => {
   const handleAssignDeliveryPersonSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!showAssignModal || !selectedDeliveryPersonId) return;
+      if (!showAssignModal || !selectedDeliveryPersonId) {
+        alert("Please select a delivery person.");
+        return;
+      }
 
       try {
         await assignDeliveryPerson({
@@ -145,7 +152,11 @@ const DeliveryManagement: React.FC = () => {
         setShowAssignModal(null);
         setSelectedDeliveryPersonId("");
       } catch (error: any) {
-        alert(`Failed to assign delivery person: ${error?.data?.detail || "Unknown error"}`);
+        alert(
+          `Failed to assign delivery person: ${
+            error?.data?.error || error?.data?.detail || "Unknown error"
+          }`
+        );
       }
     },
     [showAssignModal, selectedDeliveryPersonId, assignDeliveryPerson]
@@ -154,7 +165,10 @@ const DeliveryManagement: React.FC = () => {
   const handleUpdateStatusSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!showStatusModal || !selectedStatus) return;
+      if (!showStatusModal || !selectedStatus) {
+        alert("Please select a status.");
+        return;
+      }
 
       try {
         await updateDeliveryStatus({
@@ -181,14 +195,10 @@ const DeliveryManagement: React.FC = () => {
         try {
           await deleteDelivery(deliveryId).unwrap();
           alert("Delivery deleted successfully!");
-        } catch (error: unknown) {
-          if (typeof error === "object" && error !== null && "data" in error) {
-            alert(
-              `Failed to delete delivery: ${(error as any).data?.detail || "Unknown error"}`
-            );
-          } else {
-            alert("Failed to delete delivery: Unknown error");
-          }
+        } catch (error: any) {
+          alert(
+            `Failed to delete delivery: ${error?.data?.detail || "Unknown error"}`
+          );
         }
       }
     },
@@ -353,6 +363,11 @@ const DeliveryManagement: React.FC = () => {
             {(deliveriesError as any).data?.detail || "Failed to fetch deliveries"}
           </div>
         )}
+        {deliveryPersonsError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+            {(deliveryPersonsError as any).data?.detail || "Failed to fetch delivery persons"}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {deliveriesData?.results?.length === 0 ? (
             <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center text-gray-500">
@@ -498,6 +513,7 @@ const DeliveryManagement: React.FC = () => {
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+                type="button"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -520,13 +536,20 @@ const DeliveryManagement: React.FC = () => {
                 value={newDelivery.delivery_person_id}
                 onChange={handleCreateDeliveryChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                disabled={isDeliveryPersonsLoading || availableDeliveryPersons.length === 0}
               >
                 <option value="">Unassigned Delivery Person</option>
-                {availableDeliveryPersons.map((user: User) => (
-                  <option key={user.id} value={user.id}>
-                    {user.username}
-                  </option>
-                ))}
+                {isDeliveryPersonsLoading ? (
+                  <option disabled>Loading delivery persons...</option>
+                ) : availableDeliveryPersons.length === 0 ? (
+                  <option disabled>No delivery persons available</option>
+                ) : (
+                  availableDeliveryPersons.map((user: User) => (
+                    <option key={user.id} value={user.id}>
+                      {user.username}
+                    </option>
+                  ))
+                )}
               </select>
               <input
                 type="text"
@@ -534,7 +557,7 @@ const DeliveryManagement: React.FC = () => {
                 placeholder="Delivery Address"
                 value={newDelivery.delivery_address}
                 onChange={handleCreateDeliveryChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring’on-4 focus:ring-blue-500 transition-colors"
                 required
               />
               <input
@@ -544,7 +567,7 @@ const DeliveryManagement: React.FC = () => {
                 placeholder="Latitude (Optional)"
                 value={newDelivery.latitude}
                 onChange={handleCreateDeliveryChange}
-                className="w-full px-4 py-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors"
               />
               <input
                 type="number"
@@ -553,20 +576,20 @@ const DeliveryManagement: React.FC = () => {
                 placeholder="Longitude (Optional)"
                 value={newDelivery.longitude}
                 onChange={handleCreateDeliveryChange}
-                className="w-full px-4 py-2 border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors"
               />
               <div className="flex justify-end space-x-3 bg-white p-4">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 text-sm"
                 >
                   {isCreating ? (
                     <svg
@@ -603,43 +626,51 @@ const DeliveryManagement: React.FC = () => {
 
       {/* Assign Delivery Person Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Assign Delivery Person</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Assign Delivery Person</h3>
               <button
                 onClick={() => setShowAssignModal(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white hover:bg-white/20 p-1 rounded-lg transition-colors"
+                type="button"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleAssignDeliveryPersonSubmit}>
+            <form onSubmit={handleAssignDeliveryPersonSubmit} className="p-4 space-y-4">
               <select
                 value={selectedDeliveryPersonId}
                 onChange={(e) => setSelectedDeliveryPersonId(e.target.value)}
-                className="w-full p-2 border rounded-md mb-4"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-colors"
                 required
+                disabled={isDeliveryPersonsLoading || availableDeliveryPersons.length === 0}
               >
                 <option value="">Select Delivery Person</option>
-                {deliveryPersonsData?.results.map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {person.username}
-                  </option>
-                ))}
+                {isDeliveryPersonsLoading ? (
+                  <option disabled>Loading delivery persons...</option>
+                ) : availableDeliveryPersons.length === 0 ? (
+                  <option disabled>No delivery persons available</option>
+                ) : (
+                  availableDeliveryPersons.map((person: User) => (
+                    <option key={person.id} value={person.id}>
+                      {person.username}
+                    </option>
+                  ))
+                )}
               </select>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setShowAssignModal(null)}
-                  className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isAssigning}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-500"
+                  disabled={isAssigning || isDeliveryPersonsLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 text-sm"
                 >
                   {isAssigning ? "Assigning..." : "Assign"}
                 </button>
@@ -651,41 +682,43 @@ const DeliveryManagement: React.FC = () => {
 
       {/* Update Status Modal */}
       {showStatusModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Update Status</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[50vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">Update Status</h3>
               <button
                 onClick={() => setShowStatusModal(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                type="button"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateStatusSubmit}>
+            <form onSubmit={handleUpdateStatusSubmit} className="p-4 space-y-4">
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full p-2 border rounded-md mb-4"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-colors"
                 required
               >
+                <option value="">Select Status</option>
                 <option value="pending">Pending</option>
-                <option value="in-transit">In Transit</option>
+                <option value="in_transit">In Transit</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setShowStatusModal(null)}
-                  className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isStatusUpdating}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-500"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 text-sm"
                 >
                   {isStatusUpdating ? "Updating..." : "Update"}
                 </button>

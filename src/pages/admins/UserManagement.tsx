@@ -92,7 +92,7 @@ const UserManagement = () => {
       label: "Delivery",
     },
     customer: {
-      icon: UserIcon, // Use aliased icon
+      icon: UserIcon, 
       color: "text-green-700",
       bg: "bg-green-100",
       border: "border-green-200",
@@ -207,7 +207,7 @@ const UserManagement = () => {
     const matchesSearch =
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "all" | user.role === filterRole;
+    const matchesRole = filterRole === "all" || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
 
