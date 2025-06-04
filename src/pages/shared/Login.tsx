@@ -41,7 +41,7 @@ const Login: React.FC = () => {
     setError("");
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/users/login/",
+        "https://muindi-mweusi.onrender.com/api/users/login/",
         { username, password }
       );
       const user = response.data.user;
@@ -67,7 +67,7 @@ const Login: React.FC = () => {
 
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
-    redirect_uri: "http://localhost:5173/auth/google/callback",
+    redirect_uri: "https://muindi-mweusi.onrender.com/auth/google/callback",
     scope: "openid email profile",
     ux_mode: "redirect",
     state: oauthState,

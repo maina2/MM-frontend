@@ -40,7 +40,7 @@ const Register: React.FC = () => {
 
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
-    redirect_uri: "http://localhost:5173/auth/google/callback",
+    redirect_uri: "https://muindi-mweusi.onrender.com/auth/google/callback",
     scope: "openid email profile",
     ux_mode: "redirect",
     state: state,

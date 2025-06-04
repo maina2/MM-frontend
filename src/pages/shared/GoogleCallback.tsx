@@ -45,7 +45,7 @@ const GoogleCallback = () => {
 
       try {
         const response = await axios.post(
-          'http://localhost:8000/api/users/google/',
+          'https://mm-backend-8rp8.onrender.com/api/users/google/',
           { code },
           {
             headers: {
