@@ -1,11 +1,24 @@
-// src/components/DeliveryDetails.tsx
-import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Package, Clock, User, Truck, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import {
+  ArrowLeft,
+  MapPin,
+  Package,
+  Clock,
+  User,
+  Truck,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+} from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { useGetDeliveryTaskDetailQuery, useUpdateDeliveryTaskMutation } from '../../api/apiSlice';
-import { Delivery } from '../../types';
+import {
+  useGetDeliveryTaskDetailQuery,
+  useUpdateDeliveryTaskMutation,
+} from '../../api/apiSlice';
+import {  DeliveryStatus } from '../../types';
 import { useNavigate, useParams } from 'react-router-dom';
+import 'leaflet/dist/leaflet.css';
 
 const deliveryIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -17,7 +30,7 @@ const deliveryIcon = new L.Icon({
 const DeliveryDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [newStatus, setNewStatus] = useState('');
+  const [newStatus, setNewStatus] = useState<DeliveryStatus | ''>('');
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -25,7 +38,13 @@ const DeliveryDetails = () => {
   const { data: delivery, isLoading, isError, error } = useGetDeliveryTaskDetailQuery(Number(id));
   const [updateDeliveryTask] = useUpdateDeliveryTaskMutation();
 
-  const statusConfig = {
+  const statusConfig: Record<DeliveryStatus, {
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+    label: string;
+  }> = {
     pending: { icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', label: 'Pending' },
     assigned: { icon: User, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', label: 'Assigned' },
     in_transit: { icon: Truck, color: 'text-purple-600', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', label: 'In Transit' },
@@ -39,15 +58,15 @@ const DeliveryDetails = () => {
     { value: 'in_transit', label: 'In Transit', disabled: delivery?.status !== 'assigned' },
     { value: 'delivered', label: 'Delivered', disabled: delivery?.status !== 'in_transit' },
     { value: 'cancelled', label: 'Cancelled', disabled: !['pending', 'assigned', 'in_transit'].includes(delivery?.status || '') },
-  ];
+  ] as const;
 
-  const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setNewStatus(event.target.value);
+  const handleStatusChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    setNewStatus(event.target.value as DeliveryStatus);
     setUpdateError(null);
     setUpdateSuccess(null);
-  };
+  }, []);
 
-  const handleUpdateStatus = async () => {
+  const handleUpdateStatus = useCallback(async () => {
     if (!newStatus || newStatus === delivery?.status) {
       setUpdateError('Please select a different status.');
       return;
@@ -57,29 +76,33 @@ const DeliveryDetails = () => {
       await updateDeliveryTask({ id: Number(id), status: newStatus }).unwrap();
       setUpdateSuccess('Status updated successfully.');
       setNewStatus('');
-    } catch (err) {
-      setUpdateError('Failed to update status. Please try again.');
+    } catch (err: any) {
+      setUpdateError(err.data?.detail || 'Failed to update status. Please try again.');
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [newStatus, delivery?.status, id, updateDeliveryTask]);
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return 'N/A';
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
-  };
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(date));
+    } catch {
+      return 'Invalid Date';
+    }
+  }, []);
 
-  const formatPrice = (value: string | number | null) => {
+  const formatPrice = useCallback((value: string | number | null) => {
     if (value == null) return 'N/A';
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? 'N/A' : `KSh ${num.toFixed(2)}`;
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -118,6 +141,7 @@ const DeliveryDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -134,7 +158,9 @@ const DeliveryDetails = () => {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Status Header */}
         <div className={`${currentStatus.bgColor} ${currentStatus.borderColor} border-2 rounded-2xl p-6 mb-8 shadow-sm`}>
           <div className="flex items-center space-x-4">
             <div className={`${currentStatus.color} p-3 rounded-full bg-white shadow-sm`}>
@@ -149,8 +175,11 @@ const DeliveryDetails = () => {
           </div>
         </div>
 
+        {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column (Order & Delivery Info) */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Order Information */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
@@ -185,7 +214,7 @@ const DeliveryDetails = () => {
                       const subtotal = isNaN(price) ? 0 : price * item.quantity;
                       return (
                         <div
-                          key={item.product.id}
+                          key={item.id}
                           className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
                         >
                           <div className="flex-1">
@@ -207,6 +236,8 @@ const DeliveryDetails = () => {
                 </div>
               </div>
             </div>
+
+            {/* Delivery Information */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
                 <div className="flex items-center space-x-3">
@@ -246,7 +277,7 @@ const DeliveryDetails = () => {
                         <MapContainer
                           center={[delivery.latitude, delivery.longitude]}
                           zoom={15}
-                          className="h-[300px] w-full rounded-xl border-2 border-blue-200"
+                          className="h-[400px] w-full rounded-xl border-2 border-blue-600"
                           aria-label="Delivery location map"
                         >
                           <TileLayer
@@ -256,7 +287,7 @@ const DeliveryDetails = () => {
                           <Marker
                             position={[delivery.latitude, delivery.longitude]}
                             icon={deliveryIcon}
-                            keyboard={true}
+                            keyboard={false}
                           >
                             <Popup>
                               <div className="text-sm font-medium text-gray-900">
@@ -272,35 +303,39 @@ const DeliveryDetails = () => {
               </div>
             </div>
           </div>
+
+          {/* Right Column (Update Status & Quick Info) */}
           <div className="space-y-8">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
-                <h3 className="text-xl font-bold text-white">Update Status</h3>
+            {/* Update Status */}
+            <div className="bg-white rounded-2xl shadow-lg border-t-4 border-blue-600 overflow-hidden sticky top-24">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                <h3 className="text-xl font-semibold text-white">Update Status</h3>
               </div>
               <div className="p-6">
                 {updateError && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                      <p className="text-red-800 font-medium">{updateError}</p>
+                      <AlertCircle className="w-5 h-5 text-red-500" />
+                      <p className="text-red-700 font-medium">{updateError}</p>
                     </div>
                   </div>
                 )}
                 {updateSuccess && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="mb-4 p-4 bg-green-50 border rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <p className="text-green-800 font-medium">{updateSuccess}</p>
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <p className="text-green-600 font-medium">{updateSuccess}</p>
                     </div>
                   </div>
                 )}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select New Status</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Status</label>
                     <select
                       value={newStatus}
                       onChange={handleStatusChange}
-                      className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      disabled={isUpdating}
                     >
                       <option value="">Choose status...</option>
                       {statusOptions.map((option) => (
@@ -313,11 +348,11 @@ const DeliveryDetails = () => {
                   <button
                     onClick={handleUpdateStatus}
                     disabled={isUpdating || !newStatus}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95"
+                    className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {isUpdating ? (
                       <div className="flex items-center justify-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-white"></div>
                         <span>Updating...</span>
                       </div>
                     ) : (
@@ -327,14 +362,16 @@ const DeliveryDetails = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Info</h3>
+
+            {/* Quick Info */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-blue-600">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Info</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-gray-600">Items</span>
-                  <span className="font-semibold">{delivery.order.items?.length || 0}</span>
+                  <span className="font-semibold">{delivery.order.items?.length || '0'}</span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-gray-600">Total Weight</span>
                   <span className="font-semibold">N/A</span>
                 </div>

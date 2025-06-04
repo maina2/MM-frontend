@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { usePostOptimizeRouteMutation, useGetDeliveryTasksQuery } from '../../api/apiSlice';
-import { Delivery, OptimizeRouteRequest, OptimizeRouteResponse } from '../../types';
+import { Delivery, OptimizeRouteRequest } from '../../types/index';
 import { AlertCircle, MapPin, Package } from 'lucide-react';
 import 'leaflet/dist/leaflet.css'; // Ensure Leaflet CSS is imported
 

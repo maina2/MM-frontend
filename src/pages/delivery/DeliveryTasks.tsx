@@ -1,5 +1,5 @@
 // src/components/DeliveryTasks.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Package,
   Clock,
@@ -20,6 +20,9 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 
+// Define the delivery status type that matches your statusConfig
+type DeliveryStatusType = 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
+
 const DeliveryTasks = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");
@@ -27,18 +30,26 @@ const DeliveryTasks = () => {
   const [rowsPerPage, setRowsPerPage] = useState(6);
 
   const user = useSelector((state: RootState) => state.auth.user);
-  if (!user || user.role !== "delivery") {
-    navigate("/unauthorized");
-    return null;
-  }
-
+  
+  // Move hook call before any early returns
   const { data, isLoading, isError, error } = useGetDeliveryTasksQuery({
     page,
     page_size: rowsPerPage,
   });
 
+  // Check authorization after hooks
+  if (!user || user.role !== "delivery") {
+    navigate("/unauthorized");
+    return null;
+  }
+
   const deliveries = data?.results || [];
   const totalCount = data?.count || 0;
+
+  // Helper function to check if status is valid
+  const isValidDeliveryStatus = (status: string): status is DeliveryStatusType => {
+    return status in statusConfig;
+  };
 
   const filteredDeliveries =
     statusFilter === "all"
@@ -47,7 +58,13 @@ const DeliveryTasks = () => {
           (delivery: Delivery) => delivery.status === statusFilter
         );
 
-  const statusConfig = {
+  const statusConfig: Record<DeliveryStatusType, {
+    icon: React.ComponentType<any>;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+    label: string;
+  }> = {
     pending: {
       icon: Clock,
       color: "text-yellow-600",
@@ -201,7 +218,7 @@ const DeliveryTasks = () => {
               "cancelled",
             ].map((status) => {
               const isActive = statusFilter === status;
-              const config = status === "all" ? null : statusConfig[status];
+              const config = status === "all" ? null : isValidDeliveryStatus(status) ? statusConfig[status] : null;
               return (
                 <button
                   key={status}
@@ -210,11 +227,11 @@ const DeliveryTasks = () => {
                     isActive
                       ? status === "all"
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                        : `${config?.bgColor} ${config?.color} ${config?.borderColor} border-2 shadow-md`
+                        : config ? `${config.bgColor} ${config.color} ${config.borderColor} border-2 shadow-md` : "bg-gray-100 text-gray-600"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200"
                   }`}
                 >
-                  {status === "all" ? "All Tasks" : config?.label}
+                  {status === "all" ? "All Tasks" : config?.label || status}
                 </button>
               );
             })}
@@ -230,16 +247,16 @@ const DeliveryTasks = () => {
             <p className="text-gray-600">
               {statusFilter === "all"
                 ? "You don't have any delivery tasks yet."
-                : `No ${statusConfig[
-                    statusFilter
-                  ]?.label?.toLowerCase()} tasks found.`}
+                : `No ${isValidDeliveryStatus(statusFilter) ? statusConfig[statusFilter].label.toLowerCase() : statusFilter} tasks found.`}
             </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {paginatedDeliveries.map((delivery: Delivery) => {
-                const statusInfo = statusConfig[delivery.status];
+                const statusInfo = isValidDeliveryStatus(delivery.status) 
+                  ? statusConfig[delivery.status] 
+                  : statusConfig.pending; // fallback to pending if status not found
                 const StatusIcon = statusInfo.icon;
                 return (
                   <div

@@ -105,7 +105,7 @@ export interface Delivery {
   id: number;
   order: Order;
   delivery_person: User | null;
-  status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
+  status: DeliveryStatus;
   delivery_address: string;
   latitude: number | null;
   longitude: number | null;
@@ -114,6 +114,8 @@ export interface Delivery {
   created_at: string;
   updated_at: string;
 }
+export type DeliveryStatus = 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
+
 export interface OptimizeRouteRequest {
   start_location: [number, number]; // [lat, lng]
   delivery_ids: number[];
