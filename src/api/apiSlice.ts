@@ -21,7 +21,7 @@ import {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
 
-const BASE_URL = "http://localhost:8000/api/";
+const BASE_URL = "https://mm-backend-8rp8.onrender.com/api/";
 
 // Define proper types for baseQuery arguments
 interface RefreshResponse {
