@@ -68,30 +68,31 @@ export interface OrderItem {
   price: number;
 }
 
-// src/types.ts
+// Define the status types first
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type PaymentStatus = 'pending' | 'successful' | 'failed' | 'cancelled';
+
+// Order interface with correct payment_status type
 export interface Order {
   id: number;
   customer: User;
   total_amount: string | number;
   status: OrderStatus;
-  payment_status: OrderStatus;
+  payment_status: PaymentStatus; // Changed from OrderStatus to PaymentStatus
   payment_phone_number?: string | null;
   created_at: string;
   updated_at: string;
   items: OrderItem[];
-branch: Branch | number | string;
+  branch: Branch | number | string;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-
-// Payment type
+// Payment type - also update the status field to use PaymentStatus
 export interface Payment {
   id: number;
   order: Order;
   amount: number;
   phone_number: string;
-  status: string;
+  status: PaymentStatus; // Changed from string to PaymentStatus for better type safety
   transaction_id: number | null;
   checkout_request_id: number | null;
   error_message?: string | null;
@@ -114,6 +115,7 @@ export interface Delivery {
   created_at: string;
   updated_at: string;
 }
+
 export type DeliveryStatus = 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled';
 
 export interface OptimizeRouteRequest {
@@ -134,7 +136,6 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
-
 
 export interface StatsResponse {
   users: number;

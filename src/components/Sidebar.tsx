@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../store/hooks";
-import { logout } from "../store/authSlice";
+import { useAppDispatch } from "../store/hooks"; // Assuming you have this custom hook
+import { logout } from "../store/authSlice"; // Assuming you have this action
 import {
   FaChartBar,
   FaUsers,
@@ -17,9 +17,16 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 
+// Mock useAppDispatch if not available in this context for testing
+// const useAppDispatch = () => jest.fn();
+// Mock logout action
+// const logout = () => ({ type: 'LOGOUT' });
+
+
 const Sidebar: React.FC = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // MODIFIED LINE: Set initial state of isCollapsed to true
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -29,7 +36,7 @@ const Sidebar: React.FC = () => {
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
-    setIsMobileOpen(false);
+    setIsMobileOpen(false); // Close mobile sidebar on logout
   };
 
   const navItems = [
@@ -86,7 +93,7 @@ const Sidebar: React.FC = () => {
         className={`fixed inset-y-0 left-0 bg-gray-900 text-white transform ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:static ${
-          isCollapsed ? "md:w-16" : "md:w-56"
+          isCollapsed ? "md:w-16" : "md:w-56" // This will now default to md:w-16
         } transition-all duration-300 ease-in-out z-40 md:min-h-screen overflow-y-auto box-border w-56`}
       >
         {/* Header */}
@@ -100,7 +107,8 @@ const Sidebar: React.FC = () => {
               isCollapsed ? "justify-center" : ""
             }`}
           >
-            <FaChartBar className="text-primary" size={20} />
+            {/* Consider a smaller or different logo when collapsed if needed */}
+            <FaChartBar className="text-primary" size={isCollapsed ? 24 : 20} /> {/* Adjusted size slightly for example */}
             {!isCollapsed && (
               <h2 className="text-xl font-bold ml-2">Admin Panel</h2>
             )}
@@ -117,7 +125,7 @@ const Sidebar: React.FC = () => {
             }`}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {isCollapsed ? (
+            {isCollapsed ? ( // Icon will now be FaChevronRight by default
               <FaChevronRight className="text-gray-400" size={16} />
             ) : (
               <FaChevronLeft className="text-gray-400" size={16} />
@@ -135,20 +143,22 @@ const Sidebar: React.FC = () => {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  end={item.path === "/admin"}
+                  end={item.path === "/admin"} // Ensure Dashboard is only active on exact match
                   className={({ isActive }) =>
                     `flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 w-full group relative ${
                       isActive
-                        ? "bg-primary text-white shadow-md"
-                        : "hover:bg-gray-700 hover:text-primary"
+                        ? "bg-primary text-white shadow-md" // Ensure 'bg-primary' is defined in your Tailwind config
+                        : "text-gray-300 hover:bg-gray-700 hover:text-primary" // Adjusted non-active text color
                     } ${isCollapsed ? "justify-center" : ""}`
                   }
-                  onClick={() => setIsMobileOpen(false)}
+                  onClick={() => {
+                    if (isMobileOpen) setIsMobileOpen(false);
+                  }}
                   aria-label={item.label}
-                  title={isCollapsed ? item.label : ""}
+                  title={isCollapsed ? item.label : ""} // Tooltip for collapsed state (HTML native)
                 >
                   {item.icon}
-                  {!isCollapsed && item.label}
+                  {!isCollapsed && <span className="ml-2">{item.label}</span>} {/* Added ml-2 for consistency */}
 
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
@@ -163,14 +173,14 @@ const Sidebar: React.FC = () => {
             <li>
               <button
                 onClick={handleLogout}
-                className={`flex items-center w-full px-3 py-2 rounded-lg text-sm hover:bg-gray-700 hover:text-primary transition-all duration-200 group relative ${
+                className={`flex items-center w-full px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-primary transition-all duration-200 group relative ${
                   isCollapsed ? "justify-center" : ""
                 }`}
                 aria-label="Logout"
                 title={isCollapsed ? "Logout" : ""}
               >
                 <FaSignOutAlt className={isCollapsed ? "" : "mr-2"} />
-                {!isCollapsed && "Logout"}
+                {!isCollapsed && <span className="ml-2">Logout</span>} {/* Added ml-2 for consistency */}
 
                 {/* Tooltip for collapsed state */}
                 {isCollapsed && (
@@ -190,6 +200,7 @@ const Sidebar: React.FC = () => {
         <div
           className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
           onClick={toggleMobileSidebar}
+          aria-hidden="true" // Added for accessibility
         ></div>
       )}
     </>

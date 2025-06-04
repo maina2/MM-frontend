@@ -9,6 +9,12 @@ import {
 import { Edit3, Trash2, Plus, X, Save } from "lucide-react";
 import { Product } from "../../types";
 
+// Define API error type
+interface ApiError {
+  data?: { detail?: string };
+  status?: number;
+}
+
 const ProductManagement = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -146,7 +152,7 @@ const ProductManagement = () => {
         stock: stockNum,
         category: Number(formData.category),
         discount_percentage: discountNum,
-        image: formData.image || undefined, // Convert null to undefined
+        image: formData.image || undefined,
       };
       try {
         if (editProduct) {
@@ -158,8 +164,11 @@ const ProductManagement = () => {
         }
         handleModalClose();
       } catch (err: unknown) {
+        const apiError = err as ApiError;
         setFormError(
-          err.data && "detail" in err.data ? err.data.detail : "Failed to save product"
+          apiError.data && apiError.data.detail
+            ? apiError.data.detail
+            : "Failed to save product"
         );
       }
     },
@@ -186,6 +195,19 @@ const ProductManagement = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    const apiError = error as ApiError;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+          {apiError.data && apiError.data.detail
+            ? apiError.data.detail
+            : "Failed to fetch products"}
+        </div>
       </div>
     );
   }
@@ -282,13 +304,6 @@ const ProductManagement = () => {
 
       {/* Products Grid */}
       <div className="max-w-7xl mx-auto">
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {"data" in error && error.data && "detail" in error.data
-              ? error.data.detail
-              : "Failed to fetch products"}
-          </div>
-        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {productsData.results.map((product) => (
             <div

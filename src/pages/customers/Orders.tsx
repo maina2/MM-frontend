@@ -280,7 +280,7 @@ const Orders: React.FC = () => {
                     <div className="flex items-center text-xs text-gray-600">
                       <FiDollarSign className="h-3 w-3 mr-1" />
                       <span className={`font-medium ${
-                        order.payment_status === "paid" 
+                        order.payment_status === "successful" 
                           ? "text-green-700" 
                           : "text-amber-700"
                       }`}>

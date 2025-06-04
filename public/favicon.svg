@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle (Optional, for rounded favicon appearance) -->
+  <circle cx="32" cy="32" r="32" fill="#F5F5F5"/>
+
+  <!-- Shopping Basket Body -->
+  <path d="M20 40H44C46.2091 40 48 38.2091 48 36V28C48 25.7909 46.2091 24 44 24H20C17.7909 24 16 25.7909 16 28V36C16 38.2091 17.7909 40 20 40Z" fill="#2ECC71"/>
+  
+  <!-- Basket Handle -->
+  <path d="M18 24V20C18 15.5817 21.5817 12 26 12H38C42.4183 12 46 15.5817 46 20V24" stroke="#000000" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Kenyan Pattern (Geometric Triangles in Yellow) -->
+  <path d="M20 28L24 32L20 36H24L28 32L24 28H20Z" fill="#F1C40F"/>
+  <path d="M40 28L44 32L40 36H44L48 32L44 28H40Z" fill="#F1C40F"/>
+  
+  <!-- Basket Outline -->
+  <path d="M20 40H44C46.2091 40 48 38.2091 48 36V28C48 25.7909 46.2091 24 44 24H20C17.7909 24 16 25.7909 16 28V36C16 38.2091 17.7909 40 20 40Z" stroke="#000000" stroke-width="2"/>
+  
+  <!-- "MM" Initials (Muindi Mweusi) -->
+  <text x="26" y="48" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#000000">MM</text>
+</svg>

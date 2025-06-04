@@ -28,26 +28,32 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { RootState } from "../../store/store";
 import { useGetOrderQuery } from "../../api/apiSlice";
-import { OrderStatus } from "../../types";
+import { OrderStatus, PaymentStatus } from "../../types";
 
 interface StatusChipProps {
-  status: OrderStatus;
+  status: OrderStatus | PaymentStatus;
 }
+
 const StatusChip = ({ status }: StatusChipProps) => {
-  const colorMap: Record<OrderStatus, string> = {
+  const colorMap: Record<OrderStatus | PaymentStatus, string> = {
+    // OrderStatus values
     pending: "warning",
-    paid: "success",
     processing: "info",
+    shipped: "info",
+    delivered: "success",
+    cancelled: "error",
+    // PaymentStatus values
+    successful: "success",
     failed: "error",
-    completed: "success",
   };
 
   return (
     <Chip
       label={status}
-      color={colorMap[status] || "default"}
+      color={colorMap[status] as any || "default"}
       size="small"
       sx={{ fontWeight: "medium", borderRadius: "16px" }}
     />
@@ -75,16 +81,15 @@ const OrderConfirmation = () => {
     parsedOrderId!,
     { skip: !parsedOrderId }
   );
-  const [paymentStatus, setPaymentStatus] = useState<OrderStatus | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
 
   const getActiveStep = () => {
     if (!paymentStatus) return 0;
-    const statusSteps: Record<OrderStatus, number> = {
-      paid: 1,
-      processing: 2,
-      completed: 3,
+    const statusSteps: Record<PaymentStatus, number> = {
       pending: 0,
+      successful: 1,
       failed: 0,
+      cancelled: 0,
     };
     return statusSteps[paymentStatus] || 0;
   };
@@ -97,7 +102,7 @@ const OrderConfirmation = () => {
 
       if (order.payment_status === "pending") {
         const interval = setInterval(() => {
-          if (["paid", "failed"].includes(order.payment_status)) {
+          if (["successful", "failed", "cancelled"].includes(order.payment_status)) {
             clearInterval(interval);
           }
         }, 5000);
@@ -156,10 +161,10 @@ const OrderConfirmation = () => {
   }
 
   const steps = [
-    "Payment Initiated",
-    "Payment Confirmed",
-    "Processing",
-    "Completed",
+    "Payment Pending",
+    "Payment Successful",
+    "Order Processing",
+    "Order Completed",
   ];
 
   // Use total_amount directly
@@ -228,7 +233,7 @@ const OrderConfirmation = () => {
               confirmation...
             </Alert>
           )}
-          {paymentStatus === "paid" && (
+          {paymentStatus === "successful" && (
             <Alert
               severity="success"
               variant="outlined"
@@ -245,6 +250,16 @@ const OrderConfirmation = () => {
               sx={{ mt: 2, borderRadius: 1.5 }}
             >
               Payment failed. Please try again or contact support.
+            </Alert>
+          )}
+          {paymentStatus === "cancelled" && (
+            <Alert
+              severity="warning"
+              variant="outlined"
+              icon={<CancelIcon />}
+              sx={{ mt: 2, borderRadius: 1.5 }}
+            >
+              Payment was cancelled. You can try again when ready.
             </Alert>
           )}
         </CardContent>
@@ -301,7 +316,7 @@ const OrderConfirmation = () => {
                         View Items
                       </Typography>
                       <Typography fontWeight="medium">
-                        KSh {total.toLocaleString()}
+                        KSh {Number(total).toLocaleString()}
                       </Typography>
                     </Box>
                   </AccordionSummary>
@@ -375,7 +390,7 @@ const OrderConfirmation = () => {
                   Total
                 </Typography>
                 <Typography variant="h6" fontWeight="bold" color="primary.main">
-                  KSh {total.toLocaleString()}
+                  KSh {Number(total).toLocaleString()}
                 </Typography>
               </Box>
             </CardContent>
