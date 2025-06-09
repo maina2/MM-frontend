@@ -67,7 +67,7 @@ const Login: React.FC = () => {
 
   const googleLogin = useGoogleLogin({
     flow: "auth-code",
-    redirect_uri: "https://muindi-mweusi.onrender.com/auth/google/callback",
+    redirect_uri: "https://mm-backend-8rp8.onrender.com/auth/google/callback",
     scope: "openid email profile",
     ux_mode: "redirect",
     state: oauthState,
