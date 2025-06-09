@@ -1,4 +1,3 @@
-// AuthSuccess.tsx
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -31,7 +30,7 @@ const AuthSuccess = () => {
     } else {
       navigate('/login', { state: { error: 'Authentication failed' } });
     }
-  }, [navigate, dispatch]);
+  }, [navigate, dispatch, location.search]); // Added location.search
 
   return <div className="container mx-auto p-4">Loading...</div>;
 };
