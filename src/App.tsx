@@ -30,6 +30,7 @@ import Settings from "./pages/admins/Settings";
 import Unauthorized from "./pages/shared/Unauthorized";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DeliveryRoute from "./pages/delivery/DeliveryRoute";
+import AuthSuccess from "./pages/shared/AuthSucces";
 
 const App: React.FC = () => {
   return (
@@ -47,6 +48,8 @@ const App: React.FC = () => {
           <Route path="/categories/:id" element={<CategoryDetail />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/offers" element={<Offers />} />
+   
+
 
           {/* Customer-Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
@@ -141,6 +144,7 @@ const App: React.FC = () => {
         {/* Routes without Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
       </Routes>
     </Router>
