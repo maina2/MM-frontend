@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../store/authSlice";
@@ -42,7 +42,7 @@ const Login = () => {
     return storedState;
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
@@ -123,7 +123,7 @@ const Login = () => {
     }
   };
 
-  // Animation variants (same as before)
+  // Animation variants
   const formContainerVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: {
@@ -290,7 +290,7 @@ const Login = () => {
         </div>
       </motion.div>
 
-      {/* Right side decoration (same as before) */}
+      {/* Right side decoration */}
       <motion.div
         className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-600 to-indigo-600 items-center justify-center p-8 text-white relative overflow-hidden max-h-full"
         variants={decorativeSideVariants}
