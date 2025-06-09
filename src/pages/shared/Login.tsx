@@ -83,7 +83,7 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     try {
       // Send oauthState to backend before initiating OAuth
-      await axios.post("https://mm-backend-8rp8.onrender.com/store-state/", { state: oauthState });
+      await axios.post("https://mm-backend-8rp8.onrender.com/store-state/", { state: oauthState }, { withCredentials: true } );
       googleLogin(); // Initiate OAuth flow
     } catch (error) {
       console.error("Failed to store state:", error);
