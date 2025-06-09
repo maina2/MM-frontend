@@ -13,6 +13,7 @@ export interface User {
   password?: string; 
 }
 
+
 // Category and Branch types (used in Product and Order)
 export interface Category {
   id: number;

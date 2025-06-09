@@ -41,7 +41,7 @@ const Login: React.FC = () => {
     setError("");
     try {
       const response = await axios.post(
-        "https://muindi-mweusi.onrender.com/api/users/login/",
+        "https://mm-backend-8rp8.onrender.com/api/users/login/",
         { username, password }
       );
       const user = response.data.user;
