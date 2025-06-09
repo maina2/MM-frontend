@@ -71,14 +71,25 @@ const Login: React.FC = () => {
     scope: "openid email profile",
     ux_mode: "redirect",
     state: oauthState,
-    onSuccess: (response) => {
-      console.log("Google login initiated, code:", response.code);
+    onSuccess: () => {
+      console.log("Google login initiated");
     },
     onError: () => {
       console.error("Google login failed");
       setError("Google login failed. Please try again.");
     },
   });
+
+  const handleGoogleLogin = async () => {
+    try {
+      // Send oauthState to backend before initiating OAuth
+      await axios.post("https://mm-backend-8rp8.onrender.com/store-state/", { state: oauthState });
+      googleLogin(); // Initiate OAuth flow
+    } catch (error) {
+      console.error("Failed to store state:", error);
+      setError("Failed to initiate Google login. Please try again.");
+    }
+  };
 
   const formContainerVariants = {
     hidden: { opacity: 0, x: -50 },
@@ -116,7 +127,6 @@ const Login: React.FC = () => {
       >
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-full overflow-y-auto">
           <motion.div variants={itemVariants} className="flex items-center justify-center mb-4">
-            {/* Replace with Muindi Mweusi logo if available */}
             <LogIn className="w-8 h-8 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
           </motion.div>
@@ -220,7 +230,7 @@ const Login: React.FC = () => {
             </div>
 
             <motion.button
-              onClick={() => googleLogin()}
+              onClick={handleGoogleLogin} // Updated to use handleGoogleLogin
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 py-2 rounded-xl font-semibold text-gray-900 hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm"
               whileHover={{ scale: 1.01, boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.05)" }}
               whileTap={{ scale: 0.99 }}
@@ -242,7 +252,6 @@ const Login: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Right Column: Decorative/Branding Area */}
       <motion.div
         className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-600 to-indigo-600 items-center justify-center p-8 text-white relative overflow-hidden max-h-full"
         variants={decorativeSideVariants}
