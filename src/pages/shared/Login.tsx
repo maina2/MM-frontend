@@ -8,7 +8,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FiEye, FiEyeOff, FiAlertTriangle } from "react-icons/fi";
 import { Mail, Lock, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { Link } from "react-router-dom";
 // Configure axios for credentials
 axios.defaults.withCredentials = true;
 
@@ -280,12 +280,12 @@ const Login = () => {
 
           <motion.p variants={itemVariants} className="mt-4 text-center text-xs text-gray-600">
             Don't have an account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all duration-200"
             >
               Sign up
-            </a>
+           </Link>
           </motion.p>
         </div>
       </motion.div>
