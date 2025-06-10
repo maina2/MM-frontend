@@ -10,9 +10,10 @@ import {
   FaThLarge,
   FaTags,
   FaUsers,
+  FaFolder,
   FaBox,
   FaShoppingBag,
-  FaCreditCard,
+  
   FaTruck,
   FaMapMarkerAlt,
 } from "react-icons/fa";
@@ -87,8 +88,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            {role === "customer" && <SearchBar />}{" "}
-            {/* Show SearchBar only for customers */}
+            {role === "customer" && <SearchBar />}
             {role === "customer" && (
               <Link
                 to="/cart"
@@ -176,8 +176,7 @@ const Navbar: React.FC = () => {
           <div className="mt-3">
             <SearchBar />
           </div>
-        )}{" "}
-        {/* Show SearchBar only for customers */}
+        )}
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -192,6 +191,15 @@ const Navbar: React.FC = () => {
             >
               <FaUsers size={20} />
               <span className="mt-1 truncate">Users</span>
+            </Link>
+            <Link
+              to="/admin/categories"
+              className={`flex flex-col items-center text-xs ${
+                location.pathname === "/admin/categories" ? "text-primary" : ""
+              }`}
+            >
+              <FaFolder size={20} />
+              <span className="mt-1 truncate">Categories</span>
             </Link>
             <Link
               to="/admin/products"
@@ -212,15 +220,6 @@ const Navbar: React.FC = () => {
               <span className="mt-1 truncate">Orders</span>
             </Link>
             <Link
-              to="/admin/payments"
-              className={`flex flex-col items-center text-xs ${
-                location.pathname === "/admin/payments" ? "text-primary" : ""
-              }`}
-            >
-              <FaCreditCard size={20} />
-              <span className="mt-1 truncate">Payments</span>
-            </Link>
-            <Link
               to="/admin/deliveries"
               className={`flex flex-col items-center text-xs ${
                 location.pathname === "/admin/deliveries" ? "text-primary" : ""
@@ -235,22 +234,21 @@ const Navbar: React.FC = () => {
             <Link
               to="/delivery/tasks"
               className={`flex flex-col items-center text-xs ${
-                location.pathname === "/orders" ? "text-primary" : ""
+                location.pathname === "/delivery/tasks" ? "text-primary" : ""
               }`}
             >
               <FiTruck size={20} />
-              <span className="mt-1 truncate">Orders</span>
+              <span className="mt-1 truncate">Tasks</span>
             </Link>
             <Link
               to="/delivery/route"
               className={`flex flex-col items-center text-xs ${
-                location.pathname === "/delivery/tasks" ? "text-primary" : ""
+                location.pathname === "/delivery/route" ? "text-primary" : ""
               }`}
             >
               <FaMapMarkerAlt size={20} />
-              <span className="mt-1 truncate">Tasks</span>
+              <span className="mt-1 truncate">Route</span>
             </Link>
-
             <Link
               to="/profile"
               className={`flex flex-col items-center text-xs ${

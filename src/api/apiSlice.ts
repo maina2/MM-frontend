@@ -321,7 +321,7 @@ export const apiSlice = createApi({
     >({
       query: ({ page = 1, page_size = 10, role } = {}) => ({
         url: "users/manage/users/",
-        params: { page, page_size, role }, 
+        params: { page, page_size, role },
       }),
       providesTags: ["Users"],
     }),
@@ -502,6 +502,92 @@ export const apiSlice = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Products"],
+    }),
+
+    // Admin Category endpoints
+    getAdminCategories: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: Category[];
+      },
+      { page?: number; page_size?: number; search?: string }
+    >({
+      query: ({ page = 1, page_size = 12, search } = {}) => ({
+        url: "manage/categories/",
+        params: {
+          page,
+          page_size,
+          ...(search && { search }),
+        },
+      }),
+      providesTags: ["Categories"],
+    }),
+    createAdminCategory: builder.mutation<
+      Category,
+      {
+        name: string;
+        description?: string;
+        image?: File | string;
+      }
+    >({
+      query: (data) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value instanceof File ? value : String(value));
+          }
+        });
+        return {
+          url: "manage/categories/",
+          method: "POST",
+          body: formData,
+          formData: true,
+        };
+      },
+      invalidatesTags: ["Categories"],
+    }),
+    updateAdminCategory: builder.mutation<
+      Category,
+      {
+        id: number;
+        name?: string;
+        description?: string;
+        image?: File | string;
+      }
+    >({
+      query: ({ id, ...data }) => {
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value instanceof File ? value : String(value));
+          }
+        });
+        return {
+          url: `manage/categories/${id}/`,
+          method: "PATCH", // Using PATCH for partial updates
+          body: formData,
+          formData: true,
+        };
+      },
+      invalidatesTags: ["Categories"],
+    }),
+    deleteAdminCategory: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `manage/categories/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Categories"],
+      transformErrorResponse: (response: {
+        status: number;
+        data?: { error?: string };
+      }) => {
+        if (response.status === 400) {
+          return response.data?.error || "Cannot delete category";
+        }
+        return response;
+      },
     }),
 
     // Order Admin Endpoints
@@ -907,6 +993,10 @@ export const {
   useCreateAdminProductMutation,
   useUpdateAdminProductMutation,
   useDeleteAdminProductMutation,
+  useGetAdminCategoriesQuery, 
+  useCreateAdminCategoryMutation,
+  useUpdateAdminCategoryMutation, 
+  useDeleteAdminCategoryMutation,
   useGetAdminOrdersQuery,
   useGetAdminOrderQuery,
   useCreateAdminOrderMutation,

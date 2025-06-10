@@ -20,6 +20,7 @@ export interface Category {
   name: string;
   description: string;
   image: string | null;
+  created_at?: string;
 }
 
 export interface Branch {

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../store/hooks"; // Assuming you have this custom hook
-import { logout } from "../store/authSlice"; // Assuming you have this action
+import { useAppDispatch } from "../store/hooks";
+import { logout } from "../store/authSlice";
 import {
   FaChartBar,
   FaUsers,
+  FaFolder,
   FaBox,
   FaClipboardList,
   FaMoneyBillWave,
@@ -17,15 +18,8 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 
-// Mock useAppDispatch if not available in this context for testing
-// const useAppDispatch = () => jest.fn();
-// Mock logout action
-// const logout = () => ({ type: 'LOGOUT' });
-
-
 const Sidebar: React.FC = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  // MODIFIED LINE: Set initial state of isCollapsed to true
   const [isCollapsed, setIsCollapsed] = useState(true);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -36,7 +30,7 @@ const Sidebar: React.FC = () => {
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
-    setIsMobileOpen(false); // Close mobile sidebar on logout
+    setIsMobileOpen(false);
   };
 
   const navItems = [
@@ -49,6 +43,11 @@ const Sidebar: React.FC = () => {
       path: "/admin/users",
       label: "Users",
       icon: <FaUsers className={isCollapsed ? "" : "mr-2"} />,
+    },
+    {
+      path: "/admin/categories",
+      label: "Categories",
+      icon: <FaFolder className={isCollapsed ? "" : "mr-2"} />,
     },
     {
       path: "/admin/products",
@@ -93,7 +92,7 @@ const Sidebar: React.FC = () => {
         className={`fixed inset-y-0 left-0 bg-gray-900 text-white transform ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:static ${
-          isCollapsed ? "md:w-16" : "md:w-56" // This will now default to md:w-16
+          isCollapsed ? "md:w-16" : "md:w-56"
         } transition-all duration-300 ease-in-out z-40 md:min-h-screen overflow-y-auto box-border w-56`}
       >
         {/* Header */}
@@ -107,8 +106,7 @@ const Sidebar: React.FC = () => {
               isCollapsed ? "justify-center" : ""
             }`}
           >
-            {/* Consider a smaller or different logo when collapsed if needed */}
-            <FaChartBar className="text-primary" size={isCollapsed ? 24 : 20} /> {/* Adjusted size slightly for example */}
+            <FaChartBar className="text-primary" size={isCollapsed ? 24 : 20} />
             {!isCollapsed && (
               <h2 className="text-xl font-bold ml-2">Admin Panel</h2>
             )}
@@ -117,7 +115,6 @@ const Sidebar: React.FC = () => {
 
         {/* Desktop Collapse Toggle Button */}
         <div className="hidden md:block pt-4">
-          {" "}
           <button
             onClick={toggleCollapse}
             className={`w-full p-3 hover:bg-gray-700 transition-colors duration-200 flex items-center ${
@@ -125,7 +122,7 @@ const Sidebar: React.FC = () => {
             }`}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {isCollapsed ? ( // Icon will now be FaChevronRight by default
+            {isCollapsed ? (
               <FaChevronRight className="text-gray-400" size={16} />
             ) : (
               <FaChevronLeft className="text-gray-400" size={16} />
@@ -143,24 +140,22 @@ const Sidebar: React.FC = () => {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  end={item.path === "/admin"} // Ensure Dashboard is only active on exact match
+                  end={item.path === "/admin"}
                   className={({ isActive }) =>
                     `flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 w-full group relative ${
                       isActive
-                        ? "bg-primary text-white shadow-md" // Ensure 'bg-primary' is defined in your Tailwind config
-                        : "text-gray-300 hover:bg-gray-700 hover:text-primary" // Adjusted non-active text color
+                        ? "bg-primary text-white shadow-md"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-primary"
                     } ${isCollapsed ? "justify-center" : ""}`
                   }
                   onClick={() => {
                     if (isMobileOpen) setIsMobileOpen(false);
                   }}
                   aria-label={item.label}
-                  title={isCollapsed ? item.label : ""} // Tooltip for collapsed state (HTML native)
+                  title={isCollapsed ? item.label : ""}
                 >
                   {item.icon}
-                  {!isCollapsed && <span className="ml-2">{item.label}</span>} {/* Added ml-2 for consistency */}
-
-                  {/* Tooltip for collapsed state */}
+                  {!isCollapsed && <span className="ml-2">{item.label}</span>}
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
                       {item.label}
@@ -180,9 +175,7 @@ const Sidebar: React.FC = () => {
                 title={isCollapsed ? "Logout" : ""}
               >
                 <FaSignOutAlt className={isCollapsed ? "" : "mr-2"} />
-                {!isCollapsed && <span className="ml-2">Logout</span>} {/* Added ml-2 for consistency */}
-
-                {/* Tooltip for collapsed state */}
+                {!isCollapsed && <span className="ml-2">Logout</span>}
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
                     Logout
@@ -200,7 +193,7 @@ const Sidebar: React.FC = () => {
         <div
           className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
           onClick={toggleMobileSidebar}
-          aria-hidden="true" // Added for accessibility
+          aria-hidden="true"
         ></div>
       )}
     </>

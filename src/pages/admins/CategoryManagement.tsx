@@ -1,67 +1,49 @@
 import { useState, useCallback } from "react";
 import {
-  useGetAdminProductsQuery,
-  useCreateAdminProductMutation,
-  useUpdateAdminProductMutation,
-  useDeleteAdminProductMutation,
-  useGetCategoriesQuery,
+  useGetAdminCategoriesQuery,
+  useCreateAdminCategoryMutation,
+  useUpdateAdminCategoryMutation,
+  useDeleteAdminCategoryMutation,
 } from "../../api/apiSlice";
 import { Edit3, Trash2, Plus, X, Save } from "lucide-react";
-import { Product } from "../../types";
+import { Category } from "../../types";
 
 // Define API error type
 interface ApiError {
-  data?: { detail?: string };
+  data?: { detail?: string; error?: string };
   status?: number;
 }
 
-const ProductManagement = () => {
+const CategoryManagement = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<number | "">("");
   const [openModal, setOpenModal] = useState(false);
-  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: "",
-    stock: "",
-    category: "",
-    discount_percentage: "",
     image: null as File | null,
   });
   const [formError, setFormError] = useState("");
 
   const {
-    data: productsData,
+    data: categoriesData,
     isLoading,
     error,
-  } = useGetAdminProductsQuery({
+  } = useGetAdminCategoriesQuery({
     page,
     page_size: 12,
     search: search || undefined,
-    category: categoryFilter || undefined,
   });
-  const { data: categories, isLoading: isCategoriesLoading } =
-    useGetCategoriesQuery();
-  const [createProduct, { isLoading: isCreating }] =
-    useCreateAdminProductMutation();
-  const [updateProduct, { isLoading: isUpdating }] =
-    useUpdateAdminProductMutation();
-  const [deleteProduct] = useDeleteAdminProductMutation();
+  const [createCategory, { isLoading: isCreating }] = useCreateAdminCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] = useUpdateAdminCategoryMutation();
+  const [deleteCategory] = useDeleteAdminCategoryMutation();
 
-  const handleEdit = useCallback((product: Product) => {
-    setEditProduct(product);
+  const handleEdit = useCallback((category: Category) => {
+    setEditCategory(category);
     setFormData({
-      name: product.name || "",
-      description: product.description || "",
-      price: product.price?.toString() || "",
-      stock: product.stock?.toString() || "",
-      category:
-        typeof product.category === "object" && product.category.id
-          ? product.category.id.toString()
-          : product.category?.toString() || "",
-      discount_percentage: product.discount_percentage?.toString() || "",
+      name: category.name || "",
+      description: category.description || "",
       image: null,
     });
     setOpenModal(true);
@@ -69,27 +51,24 @@ const ProductManagement = () => {
 
   const handleDelete = useCallback(
     async (id: number) => {
-      if (window.confirm("Delete this product?")) {
+      if (window.confirm("Delete this category?")) {
         try {
-          await deleteProduct(id).unwrap();
-          alert("Product deleted successfully!");
-        } catch {
-          alert("Failed to delete product");
+          await deleteCategory(id).unwrap();
+          alert("Category deleted successfully!");
+        } catch (err: unknown) {
+          const apiError = err as ApiError;
+          alert(apiError.data?.error || apiError.data?.detail || "Failed to delete category");
         }
       }
     },
-    [deleteProduct]
+    [deleteCategory]
   );
 
   const handleModalOpen = useCallback(() => {
-    setEditProduct(null);
+    setEditCategory(null);
     setFormData({
       name: "",
       description: "",
-      price: "",
-      stock: "",
-      category: "",
-      discount_percentage: "",
       image: null,
     });
     setOpenModal(true);
@@ -123,56 +102,30 @@ const ProductManagement = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setFormError("");
-      if (
-        !formData.name ||
-        !formData.price ||
-        !formData.stock ||
-        !formData.category
-      ) {
-        setFormError("Required fields missing");
-        return;
-      }
-      const priceNum = Number(formData.price);
-      const stockNum = Number(formData.stock);
-      const discountNum = formData.discount_percentage
-        ? Number(formData.discount_percentage)
-        : undefined;
-      if (priceNum <= 0 || stockNum < 0) {
-        setFormError("Invalid price or stock");
-        return;
-      }
-      if (discountNum !== undefined && (discountNum < 0 || discountNum > 100)) {
-        setFormError("Discount must be 0-100");
+      if (!formData.name) {
+        setFormError("Name is required");
         return;
       }
       const payload = {
         name: formData.name,
-        description: formData.description,
-        price: priceNum,
-        stock: stockNum,
-        category: Number(formData.category),
-        discount_percentage: discountNum,
+        description: formData.description || undefined,
         image: formData.image || undefined,
       };
       try {
-        if (editProduct) {
-          await updateProduct({ id: editProduct.id, ...payload }).unwrap();
-          alert("Product updated successfully!");
+        if (editCategory) {
+          await updateCategory({ id: editCategory.id, ...payload }).unwrap();
+          alert("Category updated successfully!");
         } else {
-          await createProduct(payload).unwrap();
-          alert("Product created successfully!");
+          await createCategory(payload).unwrap();
+          alert("Category created successfully!");
         }
         handleModalClose();
       } catch (err: unknown) {
         const apiError = err as ApiError;
-        setFormError(
-          apiError.data && apiError.data.detail
-            ? apiError.data.detail
-            : "Failed to save product"
-        );
+        setFormError(apiError.data?.error || apiError.data?.detail || "Failed to save category");
       }
     },
-    [formData, editProduct, createProduct, updateProduct, handleModalClose]
+    [formData, editCategory, createCategory, updateCategory, handleModalClose]
   );
 
   const handleSearchChange = useCallback(
@@ -183,15 +136,7 @@ const ProductManagement = () => {
     []
   );
 
-  const handleCategoryFilterChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setCategoryFilter(e.target.value ? Number(e.target.value) : "");
-      setPage(1);
-    },
-    []
-  );
-
-  if (isLoading || isCategoriesLoading || !productsData || !categories) {
+  if (isLoading || !categoriesData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
@@ -204,9 +149,7 @@ const ProductManagement = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-          {apiError.data && apiError.data.detail
-            ? apiError.data.detail
-            : "Failed to fetch products"}
+          {apiError.data?.error || apiError.data?.detail || "Failed to fetch categories"}
         </div>
       </div>
     );
@@ -234,14 +177,14 @@ const ProductManagement = () => {
                   />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
             </div>
             <button
               onClick={handleModalOpen}
               className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Product</span>
+              <span>Add Category</span>
             </button>
           </div>
         </div>
@@ -266,63 +209,36 @@ const ProductManagement = () => {
             </svg>
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search categories..."
               value={search}
               onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
-          <div className="flex items-center space-x-3">
-            <svg
-              className="text-gray-500 w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
-              />
-            </svg>
-            <select
-              value={categoryFilter}
-              onChange={handleCategoryFilterChange}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            >
-              <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
-      {/* Products Grid */}
+      {/* Categories Grid */}
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {productsData.results.map((product) => (
+          {categoriesData.results.map((category: Category) => (
             <div
-              key={product.id}
+              key={category.id}
               className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3 flex-1">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {product.name.charAt(0).toUpperCase()}
+                      {category.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-1">
                         <h3 className="font-bold text-gray-900 text-base">
-                          {product.name}
+                          {category.name}
                         </h3>
                         <span className="text-xs text-gray-500">
-                          #{product.id}
+                          #{category.id}
                         </span>
                       </div>
                     </div>
@@ -330,35 +246,17 @@ const ProductManagement = () => {
                 </div>
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center space-x-2 text-gray-600">
-                    <span className="text-sm font-medium">Price:</span>
+                    <span className="text-sm font-medium">Description:</span>
                     <span className="text-sm">
-                      {Number(product.price).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <span className="text-sm font-medium">Stock:</span>
-                    <span className="text-sm">{product.stock}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <span className="text-sm font-medium">Category:</span>
-                    <span className="text-sm">
-                      {typeof product.category === "object" && product.category.name
-                        ? product.category.name
-                        : categories.find((cat) => cat.id === Number(product.category))?.name || "Unknown"}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <span className="text-sm font-medium">Discount:</span>
-                    <span className="text-sm">
-                      {Number(product.discount_percentage) || 0}%
+                      {category.description || "None"}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <span className="text-sm font-medium">Image:</span>
-                    {product.image ? (
+                    {category.image ? (
                       <img
-                        src={product.image}
-                        alt={product.name}
+                        src={category.image}
+                        alt={category.name}
                         className="w-10 h-10 rounded-lg object-cover"
                       />
                     ) : (
@@ -368,16 +266,16 @@ const ProductManagement = () => {
                 </div>
                 <div className="flex items-center justify-end space-x-2">
                   <button
-                    onClick={() => handleEdit(product)}
+                    onClick={() => handleEdit(category)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Edit Product"
+                    title="Edit Category"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => handleDelete(category.id)}
                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete Product"
+                    title="Delete Category"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -397,7 +295,7 @@ const ProductManagement = () => {
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
-                {editProduct ? "Edit Product" : "Add Product"}
+                {editCategory ? "Edit Category" : "Add Category"}
               </h2>
               <button
                 onClick={handleModalClose}
@@ -428,51 +326,6 @@ const ProductManagement = () => {
                 onChange={handleFormChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 rows={3}
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                name="price"
-                value={formData.price}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                required
-                step="0.01"
-              />
-              <input
-                type="number"
-                placeholder="Stock"
-                name="stock"
-                value={formData.stock}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                required
-                min="0"
-              />
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                required
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                placeholder="Discount %"
-                name="discount_percentage"
-                value={formData.discount_percentage}
-                onChange={handleFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
-                min="0"
-                max="100"
-                step="0.01"
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -507,7 +360,7 @@ const ProductManagement = () => {
               >
                 {isCreating || isUpdating ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : editProduct ? (
+                ) : editCategory ? (
                   <>
                     <Save className="w-4 h-4" />
                     <span>Update</span>
@@ -527,4 +380,4 @@ const ProductManagement = () => {
   );
 };
 
-export default ProductManagement;
+export default CategoryManagement;
