@@ -59,7 +59,7 @@ const Login = () => {
           token: response.data.access,
         })
       );
-      if (user.role === "customer") navigate("/");
+      if (user.role === "customer") navigate("/home");
       else if (user.role === "admin") navigate("/admin");
       else if (user.role === "delivery") navigate("/delivery/tasks");
       else navigate("/");

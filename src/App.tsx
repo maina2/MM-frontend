@@ -39,7 +39,7 @@ const App: React.FC = () => {
       <Routes>
         <Route element={<Layout />}>
           {/* Truly Public Routes (accessible by all, including unauthenticated users) */}
-          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/discover" element={<div>Discover Page</div>} />
           <Route path="/wallet" element={<div>Wallet Page</div>} />
           <Route path="/unauthorized" element={<Unauthorized />} />
