@@ -62,7 +62,7 @@ const Login = () => {
       if (user.role === "customer") navigate("/home");
       else if (user.role === "admin") navigate("/admin");
       else if (user.role === "delivery") navigate("/delivery/tasks");
-      else navigate("/home");
+      else navigate("/");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data?.detail || err.response.data?.error || "Invalid username or password.");
