@@ -25,8 +25,8 @@ import {
   Badge,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import { ShoppingBag as ShoppingBagIcon } from "@mui/icons-material";
+import { ReceiptLong as ReceiptLongIcon } from "@mui/icons-material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { RootState } from "../../store/store";

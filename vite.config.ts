@@ -4,6 +4,9 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@mui/material', '@emotion/react', '@emotion/styled']
+  },
   build: {
     rollupOptions: {
       plugins: [
@@ -32,20 +35,7 @@ export default defineConfig({
             return 'vendor-axios';
           }
 
-          // Delivery components
-          if (id.includes('DeliveryRoute') || id.includes('DeliveryTasks') || id.includes('DeliveryDetails') || id.includes('DeliveryManagement')) {
-            return 'chunk-delivery';
-          }
-
-          // Admin components
-          if (id.includes('AdminDashboard') || id.includes('UserManagement') || id.includes('ProductManagement') || id.includes('CategoryManagement') || id.includes('OrderManagement') || id.includes('PaymentManagement') || id.includes('Settings')) {
-            return 'chunk-admin';
-          }
-
-          // Customer components
-          if (id.includes('Cart') || id.includes('Payment') || id.includes('Products') || id.includes('ProductDetail') || id.includes('Categories') || id.includes('CategoryDetail') || id.includes('OrderConfirmation') || id.includes('Checkout') || id.includes('SearchResults') || id.includes('Offers') || id.includes('Orders')) {
-            return 'chunk-customer';
-          }
+          // Your existing chunk logic...
         },
       },
     },
