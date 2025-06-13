@@ -31,7 +31,7 @@ const Login = () => {
   const location = useLocation();
 
   const callbackError = location.state?.error;
-  
+
   // Generate and store OAuth state
   const [oauthState] = useState(() => {
     let storedState = sessionStorage.getItem("oauth_state");
@@ -46,7 +46,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    
+
     try {
       const response = await axios.post(
         "https://mm-backend-8rp8.onrender.com/api/users/login/",
@@ -65,7 +65,11 @@ const Login = () => {
       else navigate("/");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data?.detail || err.response.data?.error || "Invalid username or password.");
+        setError(
+          err.response.data?.detail ||
+            err.response.data?.error ||
+            "Invalid username or password."
+        );
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
@@ -93,29 +97,28 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setError("");
     setIsLoading(true);
-    
+
     try {
       console.log("Storing OAuth state:", oauthState);
-      
+
       // Store state in backend session
       const stateResponse = await axios.post(
-        "https://mm-backend-8rp8.onrender.com/store-state/", 
+        "https://mm-backend-8rp8.onrender.com/store-state/",
         { state: oauthState },
-        { 
+        {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json',
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       console.log("State stored successfully:", stateResponse.data);
-      
+
       // Small delay to ensure state is stored
       setTimeout(() => {
         googleLogin(); // Initiate OAuth flow
       }, 100);
-      
     } catch (error) {
       console.error("Failed to store state:", error);
       setError("Failed to initiate Google login. Please try again.");
@@ -135,18 +138,36 @@ const Login = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
   };
 
   const errorVariants = {
     hidden: { opacity: 0, height: 0, marginBottom: 0 },
-    visible: { opacity: 1, height: "auto", marginBottom: "1rem", transition: { duration: 0.3 } },
-    exit: { opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
+    visible: {
+      opacity: 1,
+      height: "auto",
+      marginBottom: "1rem",
+      transition: { duration: 0.3 },
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      marginBottom: 0,
+      transition: { duration: 0.2 },
+    },
   };
 
   const decorativeSideVariants = {
     hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 } },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 },
+    },
   };
 
   return (
@@ -159,7 +180,10 @@ const Login = () => {
         animate="visible"
       >
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-full overflow-y-auto">
-          <motion.div variants={itemVariants} className="flex items-center justify-center mb-4">
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-center mb-4"
+          >
             <LogIn className="w-8 h-8 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
           </motion.div>
@@ -248,7 +272,14 @@ const Login = () => {
               type="submit"
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              whileHover={!isLoading ? { scale: 1.01, boxShadow: "0px 8px 20px rgba(59, 130, 246, 0.25)" } : {}}
+              whileHover={
+                !isLoading
+                  ? {
+                      scale: 1.01,
+                      boxShadow: "0px 8px 20px rgba(59, 130, 246, 0.25)",
+                    }
+                  : {}
+              }
               whileTap={!isLoading ? { scale: 0.99 } : {}}
             >
               <LogIn size={16} />
@@ -262,7 +293,9 @@ const Login = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-2 text-gray-500">Or sign in with</span>
+                <span className="bg-white px-2 text-gray-500">
+                  Or sign in with
+                </span>
               </div>
             </div>
 
@@ -270,7 +303,14 @@ const Login = () => {
               onClick={handleGoogleLogin}
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 py-2 rounded-xl font-semibold text-gray-900 hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              whileHover={!isLoading ? { scale: 1.01, boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.05)" } : {}}
+              whileHover={
+                !isLoading
+                  ? {
+                      scale: 1.01,
+                      boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.05)",
+                    }
+                  : {}
+              }
               whileTap={!isLoading ? { scale: 0.99 } : {}}
             >
               <FcGoogle size={18} />
@@ -278,14 +318,17 @@ const Login = () => {
             </motion.button>
           </motion.div>
 
-          <motion.p variants={itemVariants} className="mt-4 text-center text-xs text-gray-600">
+          <motion.p
+            variants={itemVariants}
+            className="mt-4 text-center text-xs text-gray-600"
+          >
             Don't have an account?{" "}
             <Link
               to="/register"
               className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all duration-200"
             >
               Sign up
-           </Link>
+            </Link>
           </motion.p>
         </div>
       </motion.div>
@@ -304,7 +347,7 @@ const Login = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            Shop Smart with Muindi Mweusi
+            Shop Smart with Muhindi Mweusi
           </motion.h2>
           <motion.p
             className="text-base text-white/80 mb-6 max-w-md mx-auto"
@@ -312,7 +355,11 @@ const Login = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5 }}
           >
-            Discover unbeatable prices and a wide range of products at Muindi Mweusi Supermarkets, Nairobi's trusted retailer. From Embakasi to Mukuru kwa Njenga, our 13 stores offer quality household goods, fresh bakery items, electronics, and more, empowering budget-conscious shoppers every day.
+            Discover unbeatable prices and a wide range of products at Muhindi
+            Mweusi Supermarkets, Nairobi's trusted retailer. From Embakasi to
+            Mukuru kwa Njenga, our 13 stores offer quality household goods,
+            fresh bakery items, electronics, and more, empowering
+            budget-conscious shoppers every day.
           </motion.p>
           <motion.div
             className="mt-6 space-x-3"
@@ -333,7 +380,12 @@ const Login = () => {
         <motion.div
           className="absolute -bottom-20 -right-10 w-80 h-80 bg-white/10 rounded-lg transform rotate-45 filter blur-xl"
           animate={{ scale: [1, 1.05, 1], rotate: [0, -10, 0] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear", delay: 5 }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 5,
+          }}
         ></motion.div>
       </motion.div>
     </div>

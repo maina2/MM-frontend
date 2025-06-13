@@ -13,7 +13,7 @@ const Home: React.FC = () => {
   } = useGetCategoriesQuery();
 
   const heroSlide = {
-    title: "Muindi Mweusi Supermarket",
+    title: "Muhindi Mweusi Supermarket",
     subtitle: "Quality products, unbeatable prices",
     cta: "Shop Now",
     bgClass: "from-primary to-secondary",

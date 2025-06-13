@@ -17,12 +17,18 @@ const Layout: React.FC = () => {
 
       if (desktopNav) {
         const desktopNavHeight = desktopNav.getBoundingClientRect().height;
-        document.documentElement.style.setProperty("--desktop-nav-height", `${desktopNavHeight}px`);
+        document.documentElement.style.setProperty(
+          "--desktop-nav-height",
+          `${desktopNavHeight}px`
+        );
       }
 
       if (mobileTopNav) {
         const mobileNavHeight = mobileTopNav.getBoundingClientRect().height;
-        document.documentElement.style.setProperty("--mobile-nav-height", `${mobileNavHeight}px`);
+        document.documentElement.style.setProperty(
+          "--mobile-nav-height",
+          `${mobileNavHeight}px`
+        );
       }
     };
 
@@ -39,23 +45,23 @@ const Layout: React.FC = () => {
     updateNavHeight();
     // Small delay to ensure sidebar is rendered
     setTimeout(updateSidebarWidth, 100);
-    
+
     window.addEventListener("resize", updateNavHeight);
     window.addEventListener("resize", updateSidebarWidth);
 
     // Use MutationObserver to detect sidebar width changes
     const sidebar = document.querySelector(".sidebar-container");
     let observer: MutationObserver | null = null;
-    
+
     if (sidebar) {
       observer = new MutationObserver(() => {
         setTimeout(updateSidebarWidth, 50);
       });
-      observer.observe(sidebar, { 
-        attributes: true, 
-        attributeFilter: ['class', 'style'],
+      observer.observe(sidebar, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
         subtree: true,
-        childList: true
+        childList: true,
       });
     }
 
@@ -80,11 +86,11 @@ const Layout: React.FC = () => {
         )}
 
         {/* Content Container */}
-        <div 
+        <div
           className="flex-1 flex flex-col w-full transition-all duration-300 ease-in-out"
-          style={{ 
-            marginLeft: isAdmin ? sidebarWidth : '0',
-            width: isAdmin ? `calc(100% - ${sidebarWidth})` : '100%'
+          style={{
+            marginLeft: isAdmin ? sidebarWidth : "0",
+            width: isAdmin ? `calc(100% - ${sidebarWidth})` : "100%",
           }}
         >
           <Navbar />
@@ -98,38 +104,56 @@ const Layout: React.FC = () => {
 
       {/* Footer - Full Width */}
       <footer className="w-full bg-white border-t border-gray-100 py-8 px-6 md:block hidden">
-        <div 
+        <div
           className="max-w-7xl mx-auto transition-all duration-300 ease-in-out"
-          style={{ 
-            marginLeft: isAdmin ? sidebarWidth : '0',
-            width: isAdmin ? `calc(100% - ${sidebarWidth})` : '100%'
+          style={{
+            marginLeft: isAdmin ? sidebarWidth : "0",
+            width: isAdmin ? `calc(100% - ${sidebarWidth})` : "100%",
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Muindi Mweusi Supermarket</h3>
-              <p className="text-gray-600">Your one-stop shop for quality products at affordable prices.</p>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                Muhindi Mweusi Supermarket
+              </h3>
+              <p className="text-gray-600">
+                Your one-stop shop for quality products at affordable prices.
+              </p>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Quick Links</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                Quick Links
+              </h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="/about" className="text-gray-600 hover:text-primary transition-colors">
+                  <a
+                    href="/about"
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="/contact" className="text-gray-600 hover:text-primary transition-colors">
+                  <a
+                    href="/contact"
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="/faq" className="text-gray-600 hover:text-primary transition-colors">
+                  <a
+                    href="/faq"
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
                     FAQs
                   </a>
                 </li>
                 <li>
-                  <a href="/terms" className="text-gray-600 hover:text-primary transition-colors">
+                  <a
+                    href="/terms"
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
                     Terms & Conditions
                   </a>
                 </li>
@@ -140,13 +164,14 @@ const Layout: React.FC = () => {
               <address className="not-italic text-gray-600">
                 <p>123 Market Street</p>
                 <p>Nairobi, Kenya</p>
-                <p className="mt-2">Email: info@muindimweusi.com</p>
+                <p className="mt-2">Email: info@Muhindimweusi.com</p>
                 <p>Phone: +254 700 123 456</p>
               </address>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-100 text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} Muindi Mweusi Supermarket. Simon Maina Chanzu.
+            © {new Date().getFullYear()} Muhindi Mweusi Supermarket. Simon Maina
+            Chanzu.
           </div>
         </div>
       </footer>
@@ -154,7 +179,7 @@ const Layout: React.FC = () => {
       {/* Mobile Footer */}
       <footer className="w-full bg-white border-t border-gray-100 py-4 px-4 md:hidden block mb-16">
         <div className="text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} Muindi Mweusi Supermarket
+          © {new Date().getFullYear()} Muhindi Mweusi Supermarket
         </div>
       </footer>
     </div>

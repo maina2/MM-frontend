@@ -63,18 +63,36 @@ const Register: React.FC = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
   };
 
   const errorVariants = {
     hidden: { opacity: 0, height: 0, marginBottom: 0 },
-    visible: { opacity: 1, height: "auto", marginBottom: "1rem", transition: { duration: 0.3 } },
-    exit: { opacity: 0, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
+    visible: {
+      opacity: 1,
+      height: "auto",
+      marginBottom: "1rem",
+      transition: { duration: 0.3 },
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      marginBottom: 0,
+      transition: { duration: 0.2 },
+    },
   };
 
   const decorativeSideVariants = {
     hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 } },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.6, ease: "easeInOut", delay: 0.2 },
+    },
   };
 
   return (
@@ -87,8 +105,11 @@ const Register: React.FC = () => {
         animate="visible"
       >
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-full overflow-y-auto">
-          <motion.div variants={itemVariants} className="flex items-center justify-center mb-4">
-            {/* Replace with Muindi Mweusi logo if available */}
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-center mb-4"
+          >
+            {/* Replace with Muhindi Mweusi logo if available */}
             <LogIn className="w-8 h-8 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
           </motion.div>
@@ -106,7 +127,8 @@ const Register: React.FC = () => {
                 <FiAlertTriangle className="text-red-600" size={16} />
                 <span>
                   {"data" in error
-                    ? (error as { data?: { detail?: string } }).data?.detail || "Registration failed"
+                    ? (error as { data?: { detail?: string } }).data?.detail ||
+                      "Registration failed"
                     : "Registration failed"}
                 </span>
               </motion.div>
@@ -190,7 +212,10 @@ const Register: React.FC = () => {
               type="submit"
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-              whileHover={{ scale: 1.01, boxShadow: "0px 8px 20px rgba(59, 130, 246, 0.25)" }}
+              whileHover={{
+                scale: 1.01,
+                boxShadow: "0px 8px 20px rgba(59, 130, 246, 0.25)",
+              }}
               whileTap={{ scale: 0.99 }}
             >
               <LogIn size={16} />
@@ -204,14 +229,19 @@ const Register: React.FC = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+                <span className="bg-white px-2 text-gray-500">
+                  Or sign up with
+                </span>
               </div>
             </div>
 
             <motion.button
               onClick={() => googleLogin()}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 py-2 rounded-xl font-semibold text-gray-900 hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm"
-              whileHover={{ scale: 1.01, boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.05)" }}
+              whileHover={{
+                scale: 1.01,
+                boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.05)",
+              }}
               whileTap={{ scale: 0.99 }}
             >
               <FcGoogle size={18} />
@@ -219,7 +249,10 @@ const Register: React.FC = () => {
             </motion.button>
           </motion.div>
 
-          <motion.p variants={itemVariants} className="mt-4 text-center text-xs text-gray-600">
+          <motion.p
+            variants={itemVariants}
+            className="mt-4 text-center text-xs text-gray-600"
+          >
             Already have an account?{" "}
             <a
               href="/login"
@@ -245,7 +278,7 @@ const Register: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            Shop Smart with Muindi Mweusi
+            Shop Smart with Muhindi Mweusi
           </motion.h2>
           <motion.p
             className="text-base text-white/80 mb-6 max-w-md mx-auto"
@@ -253,7 +286,11 @@ const Register: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5 }}
           >
-            Discover unbeatable prices and a wide range of products at Muindi Mweusi Supermarkets, Nairobi’s trusted retailer. From Embakasi to Mukuru kwa Njenga, our 13 stores offer quality household goods, fresh bakery items, electronics, and more, empowering budget-conscious shoppers every day.
+            Discover unbeatable prices and a wide range of products at Muhindi
+            Mweusi Supermarkets, Nairobi’s trusted retailer. From Embakasi to
+            Mukuru kwa Njenga, our 13 stores offer quality household goods,
+            fresh bakery items, electronics, and more, empowering
+            budget-conscious shoppers every day.
           </motion.p>
           <motion.div
             className="mt-6 space-x-3"
@@ -274,7 +311,12 @@ const Register: React.FC = () => {
         <motion.div
           className="absolute -bottom-20 -right-10 w-80 h-80 bg-white/10 rounded-lg transform rotate-45 filter blur-xl"
           animate={{ scale: [1, 1.05, 1], rotate: [0, -10, 0] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear", delay: 5 }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 5,
+          }}
         ></motion.div>
       </motion.div>
     </div>

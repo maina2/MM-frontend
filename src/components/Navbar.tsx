@@ -13,7 +13,6 @@ import {
   FaFolder,
   FaBox,
   FaShoppingBag,
-  
   FaTruck,
   FaMapMarkerAlt,
 } from "react-icons/fa";
@@ -42,7 +41,7 @@ const Navbar: React.FC = () => {
       <nav className="hidden md:block bg-white text-gray-800 shadow-md py-4 fixed top-0 left-0 w-full z-[1200] desktop-navbar">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-primary">
-            Muindi Mweusi
+            Muhindi Mweusi
           </Link>
           <div className="flex space-x-6">
             {role === "customer" && (
@@ -154,7 +153,7 @@ const Navbar: React.FC = () => {
       <div className="md:hidden fixed top-0 left-0 w-full bg-white text-gray-800 shadow-sm z-[1200] px-4 py-3 mobile-top-navbar">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-xl font-bold text-primary">
-            Muindi Mweusi
+            Muhindi Mweusi
           </Link>
           <div className="flex items-center space-x-5">
             {role === "customer" && (

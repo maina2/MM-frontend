@@ -281,7 +281,10 @@ const App: React.FC = () => {
           {/* Routes without Layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          {/* ADDED: Google OAuth callback routes */}
           <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <Route path="/google-callback" element={<GoogleCallback />} />
         </Routes>
       </Router>
     </ThemeProvider>

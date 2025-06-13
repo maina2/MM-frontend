@@ -23,8 +23,12 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
         <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-2">Access Denied</h3>
-          <p className="text-gray-600">This area is restricted to admin users only.</p>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+            Access Denied
+          </h3>
+          <p className="text-gray-600">
+            This area is restricted to admin users only.
+          </p>
         </div>
       </div>
     );
@@ -41,7 +45,9 @@ const AdminDashboard: React.FC = () => {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <p className="text-red-600 text-center">Error loading stats. Please try again.</p>
+        <p className="text-red-600 text-center">
+          Error loading stats. Please try again.
+        </p>
       </div>
     );
   }
@@ -51,12 +57,12 @@ const AdminDashboard: React.FC = () => {
       <main>
         {/* Welcome Section */}
         <div className="mb-10 text-center">
- 
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome, {user.username || "Admin"}!
           </h1>
           <p className="text-gray-600 mt-2 text-lg">
-            Ready to manage your Muindi Mweusi supermarket? Use the sidebar to explore.
+            Ready to manage your Muhindi Mweusi supermarket? Use the sidebar to
+            explore.
           </p>
         </div>
 
@@ -68,8 +74,12 @@ const AdminDashboard: React.FC = () => {
                 <FaUsers size={24} />
               </div>
               <div className="ml-4">
-                <h3 className="text-gray-500 text-sm font-medium">Total Customers</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.users || 0}</p>
+                <h3 className="text-gray-500 text-sm font-medium">
+                  Total Customers
+                </h3>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats?.users || 0}
+                </p>
               </div>
             </div>
           </div>
@@ -80,7 +90,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h3 className="text-gray-500 text-sm font-medium">Products</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.products || 0}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats?.products || 0}
+                </p>
               </div>
             </div>
           </div>
@@ -91,7 +103,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h3 className="text-gray-500 text-sm font-medium">Orders</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.orders || 0}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats?.orders || 0}
+                </p>
               </div>
             </div>
           </div>
@@ -103,7 +117,8 @@ const AdminDashboard: React.FC = () => {
             Navigate to{" "}
             <span className="font-semibold text-blue-600">Users</span>,{" "}
             <span className="font-semibold text-blue-600">Products</span>, or{" "}
-            <span className="font-semibold text-blue-600">Orders</span> in the sidebar to get started.
+            <span className="font-semibold text-blue-600">Orders</span> in the
+            sidebar to get started.
           </p>
         </div>
       </main>
