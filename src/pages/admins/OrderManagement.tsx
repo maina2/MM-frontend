@@ -5,10 +5,11 @@ import {
   useUpdateAdminOrderMutation,
   useDeleteAdminOrderMutation,
   useGetAdminProductsQuery,
+  useGetAdminBranchesQuery, // Add branch query
 } from '../../api/apiSlice';
 import { Edit3, Trash2, Plus, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { Order, Product } from '../../types';
+import { Order, Product, Branch } from '../../types';
 
 const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 const pageSize = 12;
@@ -24,12 +25,14 @@ const OrderManagement = () => {
     status: string;
     payment_phone_number: string;
     items: { product_id: string; quantity: string }[];
+    branch_name: string; // Use branch name for UI
   }>({
     status: '',
     payment_phone_number: '',
     items: [{ product_id: '', quantity: '' }],
+    branch_name: '',
   });
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState<string | { [key: string]: string[] }>('');
 
   const { data: ordersData, isLoading, error } = useGetAdminOrdersQuery({
     page,
@@ -37,6 +40,7 @@ const OrderManagement = () => {
     search: search || undefined,
   });
   const { data: productsData, isLoading: areProductsLoading } = useGetAdminProductsQuery({});
+  const { data: branchesData, isLoading: areBranchesLoading } = useGetAdminBranchesQuery({}); // Fetch branches
   const [createOrder, { isLoading: isCreating }] = useCreateAdminOrderMutation();
   const [updateOrder, { isLoading: isUpdating }] = useUpdateAdminOrderMutation();
   const [deleteOrder] = useDeleteAdminOrderMutation();
@@ -51,6 +55,7 @@ const OrderManagement = () => {
         product_id: item.product.id.toString(),
         quantity: item.quantity.toString(),
       })),
+      branch_name: typeof order.branch === 'string' ? order.branch : '', // Use branch name
     });
     setOpenModal(true);
   }, []);
@@ -76,6 +81,7 @@ const OrderManagement = () => {
       status: 'pending',
       payment_phone_number: '',
       items: [{ product_id: '', quantity: '' }],
+      branch_name: '',
     });
     setOpenModal(true);
   }, []);
@@ -122,14 +128,20 @@ const OrderManagement = () => {
         setFormError('Phone number must be in format +2547XXXXXXXX');
         return;
       }
-      if (isCreate) {
-        if (
-          !formData.items.length ||
-          formData.items.some((item) => !item.product_id || !item.quantity || Number(item.quantity) <= 0)
-        ) {
-          setFormError('At least one valid item is required');
-          return;
-        }
+      if (isCreate && (!formData.items.length || formData.items.some((item) => !item.product_id || !item.quantity || Number(item.quantity) <= 0))) {
+        setFormError('At least one valid item is required');
+        return;
+      }
+      if (!formData.branch_name) {
+        setFormError('Branch is required');
+        return;
+      }
+
+      // Map branch_name to branch_id
+      const selectedBranch = branchesData?.results.find((branch: Branch) => branch.name === formData.branch_name);
+      if (!selectedBranch && (isCreate || editOrder)) {
+        setFormError('Invalid branch selected');
+        return;
       }
 
       try {
@@ -141,6 +153,7 @@ const OrderManagement = () => {
               product_id: Number(item.product_id),
               quantity: Number(item.quantity),
             })),
+            branch_id: selectedBranch?.id, // Use branch_id
           };
           await createOrder(createPayload).unwrap();
           alert('Order created successfully!');
@@ -149,16 +162,21 @@ const OrderManagement = () => {
             id: editOrder.id,
             status: formData.status,
             payment_phone_number: formData.payment_phone_number || undefined,
+            branch_id: selectedBranch?.id, // Use branch_id
           };
           await updateOrder(updatePayload).unwrap();
           alert('Order updated successfully!');
         }
         handleModalClose();
       } catch (err: any) {
-        setFormError(err.data?.detail || 'Failed to save order');
+        if (err.data && typeof err.data === 'object') {
+          setFormError(err.data); // Display field-specific errors
+        } else {
+          setFormError(err.data?.detail || 'Failed to save order');
+        }
       }
     },
-    [formData, isCreate, editOrder, createOrder, updateOrder, handleModalClose]
+    [formData, isCreate, editOrder, createOrder, updateOrder, handleModalClose, branchesData]
   );
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +189,7 @@ const OrderManagement = () => {
     setPage(1);
   }, []);
 
-  if (isLoading || areProductsLoading || !ordersData || !productsData) {
+  if (isLoading || areProductsLoading || areBranchesLoading || !ordersData || !productsData || !branchesData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
@@ -390,7 +408,15 @@ const OrderManagement = () => {
             <form onSubmit={handleSubmit}>
               <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
                 {formError && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">{formError}</div>
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-lg">
+                    {typeof formError === 'string' ? (
+                      formError
+                    ) : (
+                      Object.entries(formError).map(([key, errors]) => (
+                        <p key={key}>{`${key}: ${errors.join(', ')}`}</p>
+                      ))
+                    )}
+                  </div>
                 )}
                 <select
                   name="status"
@@ -414,6 +440,20 @@ const OrderManagement = () => {
                   placeholder="Phone Number (+2547XXXXXXXX)"
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
                 />
+                <select
+                  name="branch_name"
+                  value={formData.branch_name}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-colors"
+                  required
+                >
+                  <option value="">Select Branch</option>
+                  {branchesData?.results?.map((branch: Branch) => (
+                    <option key={branch.id} value={branch.name}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
                 {isCreate && (
                   <>
                     <p className="text-lg font-medium text-gray-800 pt-2">Order Items</p>

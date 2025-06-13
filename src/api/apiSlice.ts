@@ -342,6 +342,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["Users"],
     }),
+    // apiSlice.ts
     updateAdminUser: builder.mutation<
       User,
       {
@@ -350,11 +351,13 @@ export const apiSlice = createApi({
         email?: string;
         role?: Role;
         phone_number?: string;
+        is_active?: boolean;
+        password?: string;
       }
     >({
       query: ({ id, ...data }) => ({
         url: `users/manage/users/${id}/`,
-        method: "PUT",
+        method: "PATCH",
         body: data,
       }),
       invalidatesTags: ["Users"],
@@ -650,11 +653,12 @@ export const apiSlice = createApi({
         payment_status?: string;
         payment_phone_number?: string;
         items?: { product_id: number; quantity: number }[];
+        branch_id?: number;
       }
     >({
       query: ({ id, ...data }) => ({
         url: `manage/orders/${id}/`,
-        method: "PUT",
+        method: "PATCH",
         body: data,
       }),
       invalidatesTags: ["Orders"],
@@ -993,9 +997,9 @@ export const {
   useCreateAdminProductMutation,
   useUpdateAdminProductMutation,
   useDeleteAdminProductMutation,
-  useGetAdminCategoriesQuery, 
+  useGetAdminCategoriesQuery,
   useCreateAdminCategoryMutation,
-  useUpdateAdminCategoryMutation, 
+  useUpdateAdminCategoryMutation,
   useDeleteAdminCategoryMutation,
   useGetAdminOrdersQuery,
   useGetAdminOrderQuery,

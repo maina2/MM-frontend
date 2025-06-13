@@ -155,47 +155,50 @@ const UserManagement = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
+const handleSubmit = async () => {
+  if (!validateForm()) return;
 
-    try {
-      if (isEditMode && formData.id) {
-        const updatePayload: {
-          id: number;
-          username?: string;
-          email?: string;
-          role?: Role;
-          phone_number?: string;
-          password?: string;
-        } = {
-          id: formData.id,
-          username: formData.username,
-          email: formData.email,
-          role: formData.role as Role,
-          phone_number: formData.phone_number || undefined,
-        };
-        if (formData.password) updatePayload.password = formData.password;
-        await updateUser(updatePayload).unwrap();
-        showNotification("User updated successfully!");
-      } else {
-        const createPayload = {
-          username: formData.username,
-          email: formData.email,
-          password: formData.password!,
-          role: formData.role as Role,
-          phone_number: formData.phone_number || undefined,
-        };
-        await createUser(createPayload).unwrap();
-        showNotification("User created successfully!");
-      }
-      setIsModalOpen(false);
-    } catch (error: any) {
-      const message =
-        error?.data?.detail ||
-        (isEditMode ? "Failed to update user" : "Failed to create user");
-      showNotification(message, "error");
+  try {
+    if (isEditMode && formData.id) {
+      const updatePayload = {
+        id: formData.id,
+        username: formData.username,
+        email: formData.email,
+        role: formData.role as Role,
+        phone_number: formData.phone_number || undefined,
+        is_active: true,
+        ...(formData.password && { password: formData.password }),
+      };
+      await updateUser(updatePayload).unwrap();
+      showNotification("User updated successfully!");
+    } else {
+      const createPayload = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password!,
+        role: formData.role as Role,
+        phone_number: formData.phone_number || undefined,
+      };
+      await createUser(createPayload).unwrap();
+      showNotification("User created successfully!");
     }
-  };
+    setIsModalOpen(false);
+  } catch (error: any) {
+    let message = "An error occurred";
+    if (error?.data) {
+      if (error.data.detail) {
+        message = error.data.detail;
+      } else {
+        // Handle field-specific errors
+        const fieldErrors = Object.entries(error.data)
+          .map(([field, errors]) => `${field}: ${(errors as string[]).join(", ")}`)
+          .join("; ");
+        message = fieldErrors || "Failed to update user";
+      }
+    }
+    showNotification(message, "error");
+  }
+};
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
