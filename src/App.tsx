@@ -57,50 +57,7 @@ const App: React.FC = () => {
             <Route path="/discover" element={<div>Discover Page</div>} />
             <Route path="/wallet" element={<div>Wallet Page</div>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-
-            {/* Customer-Protected Routes */}
-            <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
-              <Route
-                path="/cart"
-                element={
-                  <Suspense fallback={<div>Loading Cart...</div>}>
-                    <Cart />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/payment/:orderId"
-                element={
-                  <Suspense fallback={<div>Loading Payment...</div>}>
-                    <Payment />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/checkout"
-                element={
-                  <Suspense fallback={<div>Loading Checkout...</div>}>
-                    <Checkout />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/order-confirmation/:orderId"
-                element={
-                  <Suspense fallback={<div>Loading Order Confirmation...</div>}>
-                    <OrderConfirmation />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <Suspense fallback={<div>Loading Orders...</div>}>
-                    <Orders />
-                  </Suspense>
-                }
-              />
-              <Route
+                          <Route
                 path="/products"
                 element={
                   <Suspense fallback={<div>Loading Products...</div>}>
@@ -148,6 +105,50 @@ const App: React.FC = () => {
                   </Suspense>
                 }
               />
+
+            {/* Customer-Protected Routes */}
+            <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+              <Route
+                path="/cart"
+                element={
+                  <Suspense fallback={<div>Loading Cart...</div>}>
+                    <Cart />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/payment/:orderId"
+                element={
+                  <Suspense fallback={<div>Loading Payment...</div>}>
+                    <Payment />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <Suspense fallback={<div>Loading Checkout...</div>}>
+                    <Checkout />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/order-confirmation/:orderId"
+                element={
+                  <Suspense fallback={<div>Loading Order Confirmation...</div>}>
+                    <OrderConfirmation />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <Suspense fallback={<div>Loading Orders...</div>}>
+                    <Orders />
+                  </Suspense>
+                }
+              />
+
             </Route>
 
             {/* Profile Route */}
