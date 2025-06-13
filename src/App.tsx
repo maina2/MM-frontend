@@ -9,7 +9,6 @@ import Login from "./pages/shared/Login";
 import Register from "./pages/shared/Register";
 import Unauthorized from "./pages/shared/Unauthorized";
 import ErrorBoundary from "./components/ErrorBoundary";
-import AuthSuccess from "./pages/shared/AuthSucces";
 import GoogleCallback from "./pages/shared/GoogleCallback";
 
 // Create MUI theme
@@ -282,7 +281,6 @@ const App: React.FC = () => {
           {/* Routes without Layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/auth/success" element={<AuthSuccess />} />
           <Route path="/auth/google/callback" element={<GoogleCallback />} />
         </Routes>
       </Router>
