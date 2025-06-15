@@ -56,7 +56,7 @@ const OrderManagement = () => {
         product_id: item.product.id.toString(),
         quantity: item.quantity.toString(),
       })),
-      branch_name: typeof order.branch === 'string' ? order.branch : order.branch?.name || '',
+      branch_name: order.branch, // Use branch string directly
     });
     setOpenModal(true);
   }, []);
@@ -353,7 +353,7 @@ const OrderManagement = () => {
                         <ul className="list-disc list-inside text-sm pl-2">
                           {order.items.map((item) => (
                             <li key={item.id}>
-                              {item.product?.name || 'Unknown Product'} x {item.quantity}
+                              {item.product?.name || 'Unknown Product'} x {item.quantity} @ ${Number(item.price).toFixed(2)}
                             </li>
                           ))}
                         </ul>
@@ -362,7 +362,7 @@ const OrderManagement = () => {
                       <p className="text-sm font-medium text-gray-500">No items</p>
                     )}
                     <p className="text-sm font-medium">
-                      Branch: <span className="font-normal">{typeof order.branch === 'string' ? order.branch : order.branch?.name || 'N/A'}</span>
+                      Branch: <span className="font-normal">{order.branch || 'N/A'}</span>
                     </p>
                   </div>
                   <div className="flex items-center justify-end space-x-2">
