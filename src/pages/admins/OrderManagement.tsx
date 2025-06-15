@@ -335,7 +335,7 @@ const OrderManagement = () => {
                   </div>
                   <div className="space-y-2 mb-4 text-gray-600">
                     <p className="text-sm font-medium">
-                      Total: <span className="font-normal">${Number(order.total_amount).toFixed(2)}</span>
+                      Total: <span className="font-normal">{Number(order.total_amount).toFixed(2)}</span>
                     </p>
                     <p className="text-sm font-medium">
                       Status: <span className="font-normal capitalize">{order.status}</span>
@@ -354,7 +354,7 @@ const OrderManagement = () => {
                         <ul className="list-disc list-inside text-sm pl-2">
                           {order.items.map((item) => (
                             <li key={item.id}>
-                              {item.product?.name || 'Unknown Product'} x {item.quantity} @ ${Number(item.price).toFixed(2)}
+                              {item.product?.name || 'Unknown Product'} x {item.quantity} @ {Number(item.price).toFixed(2)}
                             </li>
                           ))}
                         </ul>

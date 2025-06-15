@@ -219,7 +219,7 @@ const PaymentManagement = () => {
                     </h3>
                   </div>
                   <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
-                    ${Number(payment.amount).toFixed(2)}
+                    {Number(payment.amount).toFixed(2)}
                   </span>
                 </div>
                 <div className="space-y-2 mb-4 text-gray-600">

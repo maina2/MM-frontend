@@ -37,42 +37,42 @@ const Sidebar: React.FC = () => {
     {
       path: "/admin",
       label: "Dashboard",
-      icon: <FaChartBar className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaChartBar className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/users",
       label: "Users",
-      icon: <FaUsers className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaUsers className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/categories",
       label: "Categories",
-      icon: <FaFolder className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaFolder className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/products",
       label: "Products",
-      icon: <FaBox className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaBox className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/orders",
       label: "Orders",
-      icon: <FaClipboardList className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaClipboardList className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/payments",
       label: "Payments",
-      icon: <FaMoneyBillWave className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaMoneyBillWave className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/deliveries",
       label: "Deliveries",
-      icon: <FaTruck className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaTruck className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
     {
       path: "/admin/settings",
       label: "Settings",
-      icon: <FaCog className={isCollapsed ? "" : "mr-2"} />,
+      icon: <FaCog className={isCollapsed ? "" : "mr-3"} size={20} />,
     },
   ];
 
@@ -106,7 +106,7 @@ const Sidebar: React.FC = () => {
               isCollapsed ? "justify-center" : ""
             }`}
           >
-            <FaChartBar className="text-primary" size={isCollapsed ? 24 : 20} />
+            <FaChartBar className="text-primary" size={isCollapsed ? 28 : 24} />
             {!isCollapsed && (
               <h2 className="text-xl font-bold ml-2">Admin Panel</h2>
             )}
@@ -123,9 +123,9 @@ const Sidebar: React.FC = () => {
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
-              <FaChevronRight className="text-gray-400" size={16} />
+              <FaChevronRight className="text-gray-400" size={18} />
             ) : (
-              <FaChevronLeft className="text-gray-400" size={16} />
+              <FaChevronLeft className="text-gray-400" size={18} />
             )}
           </button>
         </div>
@@ -135,14 +135,14 @@ const Sidebar: React.FC = () => {
           className={`mt-2 ${isCollapsed ? "px-1" : "px-2"}`}
           aria-label="Admin navigation"
         >
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
                   end={item.path === "/admin"}
                   className={({ isActive }) =>
-                    `flex items-center px-3 py-2 rounded-lg text-sm transition-all duration-200 w-full group relative ${
+                    `flex items-center px-3 py-3 rounded-lg text-sm transition-all duration-200 w-full group relative ${
                       isActive
                         ? "bg-primary text-white shadow-md"
                         : "text-gray-300 hover:bg-gray-700 hover:text-primary"
@@ -155,7 +155,7 @@ const Sidebar: React.FC = () => {
                   title={isCollapsed ? item.label : ""}
                 >
                   {item.icon}
-                  {!isCollapsed && <span className="ml-2">{item.label}</span>}
+                  {!isCollapsed && <span className="ml-3">{item.label}</span>}
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
                       {item.label}
@@ -168,14 +168,14 @@ const Sidebar: React.FC = () => {
             <li>
               <button
                 onClick={handleLogout}
-                className={`flex items-center w-full px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-primary transition-all duration-200 group relative ${
+                className={`flex items-center w-full px-3 py-3 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-primary transition-all duration-200 group relative ${
                   isCollapsed ? "justify-center" : ""
                 }`}
                 aria-label="Logout"
                 title={isCollapsed ? "Logout" : ""}
               >
-                <FaSignOutAlt className={isCollapsed ? "" : "mr-2"} />
-                {!isCollapsed && <span className="ml-2">Logout</span>}
+                <FaSignOutAlt className={isCollapsed ? "" : "mr-3"} size={20} />
+                {!isCollapsed && <span className="ml-3">Logout</span>}
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 hidden md:block">
                     Logout
