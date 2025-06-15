@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import {
   useGetAdminOrdersQuery,
   useCreateAdminOrderMutation,
@@ -56,7 +57,7 @@ const OrderManagement = () => {
         product_id: item.product.id.toString(),
         quantity: item.quantity.toString(),
       })),
-      branch_name: order.branch, // Use branch string directly
+      branch_name: order.branch, // branch is now string
     });
     setOpenModal(true);
   }, []);

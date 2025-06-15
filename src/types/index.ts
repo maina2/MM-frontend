@@ -85,7 +85,7 @@ export interface Order {
   created_at: string;
   updated_at: string;
   items: OrderItem[];
-  branch: Branch | number | string;
+  branch: string;
 }
 
 // Payment type - also update the status field to use PaymentStatus
