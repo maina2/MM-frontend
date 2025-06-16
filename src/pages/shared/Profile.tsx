@@ -1,21 +1,39 @@
+import React from 'react'
 import { useState, FormEvent, ChangeEvent, MouseEvent } from "react";
 import { LogOut, Save } from "lucide-react";
+import { useGetProfileQuery, useUpdateProfileMutation } from "../../api/apiSlice";
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const ProfileComponent = () => {
-  const [profile, setProfile] = useState({
-    username: "johndoe",
-    email: "john.doe@example.com",
-    phone_number: "+1234567890",
-  });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Fetch profile data
+  const { data: profile, isLoading, error: profileError } = useGetProfileQuery();
+  
+  // Update profile mutation
+  const [updateProfile, { isLoading: isUpdating, error: updateError }] = useUpdateProfileMutation();
 
+  // Initialize form data when profile is loaded
   const [formData, setFormData] = useState({
-    email: profile.email,
-    phone_number: profile.phone_number,
+    email: profile?.email || "",
+    phone_number: profile?.phone_number || "",
   });
-
+  
   const [formErrors, setFormErrors] = useState({ email: "", phone_number: "" });
-  const [isUpdating, setIsUpdating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Sync form data when profile changes
+  React.useEffect(() => {
+    if (profile) {
+      setFormData({
+        email: profile.email,
+        phone_number: profile.phone_number || "",
+      });
+    }
+  }, [profile]);
 
   const validateForm = () => {
     let valid = true;
@@ -45,27 +63,43 @@ const ProfileComponent = () => {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
-      setIsUpdating(true);
-      setTimeout(() => {
-        setProfile({
-          ...profile,
+      try {
+        await updateProfile({
           email: formData.email,
-          phone_number: formData.phone_number,
-        });
-        setIsUpdating(false);
+          phone_number: formData.phone_number || null,
+        }).unwrap();
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 3000);
-      }, 1000);
+      } catch (error) {
+        console.error("Profile update failed:", error);
+      }
     }
   };
 
   const handleLogout = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    alert("Logout clicked");
+    dispatch(logout());
+    navigate("/login");
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="text-center text-error">Error loading profile</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 animate-fadeIn">
@@ -83,7 +117,7 @@ const ProfileComponent = () => {
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-wide">{profile.username || "User Profile"}</h1>
+            <h1 className="text-2xl font-bold tracking-wide">{profile?.username || "User Profile"}</h1>
           </div>
         </div>
 
@@ -107,12 +141,27 @@ const ProfileComponent = () => {
             </div>
           )}
 
+          {updateError && (
+            <div className="mb-6 bg-error/10 border-l-4 border-error p-4 rounded-md animate-slideUp">
+              <div className="flex">
+                <div className="flex-shrink-0 text-error">
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-error font-medium">Failed to update profile</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             {/* Username field */}
             <div className="relative transform hover:-translate-y-1 transition-transform duration-300">
               <input
                 type="text"
-                value={profile.username || ""}
+                value={profile?.username || ""}
                 disabled
                 className="bg-gray-50 border border-gray-300 text-primary text-sm rounded-lg block w-full p-3 shadow-sm"
               />
